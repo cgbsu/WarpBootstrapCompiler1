@@ -4,7 +4,7 @@ project(WarpBootstrapCompiler)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 
-add_compile_options(-fconstexpr-ops-limit=3355443299)#-g  -ggdb) #-fsanitize=leak) #-fsanitize=address)
+add_compile_options(-fconstexpr-ops-limit=3355443299 -fconstexpr-depth=1024)#-g  -ggdb) #-fsanitize=leak) #-fsanitize=address)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
