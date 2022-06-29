@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <charconv>
 #include <ctpg/ctpg.hpp>
 
@@ -38,18 +39,34 @@ consteval auto values()
 		);
 }
 
+consteval auto sums()
+{
+	return ctpg::rules(
+			value(value, '+', value)
+				>= [](const auto left, auto, const auto right) {
+					return left + right;
+				}, 
+			value(value, '-', value)
+				>= [](const auto left, auto, const auto right) {
+					return left - right;
+				}
+		);
+}
+
 
 constexpr ctpg::parser p( 
 		value, 
 		ctpg::terms( 
 			natural, 
 			'*', 
-			'/'
+			'/', 
+			'+', 
+			'-'
 		), 
 		ctpg::nterms( 
 			value 
 		), 
-		values()
+		std::tuple_cat(values(), sums())
 	);
 
 int main(int argc, char** args)
