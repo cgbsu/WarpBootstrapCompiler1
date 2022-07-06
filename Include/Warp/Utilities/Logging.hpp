@@ -1,5 +1,7 @@
 #include <Warp/Utilities/Conversions.hpp>
 
+#ifndef WARP__UTILITIES__HEADER__UTILITIES__LOGGING__HPP
+#define WARP__UTILITIES__HEADER__UTILITIES__LOGGING__HPP
 namespace Warp::Utilities
 {
 	enum class LogType
@@ -24,8 +26,9 @@ namespace Warp::Utilities
 		
 		template<
 				auto LogTypeParameterConstant, 
-				bool VerboseParameterConstant, 
-				bool LogSourceLocationParameterConstant
+				bool LogFunctionSignitureParameterConstant = true, 
+				bool LogSourceLocationParameterConstant = false, 
+				bool EnableDebuggingParameterConstant
 			>
 		void log(
 				auto& log, 
@@ -33,36 +36,42 @@ namespace Warp::Utilities
 				auto... to_log
 			)
 		{
-			log << enum_string<LogTypeParameterConstant> << "::";
-			if constexpr(LogSourceLocationParameterConstant == true)
+			if constexpr((LogTypeParameterConstant == LogType::Debug 
+					&& EnableDebuggingParameterConstant == true)
+					|| LogTypeParameterConstant != LogType::Debug)
 			{
-				if constexpr(VerboseParameterConstant == true)
+				log << enum_string<LogTypeParameterConstant> << "::";
+				if constexpr(LogSourceLocationParameterConstant == true)
 				{
 					log << location.file_name() 
 						<< "[" << location.line() << "]" 
 						<< "[" << location.column() << "]";
 				}
-				log << location.function_name() << ": ";
+				if constexpr(LogFunctionSignitureParameterConstant == true)
+					log << location.function_name() << ": ";
+				(log << ... << to_log); 
+				log << "\n";
 			}
-			(log << ... << to_log); 
-			log << "\n";
 		}
 	}
 	template<
 			auto LogTypeParameterConstant, 
-			bool VerboseParameterConstant = false, 
-			bool LogSourceLocationParameterConstant = true
+			bool LogFunctionSignitureParameterConstant = true, 
+			bool LogSourceLocationParameterConstant = false, 
+			bool EnableDebuggingParameterConstant = Warp::Utilities::Detail::debug
 		>
 	struct Log
 	{
-		Log(std::source_location location = std::source_location::current()) : location(location) {}
+		Log(std::source_location location = std::source_location::current()) 
+				: location(location) {}
 
 		void operator[](auto& log, auto... to_log)
 		{
 			Warp::Utilities::Detail::log<
 					LogTypeParameterConstant, 
-					VerboseParameterConstant, 
-					LogSourceLocationParameterConstant
+					LogFunctionSignitureParameterConstant, 
+					LogSourceLocationParameterConstant, 
+					EnableDebuggingParameterConstant
 				>(log, location, to_log... );
 		}
 
@@ -70,4 +79,5 @@ namespace Warp::Utilities
 			std::source_location location;
 	};
 }
+#endif // WARP__UTILITIES__HEADER__UTILITIES__LOGGING__HPP
 

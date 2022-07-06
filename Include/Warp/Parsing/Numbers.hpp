@@ -1,0 +1,11 @@
+#include <Warp/Common.hpp>
+
+#ifndef WARP__UTILITIES__HEADER__PARSING__NUMBERS__HPP
+#define WARP__UTILITIES__HEADER__PARSING__NUMBERS__HPP
+
+namespace Warp::Parsing
+{
+}
+
+#endif WARP__UTILITIES__HEADER__PARSING__NUMBERS__HPP
+

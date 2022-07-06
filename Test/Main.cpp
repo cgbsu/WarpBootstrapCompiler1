@@ -1,10 +1,12 @@
-#include <Warp/Utilities/Logging.hpp>
+#include <Warp/Utilities.hpp>
 
 using namespace Warp::Utilities;
 
+constexpr static const char test[] = "ABC123";
 int main(int argc, char** args)
 {
-	Log<LogType::Warning>()[std::cout, "Hello"];
+	using X = TemplateStringType<test>;
+	std::cout << X::string << "\n";
 	return 0;
 }
 

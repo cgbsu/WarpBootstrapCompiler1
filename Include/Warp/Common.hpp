@@ -13,16 +13,24 @@
 
 #include <ctpg/ctpg.hpp>
 
+#ifndef WARP__UTILITIES__HEADER__COMMON__HPP
+#define WARP__UTILITIES__HEADER__COMMON__HPP
+
 namespace Warp
 {
-	#ifdef NDEBUG
-		constexpr static const bool debug = true;
-	#else
-		#ifdef WARP_BOOSTRAP_COMPILER_DEBUG_ON
+	namespace Utilities::Detail
+	{
+		#ifdef NDEBUG
 			constexpr static const bool debug = true;
 		#else
-			constexpr static const bool debug = false;
+			#ifdef WARP_BOOSTRAP_COMPILER_DEBUG_ON
+				constexpr static const bool debug = true;
+			#else
+				constexpr static const bool debug = false;
+			#endif
 		#endif
-	#endif
+	}
 }
+
+#endif // WARP__UTILITIES__HEADER__COMMON__HPP
 
