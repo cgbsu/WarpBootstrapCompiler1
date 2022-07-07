@@ -15,8 +15,8 @@ namespace Warp::Utilities
 
 	template<char... CharacterParameterConstants>
 	struct TemplateString {
-		constexpr static const char array[] = { CharacterParameterConstants... };
 		constexpr static const size_t length = sizeof...(CharacterParameterConstants);
+		constexpr static const char array[length] = { CharacterParameterConstants... };
 	};
 
 	template<
