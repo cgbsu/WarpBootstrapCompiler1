@@ -4,7 +4,7 @@
 #define WARP__UTILITIES__HEADER__UTILITIES__STRINGS__HPP
 namespace Warp::Utilities
 {
-	template<const char* StringParameterConstant, size_t IndexParameterConstant = 0>
+	template<const auto& StringParameterConstant, size_t IndexParameterConstant = 0>
 	consteval size_t string_length()
 	{
 		if constexpr(StringParameterConstant[IndexParameterConstant] != '\0')
@@ -20,7 +20,7 @@ namespace Warp::Utilities
 	};
 
 	template<
-			const char* StringParameterConstant, 
+			const auto& StringParameterConstant, 
 			size_t IndexParameterConstant, 
 			size_t LengthParameterConstant, 
 			char... CharacterParameterConstants
@@ -41,7 +41,7 @@ namespace Warp::Utilities
 			return TemplateString<CharacterParameterConstants...>{}; 
 	}
 
-	template<const char* StringParameterConstant>
+	template<const auto& StringParameterConstant>
 	using TemplateStringType = decltype(to_template_string<
 			StringParameterConstant, 
 			0, 

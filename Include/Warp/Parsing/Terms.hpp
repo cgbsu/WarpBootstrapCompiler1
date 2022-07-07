@@ -1,11 +1,11 @@
 #include <Warp/Utilities.hpp>
 
-#ifndef WARP__UTILITIES__HEADER__TERMS__HPP
-#define WARP__UTILITIES__HEADER__TERMS__HPP
+#ifndef WARP__PARSING__HEADER__TERMS__HPP
+#define WARP__PARSING__HEADER__TERMS__HPP
 
 namespace Warp::Parsing
 {
-	using namespace Warp::Utilities;
+	/*using namespace Warp::Utilities;
 	template<auto ValueParameterConstant>
 	struct Value {
 		constexpr static const decltype(ValueParameterConstant) value 
@@ -16,8 +16,8 @@ namespace Warp::Parsing
 	concept TermConcept = TermParameterType::term;
 	
 	template<
-			const char* PatternParameterConstant,
-			const char* NameParameterConstant, 
+			const auto& PatternParameterConstant,
+			const auto& NameParameterConstant, 
 			int PrecedenceParameterConstant = 0, 
 			ctpg::associativity AssociativityParameterConstant 
 					= ctpg::associativity::no_assoc
@@ -42,8 +42,8 @@ namespace Warp::Parsing
 	};
 	
 	template<
-			const char* StringParameterConstant,
-			const char* NameParameterConstant, 
+			const auto& StringParameterConstant,
+			const auto& NameParameterConstant, 
 			int PrecedenceParameterConstant = 0, 
 			ctpg::associativity AssociativityParameterConstant 
 					= ctpg::associativity::no_assoc
@@ -90,7 +90,7 @@ namespace Warp::Parsing
 			);
 	};
 
-	template<typename ValueParameterType, const char* NameParameterConstant>
+	template<typename ValueParameterType, const auto& NameParameterConstant>
 	struct NonTerminalTerm
 	{
 		using NameType = TemplateStringType<NameParameterConstant>;
@@ -98,9 +98,76 @@ namespace Warp::Parsing
 		using ValueType = ValueParameterType;
 		constexpr const static ctpg::nterm<ValueType> term(NameType::string);
 	};
+	*/
 
 }
+namespace Warp::Parsing
+{
+	template<auto TagParameterConstant>
+	struct Term
+	{
+		constexpr static auto term(
+				const int priority = 0, 
+				const ctpg::associativity associativity = ctpg::associativity::no_assoc
+			) {}
+	};
+}
+#ifdef WARP__PARSING__HEADER__TERMS__HPP__USE_TERM_DEFINITION_MACROS
 
-#endif	// WARP__UTILITIES__HEADER__TERMS__HPP
+#define WARP_STRING_TERM(TAG, STRING) \
+	template<> \
+	struct Term< TAG > \
+	{ \
+		constexpr static const char string[] = STRING ; \
+		constexpr static auto term( \
+				const int priority = 0, \
+				const ctpg::associativity associativity = ctpg::associativity::no_assoc \
+			) \
+		{ \
+			return ctpg::string_term(string, priority, associativity); \
+		} \
+	};
+
+#define WARP_REGEX_TERM(TAG, PATTERN, NAME) \
+	template<> \
+	struct Term< TAG > \
+	{ \
+		constexpr static const char name[] = NAME ; \
+		constexpr static const char regex[] = PATTERN ; \
+		constexpr static auto term( \
+				const int priority = 0, \
+				const ctpg::associativity associativity = ctpg::associativity::no_assoc \
+			) \
+		{ \
+			return ctpg::regex_term<regex>(name, priority, associativity); \
+		} \
+	};
+
+#define WARP_CHARACTER_TERM(TAG, CHARACTER) \
+	template<> \
+	struct Term< TAG > \
+	{ \
+		constexpr static const char character = CHARACTER ; \
+		constexpr static auto term( \
+				const int priority = 0, \
+				const ctpg::associativity associativity = ctpg::associativity::no_assoc \
+			) \
+		{ \
+			return ctpg::char_term(character, priority, associativity); \
+		} \
+	};
+
+#define WARP_NON_TERMINAL_TERM(TAG, TYPE, NAME) \
+	template<> \
+	struct Term< TAG > \
+	{ \
+		constexpr static const char name[] = NAME ; \
+		constexpr static auto term() { \
+			return ctpg::nterm< TYPE >(name); \
+		} \
+	};
+
+#endif
+#endif // WARP__PARSING__HEADER__TERMS__HPP
 
 
