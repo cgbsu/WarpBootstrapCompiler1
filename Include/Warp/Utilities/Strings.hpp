@@ -47,6 +47,22 @@ namespace Warp::Utilities
 			0, 
 			string_length<StringParameterConstant>()
 		>);
+
+	template<size_t LengthParameterConstant>
+	constexpr const auto& copy_array(const auto (&from)[LengthParameterConstant], auto (&to)[LengthParameterConstant])
+	{
+		for(size_t ii = 0; ii < LengthParameterConstant; ++ii)
+			to[ii] = from[ii];
+		return to;
+	}
+
+	template<size_t LengthParameterConstant>
+	struct FixedString
+	{
+		char string[LengthParameterConstant];
+		constexpr static const size_t size = LengthParameterConstant;
+		constexpr FixedString(const auto (&string_)[LengthParameterConstant]) { copy_array(string_, string); }
+	};
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__STRINGS__HPP
 

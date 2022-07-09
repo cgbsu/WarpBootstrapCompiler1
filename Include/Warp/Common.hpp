@@ -12,6 +12,7 @@
 #include <charconv>
 
 #include <ctpg/ctpg.hpp>
+#include <ctre.hpp>
 
 #ifndef WARP__UTILITIES__HEADER__COMMON__HPP
 #define WARP__UTILITIES__HEADER__COMMON__HPP

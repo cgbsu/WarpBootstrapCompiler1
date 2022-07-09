@@ -6,39 +6,8 @@
 
 using namespace Warp::Utilities;
 
-/*constexpr static const char test[] = "ABC123";
-
-constexpr ctpg::parser p(
-		size_t, 
-		ctpg::terms(
-				Warp::Parsing::DigitsTermType
-			), 
-		ctpg::nterms(
-				Warp::Parsing::WholeNonTerminalType
-			)
-		Warp::Parsing::number_rules()
-	);
-*/
-
-
-namespace Warp::Parsing
-{
-	enum class Test {
-		String, 
-		Regex, 
-		Character, 
-		Nterm
-	};
-	WARP_STRING_TERM(Test::String, "abc")
-	WARP_REGEX_TERM(Test::Regex, "[0-9]+", "Number")
-	WARP_CHARACTER_TERM(Test::Character, '+')
-	WARP_NON_TERMINAL_TERM(Test::Nterm, size_t, "Iteger")
-}
-
-constexpr auto a = Warp::Parsing::Term<Warp::Parsing::Test::String>::term();
-constexpr auto b = Warp::Parsing::Term<Warp::Parsing::Test::Regex>::term();
-constexpr auto c = Warp::Parsing::Term<Warp::Parsing::Test::Character>::term();
-constexpr auto d = Warp::Parsing::Term<Warp::Parsing::Test::Nterm>::term();
+constexpr auto b = Warp::Parsing::RegexTerm<"[0-9]+", "Digits">::term;
+constexpr auto d = Warp::Parsing::NonTerminalTerm<size_t, "Number">::term;
 
 constexpr ctpg::parser p(
 	d, 
@@ -54,6 +23,7 @@ constexpr ctpg::parser p(
 		}
 	)
 );
+
 
 int main(int argc, char** args)
 {
