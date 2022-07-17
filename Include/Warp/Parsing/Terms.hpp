@@ -5,7 +5,7 @@
 
 namespace Warp::Parsing
 {
-	/*template<
+	template<
 			auto TagParameterConstant, 
 			template<auto...> typename TermParameterType, 
 			auto... RequiredTermParameterConstants
@@ -26,33 +26,21 @@ namespace Warp::Parsing
 	template<
 			size_t IndexParamterConstant, 
 			auto TagParameterConstant, 
-			template<
-					auto, 
-					template<auto...> 
-					typename TermTemplateParameterTemplate, 
-					auto...
-				> 
-			typename CurrentParameterTemplate, 
-			template<
-					auto, 
-					template<auto...> 
-					typename TermTemplateParameterTemplate, 
-					auto...
-				> 
-			typename... TermParameterTemplates
+			typename CurrentParameterType, 
+			typename... TermParameterTypes
 		>
 	consteval static const std::optional<size_t> find_term_with_tag_index()
 	{
-		if constexpr(TagParameterConstant == CurrentParameterTemplate<::tag)
+		if constexpr(TagParameterConstant == CurrentParameterType::tag)
 			return IndexParamterConstant;
-		if constexpr(sizeof...(TermTemplateParameterTemplates) <= 0)
+		if constexpr(sizeof...(TermParameterTypes) <= 0)
 			return std::nullopt;
 		else
 		{
 			return find_term_with_tag_index<
 					IndexParamterConstant + 1, 
 					TagParameterConstant, 
-					TermTemplateParameterTemplates...
+					TermParameterTypes...
 				>();
 		}
 	};
@@ -68,7 +56,6 @@ namespace Warp::Parsing
 
 		
 	};
-	*/
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__TERMS_HPP

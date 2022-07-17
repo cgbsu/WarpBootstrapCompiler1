@@ -6,6 +6,7 @@
 
 namespace Warp::Parsing
 {
+	/*
 	template<
 			int LiteralPrecedence, 
 			Warp::Utilities::FixedString DigitsPatternParameterConstant = "[0-9]+", 
@@ -57,6 +58,7 @@ namespace Warp::Parsing
 				rational
 			);
 	};
+	*/
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__NUMBERS__HPP

@@ -14,18 +14,29 @@ namespace Warp::Utilities
 		>(ParameterConstant);
 
 	template<typename ToParameterType>
+	struct FromString
+	{
+		constexpr static ToParameterType from_string(std::string_view from) {
+			return from;
+		}
+	};
+	
+	template<NumericConcept NumericParameterType>
+	struct FromString<NumericParameterType>
+	{
+		constexpr static NumericParameterType from_string(std::string_view from) 
+		{
+			NumericParameterType value;
+			std::from_chars(from.begin(), from.end(), value);
+			return value;
+		}
+	};
+
+	template<typename ToParameterType>
 	auto from_string(std::string_view from) -> ToParameterType {
-		return from;
+		return FromString<ToParameterType>::from_string(from);
 	}
 
-	template<NumericConcept NumericParameterType>
-	auto from_string<NumericParameterType>(std::string_view from) 
-			-> NumericParameterType 
-	{
-		NumericParameterType value;
-		std::from_chars(from.begin(), from.end(), value);
-		return value;
-	}
 
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
