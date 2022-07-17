@@ -1,7 +1,5 @@
 #include <Warp/Utilities.hpp>
-#include <ctime>
-// #include <Warp/Parsing/Numbers.hpp>
-#define WARP__PARSING__HEADER__TERMS__HPP__USE_TERM_DEFINITION_MACROS
+#include <Warp/Parsing/TermWrappers.hpp>
 #include <Warp/Parsing/Terms.hpp>
 
 using namespace Warp::Utilities;

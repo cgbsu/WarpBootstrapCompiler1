@@ -1,87 +1,75 @@
-#include <Warp/Utilities.hpp>
+#include <Warp/Common.hpp>
 
-#ifndef WARP__PARSING__HEADER__TERMS__HPP
-#define WARP__PARSING__HEADER__TERMS__HPP
+#ifndef WARP__PARSING__HEADER__PARSING__TERMS_HPP
+#define WARP__PARSING__HEADER__PARSING__TERMS_HPP
 
 namespace Warp::Parsing
 {
-	using namespace Warp::Utilities;
-	template<auto ValueParameterConstant>
-	struct Value {
-		constexpr static const decltype(ValueParameterConstant) value 
-				= ValueParameterConstant;
-	};
-	
-	template<typename TermParameterType>
-	concept TermConcept = TermParameterType::term;
-	
-	template<
-			FixedString PatternParameterConstant, 
-			FixedString NameParameterConstant, 
-			int PrecedenceParameterConstant = 0, 
-			ctpg::associativity AssociativityParameterConstant 
-					= ctpg::associativity::no_assoc
+	/*template<
+			auto TagParameterConstant, 
+			template<auto...> typename TermParameterType, 
+			auto... RequiredTermParameterConstants
 		>
-	struct RegexTerm
+	struct TreeTerm
 	{
-	    constexpr static const FixedString pattern = PatternParameterConstant;
-	    constexpr static const FixedString name = NameParameterConstant;
-		constexpr static const int precedence = PrecedenceParameterConstant;
-		constexpr static ctpg::associativity associativity = AssociativityParameterConstant;
-
-	    constexpr static auto term = ctpg::regex_term<pattern.string>(
-				name.string, 
-				precedence, 
-				associativity
-			);
+		using InjectedTermType = TermParameterType<
+				RequiredTermParameterConstants... 
+			>;
+		template<
+				int PrecedenceParameterConstant, 
+				ctpg::associativity AssociativityParameterConstant 
+			>
+		constexpr static const auto term = InjectedTermType::term;
+		constexpr static const auto tag = TagParameterConstant;
 	};
 
 	template<
-			FixedString StringParameterConstant,
-			int PrecedenceParameterConstant = 0, 
-			ctpg::associativity AssociativityParameterConstant 
-					= ctpg::associativity::no_assoc
+			size_t IndexParamterConstant, 
+			auto TagParameterConstant, 
+			template<
+					auto, 
+					template<auto...> 
+					typename TermTemplateParameterTemplate, 
+					auto...
+				> 
+			typename CurrentParameterTemplate, 
+			template<
+					auto, 
+					template<auto...> 
+					typename TermTemplateParameterTemplate, 
+					auto...
+				> 
+			typename... TermParameterTemplates
 		>
-	struct StringTerm
+	consteval static const std::optional<size_t> find_term_with_tag_index()
 	{
-	    constexpr static const FixedString string = StringParameterConstant;
-		constexpr static const int precedence = PrecedenceParameterConstant;
-		constexpr static ctpg::associativity associativity = AssociativityParameterConstant;
-
-	    constexpr static auto term = ctpg::string_term(
-				string.string, 
-				precedence, 
-				associativity
-			);
+		if constexpr(TagParameterConstant == CurrentParameterTemplate<::tag)
+			return IndexParamterConstant;
+		if constexpr(sizeof...(TermTemplateParameterTemplates) <= 0)
+			return std::nullopt;
+		else
+		{
+			return find_term_with_tag_index<
+					IndexParamterConstant + 1, 
+					TagParameterConstant, 
+					TermTemplateParameterTemplates...
+				>();
+		}
 	};
 
 	template<
-			char CharacterParameterConstant, 
-			int PrecedenceParameterConstant = 0, 
-			ctpg::associativity AssociativityParameterConstant 
-					= ctpg::associativity::no_assoc
+			typename PreviousParameterType, 
+			auto PrecedenceParameterConstant
 		>
-	struct CharTerm
+	struct Terms
 	{
-		constexpr static const char character = CharacterParameterConstant;
-		constexpr static int precedence = PrecedenceParameterConstant;
-		constexpr static ctpg::associativity associativity = AssociativityParameterConstant;
+		using PreviousType = PreviousParameterType;
+		constexpr static const auto predence = PrecedenceParameterConstant;
 
-		constexpr static const auto term = ctpg::char_term(
-				character, 
-				precedence, 
-				associativity
-			);
+		
 	};
-
-	template<typename ValueParameterType, FixedString NameParameterConstant>
-	struct NonTerminalTerm
-	{
-		using ValueType = ValueParameterType;
-		constexpr static const FixedString name = NameParameterConstant;
-		constexpr static auto term = ctpg::nterm<ValueType>(name.string);
-	};
+	*/
 }
-#endif // WARP__PARSING__HEADER__TERMS__HPP
 
+#endif // WARP__PARSING__HEADER__PARSING__TERMS_HPP
 
