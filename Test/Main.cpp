@@ -1,33 +1,10 @@
-#include <Warp/Utilities.hpp>
-#include <Warp/Parsing/TermWrappers.hpp>
-#include <Warp/Parsing/Terms.hpp>
-
-using namespace Warp::Utilities;
-
-constexpr auto b = Warp::Parsing::RegexTerm<"[0-9]+", "Digits">::term;
-constexpr auto d = Warp::Parsing::NonTerminalTerm<size_t, "Number">::term;
-
-constexpr ctpg::parser p(
-	d, 
-	ctpg::terms(
-			b
-		), 
-	ctpg::nterms(
-			d
-		), 
-	ctpg::rules( 
-		d(b) >= [](auto num) {
-			return std::stoi(std::string{num}.data());
-		}
-	)
-);
-
+#include <iostream>
+#include "CppUTest/CommandLineTestRunner.h"
 
 int main(int argc, char** args)
 {
-	auto result = p.parse(ctpg::buffers::string_buffer("12345"), std::cout);
-	if(result.has_value() == true)
-		std::cout << "RESULT: " << result.value() << "\n";
-	return 0;
+	std::cout << "GLaDOS: <Initiating test proper>...\n";
+	const auto result = CommandLineTestRunner::RunAllTests(argc, args);
+		std::cout << "GLaDOS: </Test proper complete> Please proceede through the material emancipation grid to the next test chamber, then there will be... cake\n";
 }
 

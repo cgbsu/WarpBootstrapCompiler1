@@ -17,5 +17,6 @@ add_library(libwarp STATIC)
 target_sources(libwarp PUBLIC ${SourceFiles})
 target_link_libraries(libwarp ${CONAN_LIBS})
 add_executable(test ${TestSourceFiles})
+target_sources(test PUBLIC ${TestSourceFiles})
 target_link_libraries(test libwarp ${CONAN_LIBS})
 
