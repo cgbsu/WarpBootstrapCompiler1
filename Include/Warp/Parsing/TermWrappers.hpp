@@ -6,6 +6,9 @@
 namespace Warp::Parsing
 {
 	using namespace Warp::Utilities;
+
+	constexpr const static auto no_associativity = ctpg::associativity::no_assoc; // Shorthand
+
 	template<auto ValueParameterConstant>
 	struct Value {
 		constexpr static const decltype(ValueParameterConstant) value 
@@ -18,8 +21,7 @@ namespace Warp::Parsing
 	template<
 			FixedString PatternParameterConstant, 
 			FixedString NameParameterConstant, 
-			ctpg::associativity AssociativityParameterConstant 
-					= ctpg::associativity::no_assoc, 
+			ctpg::associativity AssociativityParameterConstant, 
 			int PrecedenceParameterConstant = 0
 		>
 	struct RegexTerm
@@ -38,8 +40,7 @@ namespace Warp::Parsing
 
 	template<
 			FixedString StringParameterConstant,
-			ctpg::associativity AssociativityParameterConstant 
-					= ctpg::associativity::no_assoc, 
+			ctpg::associativity AssociativityParameterConstant, 
 			int PrecedenceParameterConstant = 0
 		>
 	struct StringTerm
@@ -57,8 +58,7 @@ namespace Warp::Parsing
 
 	template<
 			char CharacterParameterConstant, 
-			ctpg::associativity AssociativityParameterConstant 
-					= ctpg::associativity::no_assoc, 
+			ctpg::associativity AssociativityParameterConstant, 
 			int PrecedenceParameterConstant = 0
 		>
 	struct CharTerm

@@ -16,12 +16,41 @@ TEST_GROUP(Terms)
 {
 };
 
+#define TEST_TERMS \
+			TreeTerm<MyTerms::Digits, RegexTerm, FixedString("[0-9]+"), FixedString("Digits"), no_associativity>, \
+			TreeTerm<MyTerms::Dot, CharTerm, '.', no_associativity>, \
+			TreeTerm<MyTerms::Hello, StringTerm, FixedString("Hello"), no_associativity>
+
+template<MyTerms TermParameterConstant>
+consteval auto find_term_with_tag_test()
+{
+	return find_term_with_tag_index<
+			0, 
+			TermParameterConstant, 
+			TEST_TERMS
+	>();
+}
+
+template<MyTerms TermParameterConstant>
+consteval auto get_term_with_tag()
+{
+	return TreeTermWithTag<
+			TermParameterConstant, 
+			TEST_TERMS
+	>();
+}
+
 TEST(Terms, TermIndexWithTag)
 {
-	constexpr const auto result = find_term_with_tag_index<
-			0, MyTerms::Digits, 
-			TreeTerm<MyTerms::Digits, RegexTerm, FixedString("[0-9]+"), FixedString("Digits")>
-		>();
-	CHECK_EQUAL(0, result.value());
+	CHECK_EQUAL(0, find_term_with_tag_test<MyTerms::Digits>().value());
+	CHECK_EQUAL(1, find_term_with_tag_test<MyTerms::Dot>().value());
+	CHECK_EQUAL(2, find_term_with_tag_test<MyTerms::Hello>().value());
+};
+
+TEST(Terms, GetTreeTermWithTag)
+{
+	CHECK(MyTerms::Digits == get_term_with_tag<MyTerms::Digits>().tag);
+	CHECK(MyTerms::Dot == get_term_with_tag<MyTerms::Dot>().tag);
+	CHECK(MyTerms::Hello == get_term_with_tag<MyTerms::Hello>().tag);
 };
 
