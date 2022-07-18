@@ -108,18 +108,16 @@ namespace Warp::Parsing
 	template<
 			typename PreviousParameterType, 
 			auto PrecedenceParameterConstant, 
-			AssociatedTermConcept... TermParameterTypes
+			typename... TermParameterTypes
 		>
 	struct Terms
 	{
 		using PreviousType = PreviousParameterType;
 		constexpr static const auto precedence = PrecedenceParameterConstant;
 		template<auto TagParameterConstant>
-		consteval static auto term()
-		{
-			return TreeTermWithTag<TagParameterConstant, TermParameterTypes...>
+		constexpr static const auto term 
+				= TreeTermWithTag<TagParameterConstant, TermParameterTypes...>
 					::template term<precedence>;
-		}
 	};
 }
 

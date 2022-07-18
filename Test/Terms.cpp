@@ -16,10 +16,23 @@ TEST_GROUP(Terms)
 {
 };
 
-#define TEST_TERMS \
-			TreeTerm<MyTerms::Digits, RegexTerm, FixedString("[0-9]+"), FixedString("Digits"), no_associativity>, \
-			TreeTerm<MyTerms::Dot, CharTerm, '.', no_associativity>, \
-			TreeTerm<MyTerms::Hello, StringTerm, FixedString("Hello"), no_associativity>
+using DigitsTestTermType = TreeTerm<
+		MyTerms::Digits, 
+		RegexTerm, 
+		FixedString("[0-9]+"), 
+		FixedString("Digits"), 
+		no_associativity
+	>;
+using DotTestTermType = TreeTerm<MyTerms::Dot, CharTerm, '.', no_associativity>;
+
+using HelloTestTermType = TreeTerm<
+		MyTerms::Hello, 
+		StringTerm, 
+		FixedString("Hello"), 
+		no_associativity
+	>;
+
+#define TEST_TERMS DigitsTestTermType, DotTestTermType, HelloTestTermType
 
 template<MyTerms TermParameterConstant>
 consteval auto find_term_with_tag_test()
@@ -52,5 +65,29 @@ TEST(Terms, GetTreeTermWithTag)
 	CHECK(MyTerms::Digits == get_term_with_tag<MyTerms::Digits>().tag);
 	CHECK(MyTerms::Dot == get_term_with_tag<MyTerms::Dot>().tag);
 	CHECK(MyTerms::Hello == get_term_with_tag<MyTerms::Hello>().tag);
+};
+
+std::string_view get_term_pattern(const auto& term) {
+	return std::string_view(term.get_data().pattern);
+}
+
+std::string_view get_term_string(const auto& term) {
+	return std::string_view(term.get_data());
+}
+
+bool compare_regex_terms(const auto& first, const auto& second) {
+	return get_term_pattern(first) == get_term_pattern(second);
+}
+
+bool compare_string_terms(const auto& first, const auto& second) {
+	return get_term_string(first) == get_term_string(second);
+}
+
+TEST(Terms, TermsObject)
+{
+	using TermsType = Terms<int, 0, TEST_TERMS>;
+	CHECK(compare_regex_terms(DigitsTestTermType::term<0>, TermsType::term<MyTerms::Digits>));
+	CHECK(DotTestTermType::term<0>.get_data() == TermsType::term<MyTerms::Dot>.get_data());
+	CHECK(compare_string_terms(HelloTestTermType::term<0>, TermsType::term<MyTerms::Hello>));
 };
 
