@@ -78,6 +78,7 @@ namespace Warp::Parsing
 	};
 
 	template<
+			bool ErrorOnNoMatchParameterConstant, 
 			auto TagParameterConstant, 
 			AssociatedTemplateConcept CurrentParameterType, 
 			AssociatedTemplateConcept... TermParameterTypes
@@ -86,17 +87,27 @@ namespace Warp::Parsing
 	{
 		if constexpr(TagParameterConstant == CurrentParameterType::tag)
 			return TypeHolder<CurrentParameterType>();
-		else if constexpr(sizeof...(TermParameterTypes) <= 0)
-			static_assert(true, "Term not found in get_term_with_tag");
+		else if constexpr(sizeof...(TermParameterTypes) <= 0) {
+			static_assert(ErrorOnNoMatchParameterConstant, "Term not found in get_term_with_tag");
+			return std::nullopt;
+		}
 		else
-			return get_term_with_tag<TagParameterConstant, TermParameterTypes...>();
+		{
+			return get_term_with_tag<
+					ErrorOnNoMatchParameterConstant, 
+					TagParameterConstant, 
+					TermParameterTypes...
+				>();
+		}
 	}
 
 	template<
+			bool ErrorOnNoMatchParameterConstant, 
 			auto TagParameterConstant, 
 			AssociatedTemplateConcept... TermParameterTypes
 		>
 	using TreeTermWithTag = decltype(get_term_with_tag<
+			ErrorOnNoMatchParameterConstant, 
 			TagParameterConstant, 
 			TermParameterTypes...
 		>())::Type;
@@ -108,15 +119,31 @@ namespace Warp::Parsing
 	template<
 			typename PreviousParameterType, 
 			auto PrecedenceParameterConstant, 
-			typename... TermParameterTypes
+			AssociatedTemplateConcept... TermParameterTypes
 		>
 	struct Terms
 	{
 		using PreviousType = PreviousParameterType;
 		constexpr static const auto precedence = PrecedenceParameterConstant;
+		using ThisType = Terms<PreviousParameterType, precedence, TermParameterTypes...>;
+
+		template<auto TagParameterConstant>
+		consteval static auto get_term()
+		{
+			if constexpr(auto result = get_term_with_tag<
+						std::is_void_v<PreviousType>, 
+						TagParameterConstant, 
+						TermParameterTypes...
+					>(); std::optional{result} != std::nullopt)
+				return result;
+			else
+				return PreviousType::get_term();
+		}
+
 		template<auto TagParameterConstant>
 		constexpr static const auto term 
-				= TreeTermWithTag<TagParameterConstant, TermParameterTypes...>
+				= decltype(get_term<TagParameterConstant>())
+					::Type
 					::template term<precedence>;
 	};
 }

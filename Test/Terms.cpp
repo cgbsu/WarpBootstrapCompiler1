@@ -48,6 +48,7 @@ template<MyTerms TermParameterConstant>
 consteval auto get_term_with_tag()
 {
 	return TreeTermWithTag<
+			true, 
 			TermParameterConstant, 
 			TEST_TERMS
 	>();
@@ -85,7 +86,7 @@ bool compare_string_terms(const auto& first, const auto& second) {
 
 TEST(Terms, TermsObject)
 {
-	using TermsType = Terms<int, 0, TEST_TERMS>;
+	using TermsType = Terms<void, 0, TEST_TERMS>;
 	CHECK(compare_regex_terms(DigitsTestTermType::term<0>, TermsType::term<MyTerms::Digits>));
 	CHECK(DotTestTermType::term<0>.get_data() == TermsType::term<MyTerms::Dot>.get_data());
 	CHECK(compare_string_terms(HelloTestTermType::term<0>, TermsType::term<MyTerms::Hello>));
