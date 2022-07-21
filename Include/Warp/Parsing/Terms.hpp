@@ -109,8 +109,8 @@ namespace Warp::Parsing
 			TermParameterTypes...
 		>())::Type;
 
-	enum class TermPrecedence {
-		NoPriority
+	enum class TermPrecedence : int {
+		NoPriority = 0
 	};
 
 	template<
@@ -141,8 +141,18 @@ namespace Warp::Parsing
 		constexpr static const auto term 
 				= decltype(get_term<TagParameterConstant>())
 					::Type
-					::template term<precedence>;
+					::template term<static_cast<int>(precedence)>;
+
+		template<AssociatedTemplateConcept... NewTermParameterTypes>
+		using AddOnePriority = Terms<
+				ThisType, 
+				static_cast<int>(precedence) + 1, 
+				NewTermParameterTypes...
+			>;
 	};
+
+	template<AssociatedTemplateConcept... TermParameterTypes>
+	using MakeTerms = Terms<void, 0, TermParameterTypes...>;
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__TERMS_HPP
