@@ -48,12 +48,9 @@ namespace Warp::Parsing
 		Detail::AssociatedTemplateCase0(TypeHolder<decltype(canidate)>{});
 	};
 
+	// This does not work... Im not sure why...
 	template<typename CanidateParameterType>
 	concept TermInjectableConcept = CanidateParameterType::template InjectedTermType<0>;
-
-	template<typename AssociatedTermCanidateParameterType>
-	concept AssociatedTermConcept = AssociatedTemplateConcept<AssociatedTermCanidateParameterType>
-			&& TermInjectableConcept<AssociatedTermCanidateParameterType>;
 
 	template<
 			size_t IndexParamterConstant, 
@@ -131,13 +128,13 @@ namespace Warp::Parsing
 		consteval static auto get_term()
 		{
 			if constexpr(auto result = get_term_with_tag<
-						std::is_void_v<PreviousType>, 
+						std::is_void_v<PreviousType> == false, 
 						TagParameterConstant, 
 						TermParameterTypes...
-					>(); std::optional{result} != std::nullopt)
+					>(); std::is_same<decltype(result), std::nullopt_t>::value == false)
 				return result;
 			else
-				return PreviousType::get_term();
+				return PreviousType::template get_term<TagParameterConstant>();
 		}
 
 		template<auto TagParameterConstant>

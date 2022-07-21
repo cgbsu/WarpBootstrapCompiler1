@@ -9,7 +9,11 @@ enum class MyTerms
 {
 	Digits, 
 	Dot, 
-	Hello
+	Hello, 
+	Plus, 
+	Goodbye, 
+	Minus, 
+	LowercaseLetters
 };
 
 TEST_GROUP(Terms)
@@ -32,7 +36,32 @@ using HelloTestTermType = TreeTerm<
 		no_associativity
 	>;
 
+using PlusTestTermType = TreeTerm<MyTerms::Plus, CharTerm, '+', no_associativity>;
+
+using GoodbyeTestTermType = TreeTerm<
+		MyTerms::Goodbye, 
+		StringTerm, 
+		FixedString("Goodbye"), 
+		no_associativity
+	>;
+
+using MinusTestTermType = TreeTerm<MyTerms::Minus, CharTerm, '-', no_associativity>;
+
+using LowercaseLettersTermType = TreeTerm<
+		MyTerms::LowercaseLetters, 
+		RegexTerm, 
+		FixedString("[a-z]+"), 
+		FixedString("LowercaseLetters"), 
+		no_associativity
+	>;
+
 #define TEST_TERMS DigitsTestTermType, DotTestTermType, HelloTestTermType
+
+#define SECONDARY_TEST_TERMS \
+		PlusTestTermType, \
+		GoodbyeTestTermType, \
+		MinusTestTermType, \
+		LowercaseLettersTermType
 
 template<MyTerms TermParameterConstant>
 consteval auto find_term_with_tag_test()
@@ -91,4 +120,17 @@ TEST(Terms, TermsObject)
 	CHECK(DotTestTermType::term<0>.get_data() == TermsType::term<MyTerms::Dot>.get_data());
 	CHECK(compare_string_terms(HelloTestTermType::term<0>, TermsType::term<MyTerms::Hello>));
 };
+
+TEST(Terms, MultiLevelTerms)
+{
+	using TermsType = Terms<Terms<void, 1, SECONDARY_TEST_TERMS>, 0, TEST_TERMS>;
+	CHECK(compare_regex_terms(DigitsTestTermType::term<0>, TermsType::term<MyTerms::Digits>));
+	CHECK(DotTestTermType::term<0>.get_data() == TermsType::term<MyTerms::Dot>.get_data());
+	CHECK(compare_string_terms(HelloTestTermType::term<0>, TermsType::term<MyTerms::Hello>));
+	CHECK(PlusTestTermType::term<1>.get_data() == TermsType::term<MyTerms::Plus>.get_data());
+	CHECK(compare_string_terms(GoodbyeTestTermType::term<1>, TermsType::term<MyTerms::Goodbye>));
+	CHECK(MinusTestTermType::term<1>.get_data() == TermsType::term<MyTerms::Minus>.get_data());
+	CHECK(compare_regex_terms(LowercaseLettersTermType::term<1>, TermsType::term<MyTerms::LowercaseLetters>));
+};
+
 
