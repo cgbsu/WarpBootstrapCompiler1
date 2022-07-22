@@ -155,7 +155,8 @@ TEST(Terms, MultiLevelTerms)
 		));
 };
 
-TEST(Terms, AddOnePriority)
+//Pretty much the same as last test, may want to "shake it up a little" later on.//
+TEST(Terms, AddOnePriority) 
 {
 	using TermsType = MakeTerms<TEST_TERMS>
 			::AddOnePriority<SECONDARY_TEST_TERMS>;

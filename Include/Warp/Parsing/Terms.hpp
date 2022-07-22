@@ -24,12 +24,34 @@ namespace Warp::Parsing
 		constexpr static const auto tag = TagParameterConstant;
 	};
 
+	template<
+			auto TagParameterConstant, 
+			template<typename, auto...> typename TermParameterTemplate, 
+			typename ParameterType, 
+			auto RequiredTermParameterConstants
+		>
+	struct TypeTreeTerm
+	{
+		template<int PrecedenceParameterConstant>
+		using InjectedTermType = TermParameterTemplate<
+				ParameterType, 
+				RequiredTermParameterConstants 
+				//PrecedenceParameterConstant
+			>;
+		template<int PrecedenceParameterConstant>
+		constexpr static const auto term = InjectedTermType<
+				PrecedenceParameterConstant
+			>::term;
+		constexpr static const auto tag = TagParameterConstant;
+	};
+
 	namespace Detail
 	{
 		struct AssociatedTemplateCase0
 		{
 			template<
-					template<auto, template<auto...> typename, auto...> typename AssociationParameterType, 
+					template<auto, template<auto...> typename, auto...> 
+							typename AssociationParameterType, 
 					auto TagParameterConstant, 
 					template<auto...> typename AssociatedTemplateParameterTemplate, 
 					auto... ParameterConstants 
@@ -39,12 +61,34 @@ namespace Warp::Parsing
 					AssociatedTemplateParameterTemplate, 
 					ParameterConstants...>>
 				) {}
+
+			template<
+					template<auto, template<typename, auto...> typename, typename, auto...> 
+							typename AssociationParameterType, 
+					auto TagParameterConstant, 
+					template<typename, auto...> typename AssociatedTemplateParameterTemplate, 
+					typename ParameterType, 
+					auto... ParameterConstants 
+				>
+			AssociatedTemplateCase0(TypeHolder<AssociationParameterType<
+					TagParameterConstant, 
+					AssociatedTemplateParameterTemplate, 
+					ParameterType, 
+					ParameterConstants...>>
+				) {}
 		};
 	}
 
+	//// TODO: Would like to avoid the need to call a constructor. //
+	//template<typename AssociatedTemplateParameterType>
+	//concept AssociatedTemplateConcept = requires(AssociatedTemplateParameterType canidate) {
+	//	Detail::AssociatedTemplateCase0(TypeHolder<decltype(canidate)>{});
+	//};
+
 	// TODO: Would like to avoid the need to call a constructor. //
 	template<typename AssociatedTemplateParameterType>
-	concept AssociatedTemplateConcept = requires(AssociatedTemplateParameterType canidate) {
+	concept AssociatedTemplateConcept = requires(
+			AssociatedTemplateParameterType canidate) {
 		Detail::AssociatedTemplateCase0(TypeHolder<decltype(canidate)>{});
 	};
 
@@ -84,8 +128,12 @@ namespace Warp::Parsing
 	{
 		if constexpr(TagParameterConstant == CurrentParameterType::tag)
 			return TypeHolder<CurrentParameterType>();
-		else if constexpr(sizeof...(TermParameterTypes) <= 0) {
-			static_assert(ErrorOnNoMatchParameterConstant, "Term not found in get_term_with_tag");
+		else if constexpr(sizeof...(TermParameterTypes) <= 0)
+		{
+			static_assert(
+					ErrorOnNoMatchParameterConstant, 
+					"Term not found in get_term_with_tag"
+				);
 			return std::nullopt;
 		}
 		else
@@ -122,7 +170,11 @@ namespace Warp::Parsing
 	{
 		using PreviousType = PreviousParameterType;
 		constexpr static const auto precedence = PrecedenceParameterConstant;
-		using ThisType = Terms<PreviousParameterType, precedence, TermParameterTypes...>;
+		using ThisType = Terms<
+				PreviousParameterType, 
+				precedence, 
+				TermParameterTypes...
+			>;
 
 		template<auto TagParameterConstant>
 		consteval static auto get_term()
@@ -148,6 +200,13 @@ namespace Warp::Parsing
 				ThisType, 
 				static_cast<int>(precedence) + 1, 
 				NewTermParameterTypes...
+			>;
+		
+		template<typename NewPreviousParameterType>
+		using ReplacePreviousAddOnePriority = Terms<
+				NewPreviousParameterType, 
+				NewPreviousParameterType::precedence, 
+				TermParameterTypes...
 			>;
 	};
 

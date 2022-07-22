@@ -62,6 +62,9 @@ namespace Warp::Utilities
 		char string[LengthParameterConstant];
 		constexpr static const size_t size = LengthParameterConstant;
 		constexpr FixedString(const auto (&string_)[LengthParameterConstant]) { copy_array(string_, string); }
+		operator std::string_view() {
+			return std::string_view{string};
+		}
 	};
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__STRINGS__HPP
