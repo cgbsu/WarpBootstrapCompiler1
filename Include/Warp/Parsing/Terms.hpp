@@ -47,7 +47,7 @@ namespace Warp::Parsing
 
 	namespace Detail
 	{
-		struct AssociatedTemplateCase0
+		struct AssociatedTemplateConstructable
 		{
 			template<
 					template<auto, template<auto...> typename, auto...> 
@@ -56,7 +56,7 @@ namespace Warp::Parsing
 					template<auto...> typename AssociatedTemplateParameterTemplate, 
 					auto... ParameterConstants 
 				>
-			AssociatedTemplateCase0(TypeHolder<AssociationParameterType<
+			AssociatedTemplateConstructable(TypeHolder<AssociationParameterType<
 					TagParameterConstant, 
 					AssociatedTemplateParameterTemplate, 
 					ParameterConstants...>>
@@ -70,7 +70,7 @@ namespace Warp::Parsing
 					typename ParameterType, 
 					auto... ParameterConstants 
 				>
-			AssociatedTemplateCase0(TypeHolder<AssociationParameterType<
+			AssociatedTemplateConstructable(TypeHolder<AssociationParameterType<
 					TagParameterConstant, 
 					AssociatedTemplateParameterTemplate, 
 					ParameterType, 
@@ -79,17 +79,11 @@ namespace Warp::Parsing
 		};
 	}
 
-	//// TODO: Would like to avoid the need to call a constructor. //
-	//template<typename AssociatedTemplateParameterType>
-	//concept AssociatedTemplateConcept = requires(AssociatedTemplateParameterType canidate) {
-	//	Detail::AssociatedTemplateCase0(TypeHolder<decltype(canidate)>{});
-	//};
-
 	// TODO: Would like to avoid the need to call a constructor. //
 	template<typename AssociatedTemplateParameterType>
 	concept AssociatedTemplateConcept = requires(
 			AssociatedTemplateParameterType canidate) {
-		Detail::AssociatedTemplateCase0(TypeHolder<decltype(canidate)>{});
+		Detail::AssociatedTemplateConstructable(TypeHolder<decltype(canidate)>{});
 	};
 
 	// This does not work... Im not sure why...

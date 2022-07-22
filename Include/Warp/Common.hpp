@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <concepts>
 #include <charconv>
+#include <initializer_list>
 
 #include <ctpg/ctpg.hpp>
 #include <ctre.hpp>

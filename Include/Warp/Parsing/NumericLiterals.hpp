@@ -42,7 +42,6 @@ namespace Warp::Parsing
 		using Type = char;
 	};
 
-	using WholeType = NumericLiteralTypeResolver<NumericLiteral::Whole>::Type;
 	using NumericLiteralTermsType = MakeTerms<
 			TreeTerm<
 					NumericLiteral::Digits, 
@@ -54,7 +53,7 @@ namespace Warp::Parsing
 			TypeTreeTerm<
 					NumericLiteral::Whole, 
 					NonTerminalTerm, 
-					WholeType, 
+					NumericLiteralTypeResolver<NumericLiteral::Whole>::Type, 
 					FixedString{"Whole"}
 				>
 		>;
@@ -72,7 +71,8 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::Whole>;
 		constexpr const static auto parse_whole 
 				= whole(digits) >= [](auto digit_string) {
-					return from_string<WholeType>(static_cast<std::string_view>(digit_string));
+					return to_integral<WholeType>(digit_string);
+					//return from_string<WholeType>(static_cast<std::string_view>(digit_string));
 				};
 	};
 }

@@ -28,15 +28,15 @@ template<
 		FixedString StringParameterConstant, 
 		auto ReduceToTagParameterConstant
 	>
-auto parse()
+consteval auto parse()
 {
 	return parser<ReduceToTagParameterConstant>.parse(
-			ctpg::buffers::string_buffer(StringParameterConstant.string), 
+			ctpg::buffers::cstring_buffer(StringParameterConstant.string), 
 			std::cerr
 		);
 }
 
-void check_parse(auto parse_result, auto expected_result)
+consteval void check_parse(auto parse_result, auto expected_result)
 {
 	CHECK((parse_result.has_value() == true)
 			? parse_result.value() == expected_result
@@ -44,9 +44,13 @@ void check_parse(auto parse_result, auto expected_result)
 		);
 }
 
-TEST(NumericLiterals, Whole)
-{
-	std::cout << "A\n";
+template<typename ResultParameterType>
+consteval void strict_check_parse(
+		std::optional<ResultParameterType> parse_result, 
+		ResultParameterType expected_result) {
+	check_parse(parse_result, expected_result);
+}
+TEST(NumericLiterals, Whole) {
 	check_parse(parse<FixedString{"123"}, NumericLiteral::Whole>(), 123);
 };
 
