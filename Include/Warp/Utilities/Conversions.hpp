@@ -66,8 +66,7 @@ namespace Warp::Utilities
 
 	template<>
 	constexpr std::string to_string(std::initializer_list<char> characters) {
-		const char characher_array[sizeof...(characters) + 1] = { characters..., '\0' };
-		return std::string{&characher_array};
+		return std::string{std::data(characters)};
 	}
 
     template<typename ParameterType>

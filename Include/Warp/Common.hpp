@@ -11,6 +11,8 @@
 #include <concepts>
 #include <charconv>
 #include <initializer_list>
+#include <limits>
+#include <cmath>
 
 #include <ctpg/ctpg.hpp>
 #include <ctre.hpp>

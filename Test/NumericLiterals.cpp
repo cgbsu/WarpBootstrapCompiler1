@@ -17,11 +17,9 @@ using NumericLiteralParserTestType = NumericLiteralParser<
 template<auto ReduceToTagParameterConstant>
 constexpr const static auto parser = ctpg::parser(
 		NumericLiteralTermsType::term<ReduceToTagParameterConstant>, 
-		ctpg::terms(NumericLiteralParserTestType::digits), 
-		ctpg::nterms(NumericLiteralParserTestType::whole), 
-		ctpg::rules(
-				NumericLiteralParserTestType::parse_whole
-			)
+		NumericLiteralParserTestType::terms, 
+		NumericLiteralParserTestType::non_terminal_terms, 
+		NumericLiteralParserTestType::rules()
 	);
 
 template<
@@ -36,21 +34,53 @@ consteval auto parse()
 		);
 }
 
-consteval void check_parse(auto parse_result, auto expected_result)
+constexpr static const auto equal 
+		= [](std::integral auto left, std::integral auto right) { return left == right; };
+
+template<auto CompareParameterConstant = equal>
+constexpr void check_parse(auto parse_result, auto expected_result)
 {
+	CHECK(parse_result.has_value() == true);
 	CHECK((parse_result.has_value() == true)
-			? parse_result.value() == expected_result
+			? CompareParameterConstant(parse_result.value(), expected_result)
 			: false
 		);
 }
 
-template<typename ResultParameterType>
-consteval void strict_check_parse(
+template<typename ResultParameterType, auto CompareParameterConstant = equal>
+constexpr void strict_check_parse(
 		std::optional<ResultParameterType> parse_result, 
 		ResultParameterType expected_result) {
 	check_parse(parse_result, expected_result);
 }
-TEST(NumericLiterals, Whole) {
-	check_parse(parse<FixedString{"123"}, NumericLiteral::Whole>(), 123);
+using FloatType = NumericLiteralParserTestType::FloatingPointType;
+
+TEST(NumericLiterals, Parse)
+{
+	strict_check_parse<NumericLiteralParserTestType::WholeType>(
+			parse<FixedString{"123"}, NumericLiteral::Whole>(), // Actual
+			123 // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::WholeType>(
+			parse<FixedString{"123u"}, NumericLiteral::Whole>(), // Actual
+			123 // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
+			parse<FixedString{"-123"}, NumericLiteral::Integer>(), // Actual
+			-123 // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
+			parse<FixedString{"-123i"}, NumericLiteral::Integer>(), // Actual
+			-123 // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
+			parse<FixedString{"123i"}, NumericLiteral::Integer>(), // Actual
+			123 // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::FloatingPointType, 
+				approximatley_equal>(
+			parse<FixedString{"123.123"}, NumericLiteral::FloatingPoint>(), // Actual
+			static_cast<FloatType>(123.123) // Expected
+		);
 };
 
