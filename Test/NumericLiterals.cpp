@@ -77,10 +77,10 @@ TEST(NumericLiterals, Parse)
 			parse<FixedString{"123i"}, NumericLiteral::Integer>(), // Actual
 			123 // Expected
 		);
-	strict_check_parse<NumericLiteralParserTestType::FloatingPointType, 
-				approximatley_equal>(
-			parse<FixedString{"123.123"}, NumericLiteral::FloatingPoint>(), // Actual
-			static_cast<FloatType>(123.123) // Expected
-		);
+	//strict_check_parse<NumericLiteralParserTestType::FloatingPointType, 
+	//			approximatley_equal>(
+	//		parse<FixedString{"123.123"}, NumericLiteral::FloatingPoint>(), // Actual
+	//		static_cast<FloatType>(123.123) // Expected
+	//	);
 };
 

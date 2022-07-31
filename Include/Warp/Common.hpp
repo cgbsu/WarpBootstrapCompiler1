@@ -12,6 +12,7 @@
 #include <charconv>
 #include <initializer_list>
 #include <limits>
+#include <compare>
 #include <cmath>
 
 #include <ctpg/ctpg.hpp>
