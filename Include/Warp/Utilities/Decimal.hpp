@@ -36,6 +36,16 @@ namespace Warp::Utilities
 				polarity(polarity), 
 				base(base) {}
 
+		constexpr static NumberType calculate_max_power(const Decimal& decimal)
+		{
+			const NumberType digit_power = log(decimal.coefficent, decimal.base);
+			const auto max_power = log(
+					std::numeric_limits<NumberType>::max() / decimal.base, 
+					decimal.base
+				) - digit_power; // MAXIMUM POWER!!!!!!!! //
+			return max_power;
+		}
+
 		//3*10^5 * 8*10^12 = S?
 		//--> 3*10^5 * 8*10^12 = S?
 		template<bool SkipConversionParameterConstant = false>
@@ -64,23 +74,22 @@ namespace Warp::Utilities
 				base_convert(denomonator, numerator.base);
 			NumberType scalar_power = PowerOffsetType{0};
 			NumberType scalar = NumberType{1};
-			const NumberType digit_power = log(numerator.coefficent, numerator.base);
-			const auto max_power = log(
-					std::numeric_limits<NumberType>::max() / numerator.base, 
-					numerator.base
-				) - digit_power; // MAXIMUM POWER!!!!!!!! //
-			const auto remainder_check = [&]() { return (numerator.coefficent * scalar)
-							% denomonator.coefficent == 0; };
+			const auto max_power = calculate_max_power(numerator);
+			std::cout << "Max Power: " << max_power << "\n";
+			const auto remainder_check = [&]() { 
+				return (numerator.coefficent * scalar)
+							% denomonator.coefficent == 0;
+			};
 			while(remainder_check() == false)
 			{
 				scalar = raise(numerator.base, ++scalar_power);
-				if(scalar_power > max_power)
+				if(scalar_power >= max_power)
 					break;
 			}
 			numerator.coefficent 
 					= (static_cast<NumberType>(numerator.coefficent * scalar) 
 							/ static_cast<NumberType>(denomonator.coefficent))
-							/ ((scalar_power > max_power) ? NumberType{1} : scalar);
+							/ ((scalar_power >= max_power) ? NumberType{1} : scalar);
 			numerator.power_offset -= static_cast<PowerOffsetType>(scalar_power);
 			numerator.power_offset -= denomonator.power_offset;
 		}

@@ -89,13 +89,39 @@ namespace Warp::Utilities
 
 
     constexpr const bool logical_implies( const bool left, const bool right ) { 
-        return ( left == right || ( right == true ) );
+        return (left == right || ( right == true ));
     }
 
 	constexpr const auto absolute_value(auto value) {
 		return (value < 0) ? -value : value;
 	}
 
+	const auto static extract_digits(
+			/*const std::integral auto*/ unsigned number, 
+			/*const std::unsigned_integral auto*/ unsigned index,
+			/*const std::unsigned_integral auto*/ unsigned length = 1,  
+			/*const std::unsigned_integral auto*/ unsigned base = 10
+		)
+	{
+		const auto positive_number = absolute_value(number);
+		const std::unsigned_integral auto front_divisor = raise(
+				base, 
+				index //+ (length)// - 1)
+			);
+		const std::unsigned_integral auto back_divisor = raise(
+				base, 
+				index + length
+			);
+		const std::unsigned_integral auto front_to_remove = positive_number - (
+				(positive_number / front_divisor) * front_divisor
+			);
+		const std::unsigned_integral auto back_to_remove = (
+				(positive_number / back_divisor) * back_divisor
+			);
+		const auto r = (positive_number - (front_to_remove + back_to_remove)) / front_divisor;
+		std::cout << "FR: " << front_to_remove << " BR: " << back_to_remove << " R: " << r << "\n";
+		return r;
+	}
 }
 
 #endif // WARP__UTILITIES__HEADER__UTILITIES__MATH__HPP
