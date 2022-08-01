@@ -5,7 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(MAKE_EXPORT_COMPILE_COMMANDS ON)
 
-#add_compile_options(-fconstexpr-ops-limit=3355443299 -fconstexpr-depth=1024 -fconcepts-diagnostics-depth=2)#-g  -ggdb) #-fsanitize=leak) #-fsanitize=address)
+add_compile_options(-fconstexpr-ops-limit=3355443299 -fconstexpr-depth=1024 -fconcepts-diagnostics-depth=2 -ftemplate-depth=10000000 -freport-bug)#-g  -ggdb) #-fsanitize=leak) #-fsanitize=address)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 

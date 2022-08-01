@@ -6,10 +6,6 @@
 
 namespace Warp::Utilities
 {
-	enum class Polarity : bool {
-		Positive = true, 
-		Negative = false
-	};
 
 	/* I now know why there is a dichotomy between fixed and floating point *
 	 * if you do not have unlimted precision. ******************************/

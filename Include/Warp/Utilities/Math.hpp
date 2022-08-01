@@ -5,6 +5,11 @@
 
 namespace Warp::Utilities
 {
+	enum class Polarity : bool {
+		Positive = true, 
+		Negative = false
+	};
+
 	template<typename ParameterType>
 	concept NumericConcept = std::is_integral_v<ParameterType> 
 			|| std::is_floating_point_v<ParameterType>;
@@ -31,7 +36,7 @@ namespace Warp::Utilities
                 >(lowered);
         }
         else
-            return number;
+            return StartBaseParameterConstant;
     }
 
 	template<
@@ -39,7 +44,9 @@ namespace Warp::Utilities
             std::unsigned_integral auto RecursionMaxParameterConstant = default_max_recursion
         >
     constexpr std::unsigned_integral auto log(
-			const std::integral auto number, const std::unsigned_integral auto base) noexcept 
+			const std::integral auto number, 
+			const std::unsigned_integral auto base
+		) noexcept 
     {
 		using UnsignedNumberType = std::make_unsigned_t<decltype(number)>;
         if constexpr(RecursionMaxParameterConstant > 0)
@@ -48,16 +55,44 @@ namespace Warp::Utilities
 					= static_cast<decltype(number)>(number / base);
             if(lowered < base)
                 return static_cast<UnsignedNumberType>(StartBaseParameterConstant);
-           return log<
-                    static_cast<UnsignedNumberType>(StartBaseParameterConstant) + UnsignedNumberType{1}, 
+			return log<
+                    static_cast<UnsignedNumberType>(StartBaseParameterConstant) 
+							+ UnsignedNumberType{1}, 
                     RecursionMaxParameterConstant - 1
                 >(lowered, base);
         }
         else
-            return static_cast<
-	std::make_unsigned_t<decltype(number)>>(number);
+                return static_cast<UnsignedNumberType>(StartBaseParameterConstant);
+            return static_cast<std::make_unsigned_t<decltype(number)>>(number);
     }
 	
+	template<
+			std::unsigned_integral auto NumberParameterConstant, 
+            std::unsigned_integral auto BaseParameterConstant = 10, 
+            std::unsigned_integral auto StartBaseParameterConstant = 0, 
+            std::unsigned_integral auto RecursionMaxParameterConstant = default_max_recursion
+        >
+    consteval std::unsigned_integral auto log() noexcept 
+    {
+        if constexpr(RecursionMaxParameterConstant > 0)
+		{
+			constexpr static const auto lowered 
+					= static_cast<decltype(NumberParameterConstant)>(
+							NumberParameterConstant / BaseParameterConstant
+						);
+        	if constexpr(lowered < BaseParameterConstant)
+        	    return StartBaseParameterConstant;
+        	return log<
+					lowered, 
+        	        BaseParameterConstant, 
+        	        StartBaseParameterConstant + 1, 
+        	        RecursionMaxParameterConstant - 1
+        	    >();
+		}
+		else
+			return StartBaseParameterConstant;
+	}
+
     constexpr auto raise(
             const std::unsigned_integral auto base, 
             const std::unsigned_integral auto power
@@ -76,10 +111,10 @@ namespace Warp::Utilities
     {
         if constexpr(PowerParameterConstant <= 0)
             return 1;
-        return BaseParameterConstant * raise_constexpr(
+        return BaseParameterConstant * raise_constexpr<
 				BaseParameterConstant, 
 				PowerParameterConstant - 1
-			);
+			>();
     }
 
 
@@ -131,6 +166,18 @@ namespace Warp::Utilities
 				std::unsigned_integral auto length
 			) { // Defaults for concept arguments dont seem to be working GCC 12.1
 		return extract_digits(number, index, length, 10u);
+	}
+
+	template<
+			std::unsigned_integral auto FromBaseParameterConstant,
+			std::unsigned_integral auto FromPowerParameterConstant,
+			std::unsigned_integral auto ToBaseParameterConstant
+		>
+	consteval static const auto base_convert_power()
+	{
+		constexpr static std::unsigned_integral auto maximum 
+				= raise_constexpr<FromBaseParameterConstant, FromPowerParameterConstant>();
+		return log<maximum, ToBaseParameterConstant>();
 	}
 }
 
