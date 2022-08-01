@@ -11,6 +11,8 @@ namespace Warp::Utilities
 		Negative = false
 	};
 
+	/* I now know why there is a dichotomy between fixed and floating point *
+	 * if you do not have unlimted precision. ******************************/
 	template<std::integral NumberParameterType = unsigned long int, 
 			std::integral PowerOffsetParameterType = int>
 	requires(std::is_unsigned<NumberParameterType>::value == true 
@@ -57,10 +59,30 @@ namespace Warp::Utilities
 			left.power_offset += right.power_offset;
 			left.polarity = static_cast<Polarity>(left.polarity == right.polarity);
 		}
+
+		constexpr static void trim_leading_zeros(Decimal& decimal)
+		{
+			while(extract_digits(decimal.coefficent, 0u) == 0) {
+				decimal.coefficent /= decimal.base;
+				++decimal.power_offset;
+			}
+		}
+
 		constexpr static void decay(Decimal& left, const Decimal& right)
 		{
-			//absolute_value(calculate_max_power(numerator).power_offset)
+			trim_leading_zeros(left);
+			const NumberType left_max_power = calculate_max_power(left);
+			const NumberType max_additional_length = difference(
+					left_max_power, 
+					calculate_max_power(right)
+				) + 1;
+			const NumberType left_current_length = log(left.coefficent, left.base);
+			if((left_current_length + max_additional_length) >= left_max_power) {
+				left.coefficent /= raise(left.base, max_additional_length);
+				left.power_offset += max_additional_length;
+			}
 		}
+
 		//(3*10^5)/(8*10^12) = S?
 		//= (3/8)(10^(-7))= 
 		//
@@ -79,7 +101,6 @@ namespace Warp::Utilities
 			NumberType scalar_power = PowerOffsetType{0};
 			NumberType scalar = NumberType{1};
 			const auto max_power = calculate_max_power(numerator);
-			std::cout << "Max Power: " << max_power << "\n";
 			const auto remainder_check = [&]() { 
 				return (numerator.coefficent * scalar)
 							% denomonator.coefficent == 0;
@@ -87,16 +108,17 @@ namespace Warp::Utilities
 			while(remainder_check() == false)
 			{
 				scalar = raise(numerator.base, ++scalar_power);
-				if(scalar_power >= max_power)
+				if(scalar_power > max_power)
 					break;
 			}
 			numerator.coefficent 
 					= (static_cast<NumberType>(numerator.coefficent * scalar) 
 							/ static_cast<NumberType>(denomonator.coefficent))
-							/ ((scalar_power >= max_power) ? NumberType{1} : scalar);
+							/ ((scalar_power > max_power) ? NumberType{1} : scalar);
 			numerator.power_offset -= static_cast<PowerOffsetType>(scalar_power);
 			numerator.power_offset -= denomonator.power_offset;
 		}
+
 		//3*10^5 + 8*10^12 = S?
 		//--> A + B = S
 		//--> 1 + B/A = S/A
@@ -122,6 +144,7 @@ namespace Warp::Utilities
 			left = ratio;
 			left.polarity = (left.polarity == right.polarity);
 		}
+
 		//x^q = y^p
 		//--> log(y, x^q) = p
 		//-------------------
@@ -188,11 +211,10 @@ namespace Warp::Utilities
 			return to_subtract_from;
 		}
 
-
 		std::strong_ordering operator<=>(const ThisType& other) const = default;
 
-		//friend std::ostream& operator<<(std::ostream&, const ThisType&);
 	};
+
 	template<std::unsigned_integral NumberParameterType, std::integral PowerParameterConstant>
 	std::ostream& operator<<(std::ostream& output_stream, 
 			const Decimal<NumberParameterType, PowerParameterConstant>& to_output)

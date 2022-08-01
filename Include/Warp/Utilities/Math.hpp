@@ -91,17 +91,21 @@ namespace Warp::Utilities
 		return (value < 0) ? -value : value;
 	}
 
+	constexpr const auto difference(auto first, auto second) {
+		return absolute_value(absolute_value(second) - absolute_value(first));
+	}
+	
 	const auto static extract_digits(
-			/*const std::integral auto*/ unsigned number, 
-			/*const std::unsigned_integral auto*/ unsigned index,
-			/*const std::unsigned_integral auto*/ unsigned length = 1,  
-			/*const std::unsigned_integral auto*/ unsigned base = 10
+			std::integral auto number, 
+			std::unsigned_integral auto index,
+			std::unsigned_integral auto length, // = 1u TODO: Does not seem to be working on gcc 12.1
+			std::unsigned_integral auto base // = 10u TODO: Does not seem to be working on gcc 12.1
 		)
 	{
 		const auto positive_number = absolute_value(number);
 		const std::unsigned_integral auto front_divisor = raise(
 				base, 
-				index //+ (length)// - 1)
+				index 
 			);
 		const std::unsigned_integral auto back_divisor = raise(
 				base, 
@@ -113,9 +117,20 @@ namespace Warp::Utilities
 		const std::unsigned_integral auto back_to_remove = (
 				(positive_number / back_divisor) * back_divisor
 			);
-		const auto r = (positive_number - (front_to_remove + back_to_remove)) / front_divisor;
-		std::cout << "FR: " << front_to_remove << " BR: " << back_to_remove << " R: " << r << "\n";
-		return r;
+		return (positive_number - (front_to_remove + back_to_remove)) / front_divisor;
+	}
+
+	const auto static extract_digits(std::integral auto number, 
+			std::unsigned_integral auto index) { // Defaults for concept arguments dont seem to be working GCC 12.1
+		return extract_digits(number, index, 1u, 10u);
+	}
+
+	const auto static extract_digits(
+				std::integral auto number, 
+				std::unsigned_integral auto index, 
+				std::unsigned_integral auto length
+			) { // Defaults for concept arguments dont seem to be working GCC 12.1
+		return extract_digits(number, index, length, 10u);
 	}
 }
 

@@ -30,27 +30,27 @@ TEST(DecimalNumbers, Multiplication)
 				== DefaultDecimalType{377552095329708, -11}));
 };
 
-//TEST(DecimalNumbers, Division)
-//{
-//	CHECK(((DefaultDecimalType{2} / DefaultDecimalType{2}) == DefaultDecimalType{1}));
-//	CHECK(((DefaultDecimalType{42, -1} / DefaultDecimalType{2}) == DefaultDecimalType{21, -1}));
-//	CHECK(((DefaultDecimalType{123456789, -5} / DefaultDecimalType{123456789})
-//				== DefaultDecimalType{1, -5}));
-//	CHECK(((DefaultDecimalType{123456789, -5} / DefaultDecimalType{3058172, -6})
-//				== DefaultDecimalType{4036947202446, -10}));
-//	CHECK(((DefaultDecimalType{123, -2} / DefaultDecimalType{456, -6})
-//				== DefaultDecimalType{26973684210526315, -13}));
-//};
-//
-TEST(DecimalNumbers, MultipleHighPrecisionOperations)
+TEST(DecimalNumbers, Division)
 {
-	//const auto result = (DefaultDecimalType{123456789, -5} / DefaultDecimalType{3058172, -6}) 
-	//		* DefaultDecimalType{63246745724, -6};
-	//std::cout << result << "\n";
-	const auto result = (DefaultDecimalType{123456789, -5} 
-			/ DefaultDecimalType{3058172, -6}) 
-			/ DefaultDecimalType{3058172, -6};
-	std::cout << result << "\n";
-}
+	CHECK(((DefaultDecimalType{2} / DefaultDecimalType{2}) == DefaultDecimalType{1}));
+	CHECK(((DefaultDecimalType{42, -1} / DefaultDecimalType{2}) == DefaultDecimalType{21, -1}));
+	CHECK(((DefaultDecimalType{123456789, -5} / DefaultDecimalType{123456789})
+				== DefaultDecimalType{1, -5}));
+	CHECK(((DefaultDecimalType{123456789, -5} / DefaultDecimalType{3058172, -6})
+				== DefaultDecimalType{4036947202446, -10}));
+	CHECK(((DefaultDecimalType{123, -2} / DefaultDecimalType{456, -6})
+				== DefaultDecimalType{26973684210526315, -13}));
+};
+
+//TEST(DecimalNumbers, MultipleHighPrecisionOperations)
+//{
+//	//const auto result = (DefaultDecimalType{123456789, -5} / DefaultDecimalType{3058172, -6}) 
+//	//		* DefaultDecimalType{63246745724, -6};
+//	//std::cout << result << "\n";
+//	const auto result = (DefaultDecimalType{123456789, -5} 
+//			/ DefaultDecimalType{3058172, -6}) 
+//			/ DefaultDecimalType{3058172, -6};
+//	std::cout << result << "\n";
+//}
 
 
