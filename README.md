@@ -6,11 +6,11 @@ Warp has heavy constraints, the typing scheme is a WIP, it has typed literals bu
 
 This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCompiler0)) I am making at implementing the compiler, immediate goals are: 
 
-- [] Evaluate literals
-- [] Evaluate mathematical-expressions (in a type-safe way)
-- [] Evaluate boolean-expressions
-- [] Evaluate compile-time functions
-- [] Runtime functions & modules
+0. Evaluate literals
+1. Evaluate mathematical-expressions (in a type-safe way)
+2. Evaluate boolean-expressions
+3. Evaluate compile-time functions
+4. Runtime functions & modules
 
 
 # Branchless?
