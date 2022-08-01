@@ -14,14 +14,14 @@ namespace Warp::Parsing
 		Digits, 
 		Whole, 
 		Integer, 
-		FloatingPoint, 
+		FixedPoint, 
 		//TODO: FixedPoint
 		Character, 
 		Minus, 
 		Dot, 
 		IntegerMark, 
 		UnsignedMark, 
-		FloatMark
+		FixedMark
 	};
 
 	template<auto NumericalTypeTag>
@@ -38,8 +38,8 @@ namespace Warp::Parsing
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericLiteral::FloatingPoint> {
-		using Type = long double;
+	struct NumericLiteralTypeResolver<NumericLiteral::FixedPoint> {
+		using Type = numeric::fixed<24, 8>;
 	};
 
 	template<>
@@ -80,9 +80,9 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>, 
 			TreeTerm<
-					NumericLiteral::FloatMark, 
-					CharTerm, 
-					'f', 
+					NumericLiteral::FixedMark, 
+					StringTerm, 
+					FixedString{"fxp"}, 
 					ctpg::associativity::no_assoc
 				>, 
 			TypeTreeTerm<
@@ -98,10 +98,10 @@ namespace Warp::Parsing
 					FixedString{"Integer"}
 				>, 
 			TypeTreeTerm<
-					NumericLiteral::FloatingPoint, 
+					NumericLiteral::FixedPoint, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericLiteral::FloatingPoint>::Type, 
-					FixedString{"FloatingPoint"}
+					NumericLiteralTypeResolver<NumericLiteral::FixedPoint>::Type, 
+					FixedString{"FixedPoint"}
 				>
 		>;
 
@@ -113,7 +113,7 @@ namespace Warp::Parsing
 	{
 		using WholeType = ResolverParameterTemplate<NumericLiteral::Whole>::Type;
 		using IntegerType = ResolverParameterTemplate<NumericLiteral::Integer>::Type;
-		using FloatingPointType = ResolverParameterTemplate<NumericLiteral::FloatingPoint>::Type;
+		using FixedPointType = ResolverParameterTemplate<NumericLiteral::FixedPoint>::Type;
 		constexpr const static auto digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Digits>;
 		constexpr const static auto radix
@@ -125,19 +125,19 @@ namespace Warp::Parsing
 		constexpr const static auto integer_mark
 				= TermsParameterTemplate::template term<NumericLiteral::IntegerMark>;
 		constexpr const static auto float_mark
-				= TermsParameterTemplate::template term<NumericLiteral::FloatMark>;
+				= TermsParameterTemplate::template term<NumericLiteral::FixedMark>;
 		constexpr const static auto whole 
 				= TermsParameterTemplate::template term<NumericLiteral::Whole>;
 		constexpr const static auto integer
 				= TermsParameterTemplate::template term<NumericLiteral::Integer>;
-		constexpr const static auto floating_point
-				= TermsParameterTemplate::template term<NumericLiteral::FloatingPoint>;
+		constexpr const static auto fixed_point
+				= TermsParameterTemplate::template term<NumericLiteral::FixedPoint>;
 
 		constexpr static const auto terms = ctpg::terms(
 				digits, radix, minus, unsigned_mark, integer_mark, float_mark);
 
 		constexpr static const auto non_terminal_terms = ctpg::nterms(
-				whole, integer, floating_point);
+				whole, integer, fixed_point);
 
 		constexpr const static auto parse_whole 
 				= whole(digits) >= [](auto digit_string) {
@@ -159,15 +159,15 @@ namespace Warp::Parsing
 				= integer(minus, integer) >= [](auto minus, auto integer_value) {
 					return -integer_value;
 				};
-		constexpr const static auto parse_floating_point
-				= floating_point(digits, radix, digits) >= [](auto major, auto radix, auto minor) {
+		constexpr const static auto parse_fixed_point
+				= fixed_point(digits, radix, digits) >= [](auto major, auto radix, auto minor) {
 					std::string_view minor_view = minor;
 					const auto minor_denomonator 
 							= Warp::Utilities::raise(static_cast<WholeType>(10), minor_view.size());
 					const WholeType minor_value = to_integral<WholeType>(minor);
-					const auto after_radix = (static_cast<FloatingPointType>(minor_value) 
-							/ static_cast<FloatingPointType>(minor_denomonator));
-					return static_cast<FloatingPointType>(to_integral<WholeType>(major)) 
+					const auto after_radix = (static_cast<FixedPointType>(minor_value) 
+							/ static_cast<FixedPointType>(minor_denomonator));
+					return static_cast<FixedPointType>(to_integral<WholeType>(major)) 
 							+ after_radix;
 				};
 
@@ -179,7 +179,7 @@ namespace Warp::Parsing
 					parse_integer, 
 					parse_negative_whole, 
 					parse_negate_integer, 
-					parse_floating_point
+					parse_fixed_point
 				);
 		}
 	};

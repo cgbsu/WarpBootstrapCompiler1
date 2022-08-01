@@ -35,7 +35,7 @@ consteval auto parse()
 }
 
 constexpr static const auto equal 
-		= [](std::integral auto left, std::integral auto right) { return left == right; };
+		= [](auto left, auto right) { return left == right; };
 
 template<auto CompareParameterConstant = equal>
 constexpr void check_parse(auto parse_result, auto expected_result)
@@ -53,7 +53,7 @@ constexpr void strict_check_parse(
 		ResultParameterType expected_result) {
 	check_parse(parse_result, expected_result);
 }
-using FloatType = NumericLiteralParserTestType::FloatingPointType;
+using FixedType = NumericLiteralParserTestType::FixedPointType;
 
 TEST(NumericLiterals, Parse)
 {
@@ -77,10 +77,9 @@ TEST(NumericLiterals, Parse)
 			parse<FixedString{"123i"}, NumericLiteral::Integer>(), // Actual
 			123 // Expected
 		);
-	//strict_check_parse<NumericLiteralParserTestType::FloatingPointType, 
-	//			approximatley_equal>(
-	//		parse<FixedString{"123.123"}, NumericLiteral::FloatingPoint>(), // Actual
-	//		static_cast<FloatType>(123.123) // Expected
-	//	);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			parse<FixedString{"123.123"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123.123) // Expected
+		);
 };
 
