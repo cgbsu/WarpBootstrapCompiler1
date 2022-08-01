@@ -163,7 +163,7 @@ namespace Warp::Parsing
 				= floating_point(digits, radix, digits) >= [](auto major, auto radix, auto minor) {
 					std::string_view minor_view = minor;
 					const auto minor_denomonator 
-							= Warp::Utilities::raise<int>(10, minor_view.size());
+							= Warp::Utilities::raise(static_cast<WholeType>(10), minor_view.size());
 					const WholeType minor_value = to_integral<WholeType>(minor);
 					const auto after_radix = (static_cast<FloatingPointType>(minor_value) 
 							/ static_cast<FloatingPointType>(minor_denomonator));

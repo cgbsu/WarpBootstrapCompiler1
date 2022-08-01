@@ -43,7 +43,6 @@ namespace Warp::Utilities
 		return FromString<ToParameterType>::from_string(from);
 	}
 
-
 	template<
 			FixedString TrueTokenParameterConstant = FixedString("true"), 
 			FixedString FalseTokenParameterConstant = FixedString{"false"}
@@ -57,7 +56,6 @@ namespace Warp::Utilities
 				: ((boolean_token == false_token) ? std::optional{false} : std::nullopt)
             );
     }
-
 
     template<typename ParameterType>
     constexpr std::string to_string(ParameterType to_stringify) {

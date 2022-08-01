@@ -11,23 +11,20 @@ namespace Warp::Utilities
 
 	constexpr static const size_t default_max_recursion = 850;
 	template<
-            std::integral IntegralParameterType, 
-            std::integral auto BaseParameterConstant = 10, 
-            IntegralParameterType StartBaseParameterConstant = 0, 
+            std::unsigned_integral auto BaseParameterConstant = 10, 
+            std::unsigned_integral auto StartBaseParameterConstant = 0, 
             std::unsigned_integral auto RecursionMaxParameterConstant = default_max_recursion
         >
-    constexpr std::unsigned_integral auto log(const IntegralParameterType number) noexcept 
-            // -> const IntegralParameterType
+    constexpr std::unsigned_integral auto log(const std::integral auto number) noexcept 
     {
         if constexpr(RecursionMaxParameterConstant > 0)
         {
-            const size_t lowered = static_cast<const IntegralParameterType>(
+            const auto lowered = static_cast<decltype(number)>(
 					number / BaseParameterConstant
 				);
             if(lowered < BaseParameterConstant)
                 return StartBaseParameterConstant;
             return log<
-                    IntegralParameterType, 
                     BaseParameterConstant, 
                     StartBaseParameterConstant + 1, 
                     RecursionMaxParameterConstant - 1
@@ -38,44 +35,42 @@ namespace Warp::Utilities
     }
 
 	template<
-            std::integral IntegralParameterType, 
-            IntegralParameterType StartBaseParameterConstant = 0, 
+            std::unsigned_integral auto StartBaseParameterConstant = 0u, 
             std::unsigned_integral auto RecursionMaxParameterConstant = default_max_recursion
         >
     constexpr std::unsigned_integral auto log(
-			const IntegralParameterType number, const std::integral auto base) noexcept 
+			const std::integral auto number, const std::unsigned_integral auto base) noexcept 
     {
+		using UnsignedNumberType = std::make_unsigned_t<decltype(number)>;
         if constexpr(RecursionMaxParameterConstant > 0)
         {
             const auto lowered 
-					= static_cast<const IntegralParameterType>(number / base);
+					= static_cast<decltype(number)>(number / base);
             if(lowered < base)
-                return StartBaseParameterConstant;
-            return log<
-                    IntegralParameterType, 
-                    StartBaseParameterConstant + 1, 
+                return static_cast<UnsignedNumberType>(StartBaseParameterConstant);
+           return log<
+                    static_cast<UnsignedNumberType>(StartBaseParameterConstant) + UnsignedNumberType{1}, 
                     RecursionMaxParameterConstant - 1
                 >(lowered, base);
         }
         else
-            return number;
+            return static_cast<
+	std::make_unsigned_t<decltype(number)>>(number);
     }
 	
-    template<std::integral IntegralParameterType>
-    constexpr const auto raise(
-            const IntegralParameterType base, 
+    constexpr auto raise(
+            const std::unsigned_integral auto base, 
             const std::unsigned_integral auto power
-        ) noexcept -> IntegralParameterType 
+        ) noexcept
     {
         if(power <= 0)
-            return 1;
+            return decltype(base){1};
         return base * raise(base, power - 1);
     }
 
     template<
-			std::integral IntegralParameterType, 
-			std::integral auto PowerParameterConstant, 
-			std::integral auto BaseParameterConstant = 10
+			std::unsigned_integral auto PowerParameterConstant, 
+			std::unsigned_integral auto BaseParameterConstant = 10
 		>
     consteval const auto raise_constexpr() noexcept 
     {
@@ -88,8 +83,8 @@ namespace Warp::Utilities
     }
 
 
-    constexpr const bool logical_implies( const bool left, const bool right ) { 
-        return (left == right || ( right == true ));
+    constexpr const bool logical_implies(const bool left, const bool right) { 
+        return (left == right || (right == true));
     }
 
 	constexpr const auto absolute_value(auto value) {

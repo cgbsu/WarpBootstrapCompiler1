@@ -57,6 +57,10 @@ namespace Warp::Utilities
 			left.power_offset += right.power_offset;
 			left.polarity = static_cast<Polarity>(left.polarity == right.polarity);
 		}
+		constexpr static void decay(Decimal& left, const Decimal& right)
+		{
+			//absolute_value(calculate_max_power(numerator).power_offset)
+		}
 		//(3*10^5)/(8*10^12) = S?
 		//= (3/8)(10^(-7))= 
 		//
