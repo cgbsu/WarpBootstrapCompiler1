@@ -39,7 +39,7 @@ namespace Warp::Parsing
 
 	template<>
 	struct NumericLiteralTypeResolver<NumericLiteral::FixedPoint> {
-		using Type = fpm::fixed_16_16;
+		using Type = numeric::fixed<16, 16>;
 	};
 
 	template<>
@@ -165,10 +165,10 @@ namespace Warp::Parsing
 					const auto minor_value 
 							= to_integral<WholeType>(minor); 
 					const auto major_value = to_integral<WholeType>(major);
-					return FixedPointType(
-							(major_value * Warp::Utilities::raise(10u, minor_value))
-									+ minor_value
-						);
+					FixedPointType major_fixed{major_value};
+					FixedPointType denomonator{raise(10u, std::string_view{minor}.size())};
+					return FixedPointType{major_fixed 
+							+ (FixedPointType{minor_value} / denomonator)};
 				};
 		constexpr const static auto parse_redundent_fixed_point
 				= fixed_point(fixed_point, fixed_point_mark) >= [](auto fixed_point_value, auto mark) {

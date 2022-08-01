@@ -12,7 +12,6 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 3. Evaluate compile-time functions
 4. Runtime functions & modules
 
-
 # Branchless?
 
 Warp has no if, while, or for loop (or any loops at all!). Instead of using control flow, Warp uses the constraints on function overloads to decide what to do next.

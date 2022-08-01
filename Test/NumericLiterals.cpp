@@ -1,4 +1,5 @@
 #include <Warp/Parsing/NumericLiterals.hpp>
+#include <ThirdParty/fpm/ios.hpp>
 #include <Warp/Parsing/Terms.hpp>
 #include <CppUTest/TestHarness.h>
 
