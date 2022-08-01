@@ -39,7 +39,7 @@ namespace Warp::Parsing
 
 	template<>
 	struct NumericLiteralTypeResolver<NumericLiteral::FixedPoint> {
-		using Type = numeric::fixed<24, 8>;
+		using Type = fpm::fixed_16_16;
 	};
 
 	template<>
@@ -124,7 +124,7 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::UnsignedMark>;
 		constexpr const static auto integer_mark
 				= TermsParameterTemplate::template term<NumericLiteral::IntegerMark>;
-		constexpr const static auto float_mark
+		constexpr const static auto fixed_point_mark
 				= TermsParameterTemplate::template term<NumericLiteral::FixedMark>;
 		constexpr const static auto whole 
 				= TermsParameterTemplate::template term<NumericLiteral::Whole>;
@@ -134,7 +134,7 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::FixedPoint>;
 
 		constexpr static const auto terms = ctpg::terms(
-				digits, radix, minus, unsigned_mark, integer_mark, float_mark);
+				digits, radix, minus, unsigned_mark, integer_mark, fixed_point_mark);
 
 		constexpr static const auto non_terminal_terms = ctpg::nterms(
 				whole, integer, fixed_point);
@@ -160,15 +160,23 @@ namespace Warp::Parsing
 					return -integer_value;
 				};
 		constexpr const static auto parse_fixed_point
-				= fixed_point(digits, radix, digits) >= [](auto major, auto radix, auto minor) {
-					std::string_view minor_view = minor;
-					const auto minor_denomonator 
-							= Warp::Utilities::raise(static_cast<WholeType>(10), minor_view.size());
-					const WholeType minor_value = to_integral<WholeType>(minor);
-					const auto after_radix = (static_cast<FixedPointType>(minor_value) 
-							/ static_cast<FixedPointType>(minor_denomonator));
-					return static_cast<FixedPointType>(to_integral<WholeType>(major)) 
-							+ after_radix;
+				= fixed_point(digits, radix, digits) >= [](auto major, auto radix, auto minor)
+				{
+					const auto minor_value 
+							= to_integral<WholeType>(minor); 
+					const auto major_value = to_integral<WholeType>(major);
+					return FixedPointType(
+							(major_value * Warp::Utilities::raise(10u, minor_value))
+									+ minor_value
+						);
+				};
+		constexpr const static auto parse_redundent_fixed_point
+				= fixed_point(fixed_point, fixed_point_mark) >= [](auto fixed_point_value, auto mark) {
+					return fixed_point_value;
+				};
+		constexpr const static auto parse_negate_fixed_point
+				= fixed_point(minus, fixed_point) >= [](auto negate, auto fixed_point_value) {
+					return -fixed_point_value;
 				};
 
 		consteval static const auto rules()
@@ -179,7 +187,8 @@ namespace Warp::Parsing
 					parse_integer, 
 					parse_negative_whole, 
 					parse_negate_integer, 
-					parse_fixed_point
+					parse_fixed_point, 
+					parse_negate_fixed_point
 				);
 		}
 	};
