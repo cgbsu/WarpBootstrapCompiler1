@@ -59,6 +59,14 @@ using FixedType = NumericLiteralParserTestType::FixedPointType;
 TEST(NumericLiterals, Parse)
 {
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
+			parse<FixedString{"0d123"}, NumericLiteral::Whole>(), // Actual
+			123 // Expected
+		);
+	//strict_check_parse<NumericLiteralParserTestType::WholeType>(
+	//		parse<FixedString{"0x7B"}, NumericLiteral::Whole>(), // Actual
+	//		123 // Expected
+	//	);
+	strict_check_parse<NumericLiteralParserTestType::WholeType>(
 			parse<FixedString{"123"}, NumericLiteral::Whole>(), // Actual
 			123 // Expected
 		);

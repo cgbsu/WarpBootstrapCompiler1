@@ -10,7 +10,9 @@ TEST(StringToIntegralConversions, UnderBase11)
 	CHECK((to_integral<size_t>("123") == 123));
 	CHECK((to_integral<size_t>("100000") == 100000));
 	CHECK((to_integral<size_t, 2>("000011") == 3));
+	CHECK((to_integral<size_t, 2>("0011000") == 24));
 	CHECK((to_integral<size_t, 8>("45172") == 19066));
+	CHECK((to_integral<size_t, 8>("32467156") == 6975086));
 };
 
 TEST(StringToIntegralConversions, Base16)

@@ -55,7 +55,7 @@ namespace Warp::Parsing
 			TreeTerm<
 					NumericLiteral::Base10Digits, 
 					RegexTerm, 
-					FixedString{"[0-9]+"}, 
+					FixedString{"([0-9]+)|(0d[0-9]+)"}, 
 					FixedString{"Base10Digits"}, 
 					ctpg::associativity::no_assoc
 				>, 
@@ -174,6 +174,9 @@ namespace Warp::Parsing
 
 		constexpr static const auto terms = ctpg::terms(
 				base_10_digits, 
+				base_16_digits, 
+				base_8_digits, 
+				base_2_digits, 
 				radix, 
 				minus, 
 				unsigned_mark, 
@@ -189,10 +192,14 @@ namespace Warp::Parsing
 			);
 
 		constexpr const static auto parse_base_10_digits
-				= digits(base_10_digits) >= [](auto digit_string) {
-						//if(digit_string[0] == '0' && digit_string[1] == 'd')
-							
-						return digit_string;
+				= digits(base_10_digits) >= [](auto digit_string)
+				{
+					const std::string_view digit_string_view = digit_string;
+					if(digit_string_view.size() > 2) {
+						if(digit_string_view.substr(0, 2) == "0d")
+							return digit_string_view.substr(2);
+					}
+					return std::string_view{digit_string};
 				};
 		constexpr const static auto parse_whole 
 				= whole(digits) >= [](auto digit_string) {
