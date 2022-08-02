@@ -21,11 +21,51 @@ namespace Warp::Utilities
 		>
     constexpr ParameterType to_integral(std::string_view integer_token)
     {
-        ParameterType sum = 0;
+        ParameterType sum = ParameterType{0};
         for(auto digit : integer_token)
             sum = (sum * BaseParameterConstant) + digit - CharacterOffsetParameterConstant;
         return sum;
     }
+	
+	struct CharacterRange {
+		const char begin, end;
+		const size_t offset;
+	};
+
+	template<
+			std::integral ParameterType, 
+			auto BaseParameterConstant, 
+			auto... CharacterOffsetAndRangesParameterConstants 
+		>
+	constexpr ParameterType above_base_10_to_integral(std::string_view integer_token)
+	{
+		const std::array character_ranges{CharacterOffsetAndRangesParameterConstants...};
+		ParameterType sum = ParameterType{0};
+		for(auto digit : integer_token)
+		{
+			for(auto& range : character_ranges)
+			{
+				if(digit >= range.begin && digit <= range.end)
+				{
+					sum = (sum * BaseParameterConstant) 
+							+ (digit - range.begin + range.offset);
+					break;
+				}
+			}
+		}
+		return sum;
+	}
+	template<std::integral ParameterType>
+	constexpr ParameterType base_16_to_integral(std::string_view integer_token)
+	{
+		return above_base_10_to_integral<
+					ParameterType, 
+					16, 
+					CharacterRange{'0', '9', 0}, 
+					CharacterRange{'a', 'f', 10}, 
+					CharacterRange{'A', 'F', 10}
+			>(integer_token);
+	}
 
 	template<NumericConcept NumericParameterType>
 	struct FromString<NumericParameterType>

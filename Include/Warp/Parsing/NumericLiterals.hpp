@@ -12,6 +12,10 @@ namespace Warp::Parsing
 	enum class NumericLiteral
 	{
 		Digits, 
+		Base10Digits, 
+		Base16Digits, 
+		Base2Digits, 
+		Base8Digits, 
 		Whole, 
 		Integer, 
 		FixedPoint, 
@@ -21,7 +25,7 @@ namespace Warp::Parsing
 		Dot, 
 		IntegerMark, 
 		UnsignedMark, 
-		FixedMark
+		FixedMark 
 	};
 
 	template<auto NumericalTypeTag>
@@ -49,10 +53,31 @@ namespace Warp::Parsing
 
 	using NumericLiteralTermsType = MakeTerms<
 			TreeTerm<
-					NumericLiteral::Digits, 
+					NumericLiteral::Base10Digits, 
 					RegexTerm, 
 					FixedString{"[0-9]+"}, 
-					FixedString{"Digits"}, 
+					FixedString{"Base10Digits"}, 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::Base2Digits, 
+					RegexTerm, 
+					FixedString{"0b[0-1]+"}, 
+					FixedString{"Base2Digits"}, 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::Base16Digits, 
+					RegexTerm, 
+					FixedString{"0x[0-9A-Fa-f]+"}, 
+					FixedString{"Base16Digits"}, 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::Base8Digits, 
+					RegexTerm, 
+					FixedString{"0o[0-7]+"}, 
+					FixedString{"Base8Digits"}, 
 					ctpg::associativity::no_assoc
 				>, 
 			TreeTerm<
@@ -86,6 +111,12 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>, 
 			TypeTreeTerm<
+					NumericLiteral::Digits, 
+					NonTerminalTerm, 
+					std::string, 
+					FixedString{"Digits"}
+				>, 
+			TypeTreeTerm<
 					NumericLiteral::Whole, 
 					NonTerminalTerm, 
 					NumericLiteralTypeResolver<NumericLiteral::Whole>::Type, 
@@ -114,6 +145,14 @@ namespace Warp::Parsing
 		using WholeType = ResolverParameterTemplate<NumericLiteral::Whole>::Type;
 		using IntegerType = ResolverParameterTemplate<NumericLiteral::Integer>::Type;
 		using FixedPointType = ResolverParameterTemplate<NumericLiteral::FixedPoint>::Type;
+		constexpr const static auto base_10_digits 
+				= TermsParameterTemplate::template term<NumericLiteral::Base10Digits>;
+		constexpr const static auto base_16_digits 
+				= TermsParameterTemplate::template term<NumericLiteral::Base16Digits>;
+		constexpr const static auto base_8_digits 
+				= TermsParameterTemplate::template term<NumericLiteral::Base8Digits>;
+		constexpr const static auto base_2_digits 
+				= TermsParameterTemplate::template term<NumericLiteral::Base2Digits>;
 		constexpr const static auto digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Digits>;
 		constexpr const static auto radix
@@ -134,11 +173,27 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::FixedPoint>;
 
 		constexpr static const auto terms = ctpg::terms(
-				digits, radix, minus, unsigned_mark, integer_mark, fixed_point_mark);
+				base_10_digits, 
+				radix, 
+				minus, 
+				unsigned_mark, 
+				integer_mark, 
+				fixed_point_mark
+			);
 
 		constexpr static const auto non_terminal_terms = ctpg::nterms(
-				whole, integer, fixed_point);
+				digits, 
+				whole, 
+				integer, 
+				fixed_point
+			);
 
+		constexpr const static auto parse_base_10_digits
+				= digits(base_10_digits) >= [](auto digit_string) {
+						//if(digit_string[0] == '0' && digit_string[1] == 'd')
+							
+						return digit_string;
+				};
 		constexpr const static auto parse_whole 
 				= whole(digits) >= [](auto digit_string) {
 					return to_integral<WholeType>(digit_string);
@@ -182,12 +237,14 @@ namespace Warp::Parsing
 		consteval static const auto rules()
 		{
 			return ctpg::rules(
+					parse_base_10_digits, 
 					parse_whole, 
 					parse_explicit_whole, 
 					parse_integer, 
 					parse_negative_whole, 
 					parse_negate_integer, 
 					parse_fixed_point, 
+					parse_redundent_fixed_point, 
 					parse_negate_fixed_point
 				);
 		}

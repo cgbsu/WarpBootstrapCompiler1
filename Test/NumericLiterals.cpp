@@ -82,10 +82,10 @@ TEST(NumericLiterals, Parse)
 			parse<FixedString{"123.123"}, NumericLiteral::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
-	//strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-	//		parse<FixedString{"123.123fxp"}, NumericLiteral::FixedPoint>(), // Actual
-	//		static_cast<FixedType>(123.123) // Expected
-	//	);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			parse<FixedString{"123.123fxp"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123.123) // Expected
+		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
 			parse<FixedString{"-123.123"}, NumericLiteral::FixedPoint>(), // Actual
 			static_cast<FixedType>(-123.123) // Expected
