@@ -119,31 +119,43 @@ TEST(NumericLiterals, Parse)
 			static_cast<FixedType>(-123.123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			runtime_parse<FixedString{"'q'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'q'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('q') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			runtime_parse<FixedString{"'1'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'a'"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('a') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"'q'c"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('q') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"65c"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('A') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"'1'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('1') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			runtime_parse<FixedString{"'2'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'2'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('2') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			runtime_parse<FixedString{"'3'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'3'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('3') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			runtime_parse<FixedString{"'\\n'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'\\n'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('\n') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			runtime_parse<FixedString{"'\\0'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'\\0'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('\0') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			runtime_parse<FixedString{"'\\\\'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'\\\\'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('\\') // Expected
 		);
 };

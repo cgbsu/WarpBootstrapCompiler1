@@ -26,7 +26,8 @@ namespace Warp::Parsing
 		Dot, 
 		IntegerMark, 
 		UnsignedMark, 
-		FixedMark 
+		FixedMark, 
+		CharacterMark 
 	};
 
 	template<auto NumericalTypeTag>
@@ -120,6 +121,12 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>, 
 			TreeTerm<
+					NumericLiteral::CharacterMark, 
+					CharTerm, 
+					'c', 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
 					NumericLiteral::FixedMark, 
 					StringTerm, 
 					FixedString{"fxp"}, 
@@ -192,6 +199,8 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::IntegerMark>;
 		constexpr const static auto fixed_point_mark
 				= TermsParameterTemplate::template term<NumericLiteral::FixedMark>;
+		constexpr const static auto character_mark
+				= TermsParameterTemplate::template term<NumericLiteral::CharacterMark>;
 		constexpr const static auto whole 
 				= TermsParameterTemplate::template term<NumericLiteral::Whole>;
 		constexpr const static auto integer
@@ -212,7 +221,8 @@ namespace Warp::Parsing
 				minus, 
 				unsigned_mark, 
 				integer_mark, 
-				fixed_point_mark
+				fixed_point_mark, 
+				character_mark
 			);
 
 		constexpr static const auto non_terminal_terms = ctpg::nterms(
@@ -300,6 +310,10 @@ namespace Warp::Parsing
 				= character(character_literal) >= [](auto character_literal_string) {
 					return std::string_view{character_literal_string}[1];
 				};
+		constexpr const static auto parse_marked_character
+				= character(character_literal, character_mark) >= [](auto character_literal_string, auto character_mark) {
+					return std::string_view{character_literal_string}[1];
+				};
 		constexpr const static auto parse_escape_character
 				= character(escape_character_literal) >= [](auto escape_character_string) {
 					const char character = std::string_view{escape_character_string}[2];
@@ -317,6 +331,10 @@ namespace Warp::Parsing
 							return '\0';
 					}
 				};
+		constexpr const static auto parse_marked_character_number
+				= character(digits, character_mark) >= [](auto character_number, auto character_mark) {
+					return to_integral<CharacterType>(character_number); 
+			};
 
 		consteval static const auto rules()
 		{
@@ -334,7 +352,9 @@ namespace Warp::Parsing
 					parse_redundent_fixed_point, 
 					parse_negate_fixed_point, 
 					parse_character, 
-					parse_escape_character
+					parse_escape_character, 
+					parse_marked_character_number, 
+					parse_marked_character
 				);
 		}
 	};
