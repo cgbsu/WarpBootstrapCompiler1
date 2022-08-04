@@ -142,5 +142,9 @@ TEST(NumericLiterals, Parse)
 			runtime_parse<FixedString{"'\\0'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('\0') // Expected
 		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			runtime_parse<FixedString{"'\\\\'"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('\\') // Expected
+		);
 };
 

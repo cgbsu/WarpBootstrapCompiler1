@@ -91,7 +91,7 @@ namespace Warp::Parsing
 			TreeTerm<
 					NumericLiteral::EscapeCharacterLiteral, 
 					RegexTerm, 
-					FixedString{"'\\\\[0nt']'"}, 
+					FixedString{"'\\\\[0nt'\\\\]'"}, 
 					FixedString{"CharacterLiteral"}, 
 					ctpg::associativity::no_assoc
 				>, 
