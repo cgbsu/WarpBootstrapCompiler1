@@ -66,6 +66,7 @@ constexpr void strict_check_parse(
 	check_parse(parse_result, expected_result);
 }
 using FixedType = NumericLiteralParserTestType::FixedPointType;
+using CharType = NumericLiteralParserTestType::CharacterType;
 
 TEST(NumericLiterals, Parse)
 {
@@ -116,6 +117,30 @@ TEST(NumericLiterals, Parse)
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
 			parse<FixedString{"-123.123"}, NumericLiteral::FixedPoint>(), // Actual
 			static_cast<FixedType>(-123.123) // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			runtime_parse<FixedString{"'q'"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('q') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			runtime_parse<FixedString{"'1'"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('1') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			runtime_parse<FixedString{"'2'"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('2') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			runtime_parse<FixedString{"'3'"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('3') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			runtime_parse<FixedString{"'\\n'"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('\n') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			runtime_parse<FixedString{"'\\0'"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>('\0') // Expected
 		);
 };
 

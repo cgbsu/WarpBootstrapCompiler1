@@ -19,8 +19,9 @@ namespace Warp::Parsing
 		Whole, 
 		Integer, 
 		FixedPoint, 
-		//TODO: FixedPoint
 		Character, 
+		CharacterLiteral, 
+		EscapeCharacterLiteral, 
 		Minus, 
 		Dot, 
 		IntegerMark, 
@@ -81,6 +82,20 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>, 
 			TreeTerm<
+					NumericLiteral::CharacterLiteral, 
+					RegexTerm, 
+					FixedString{"'[a-zA-Z~`!@#$%^&*()-=_+<>,\\.\"/?;:s|{}]'"}, 
+					FixedString{"CharacterLiteral"}, 
+					ctpg::associativity::no_assoc
+				>,
+			TreeTerm<
+					NumericLiteral::EscapeCharacterLiteral, 
+					RegexTerm, 
+					FixedString{"'\\\\[0nt']'"}, 
+					FixedString{"CharacterLiteral"}, 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
 					NumericLiteral::Minus, 
 					CharTerm, 
 					'-', 
@@ -133,6 +148,12 @@ namespace Warp::Parsing
 					NonTerminalTerm, 
 					NumericLiteralTypeResolver<NumericLiteral::FixedPoint>::Type, 
 					FixedString{"FixedPoint"}
+				>, 
+			TypeTreeTerm<
+					NumericLiteral::Character, 
+					NonTerminalTerm, 
+					NumericLiteralTypeResolver<NumericLiteral::Character>::Type, 
+					FixedString{"Character"}
 				>
 		>;
 
@@ -145,6 +166,12 @@ namespace Warp::Parsing
 		using WholeType = ResolverParameterTemplate<NumericLiteral::Whole>::Type;
 		using IntegerType = ResolverParameterTemplate<NumericLiteral::Integer>::Type;
 		using FixedPointType = ResolverParameterTemplate<NumericLiteral::FixedPoint>::Type;
+		using CharacterType = ResolverParameterTemplate<NumericLiteral::Character>::Type;
+
+		constexpr const static auto character_literal
+				= TermsParameterTemplate::template term<NumericLiteral::CharacterLiteral>;
+		constexpr const static auto escape_character_literal
+				= TermsParameterTemplate::template term<NumericLiteral::EscapeCharacterLiteral>;
 		constexpr const static auto base_10_digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Base10Digits>;
 		constexpr const static auto base_16_digits 
@@ -171,8 +198,12 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::Integer>;
 		constexpr const static auto fixed_point
 				= TermsParameterTemplate::template term<NumericLiteral::FixedPoint>;
+		constexpr const static auto character
+				= TermsParameterTemplate::template term<NumericLiteral::Character>;
 
 		constexpr static const auto terms = ctpg::terms(
+				character_literal, 
+				escape_character_literal, 
 				base_10_digits, 
 				base_16_digits, 
 				base_8_digits, 
@@ -188,7 +219,8 @@ namespace Warp::Parsing
 				digits, 
 				whole, 
 				integer, 
-				fixed_point
+				fixed_point, 
+				character
 			);
 
 		constexpr const static auto parse_base_10_digits
@@ -264,6 +296,27 @@ namespace Warp::Parsing
 				= fixed_point(minus, fixed_point) >= [](auto negate, auto fixed_point_value) {
 					return -fixed_point_value;
 				};
+		constexpr const static auto parse_character
+				= character(character_literal) >= [](auto character_literal_string) {
+					return std::string_view{character_literal_string}[1];
+				};
+		constexpr const static auto parse_escape_character
+				= character(escape_character_literal) >= [](auto escape_character_string) {
+					const char character = std::string_view{escape_character_string}[2];
+					switch(character)
+					{
+						case 'n':
+							return '\n';
+						case 't': 
+							return '\t';
+						case '\\': 
+							return '\\';
+						case '\'': 
+							return '\'';
+						default:
+							return '\0';
+					}
+				};
 
 		consteval static const auto rules()
 		{
@@ -279,7 +332,9 @@ namespace Warp::Parsing
 					parse_negate_integer, 
 					parse_fixed_point, 
 					parse_redundent_fixed_point, 
-					parse_negate_fixed_point
+					parse_negate_fixed_point, 
+					parse_character, 
+					parse_escape_character
 				);
 		}
 	};
