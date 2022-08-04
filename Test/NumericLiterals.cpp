@@ -34,6 +34,17 @@ consteval auto parse()
 			std::cerr
 		);
 }
+template<
+		FixedString StringParameterConstant, 
+		auto ReduceToTagParameterConstant
+	>
+constexpr auto runtime_parse()
+{
+	return parser<ReduceToTagParameterConstant>.parse(
+			ctpg::buffers::string_buffer(StringParameterConstant.string), 
+			std::cerr
+		);
+}
 
 constexpr static const auto equal 
 		= [](auto left, auto right) { return left == right; };
@@ -62,16 +73,24 @@ TEST(NumericLiterals, Parse)
 			parse<FixedString{"0d123"}, NumericLiteral::Whole>(), // Actual
 			123 // Expected
 		);
-	//strict_check_parse<NumericLiteralParserTestType::WholeType>(
-	//		parse<FixedString{"0x7B"}, NumericLiteral::Whole>(), // Actual
-	//		123 // Expected
-	//	);
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
 			parse<FixedString{"123"}, NumericLiteral::Whole>(), // Actual
 			123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
 			parse<FixedString{"123u"}, NumericLiteral::Whole>(), // Actual
+			123 // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::WholeType>(
+			parse<FixedString{"0b1111011"}, NumericLiteral::Whole>(), // Actual
+			123 // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::WholeType>(
+			parse<FixedString{"0o173"}, NumericLiteral::Whole>(), // Actual
+			123 // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::WholeType>(
+			parse<FixedString{"0x7B"}, NumericLiteral::Whole>(), // Actual
 			123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::IntegerType>(

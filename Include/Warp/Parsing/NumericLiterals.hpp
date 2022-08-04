@@ -201,6 +201,30 @@ namespace Warp::Parsing
 					}
 					return std::string_view{digit_string};
 				};
+		constexpr const static auto parse_base_2_digits
+				= digits(base_2_digits) >= [](auto digit_string)
+				{
+					const std::string_view digit_string_view = digit_string;
+					return integral_to_string(
+							to_integral<WholeType, 2>(digit_string_view.substr(2))
+						);
+				};
+		constexpr const static auto parse_base_8_digits
+				= digits(base_8_digits) >= [](auto digit_string)
+				{
+					const std::string_view digit_string_view = digit_string;
+					return integral_to_string(
+							to_integral<WholeType, 8>(digit_string_view.substr(2))
+						);
+				};
+		constexpr const static auto parse_base_16_digits
+				= digits(base_16_digits) >= [](auto digit_string)
+				{
+					const std::string_view digit_string_view = digit_string;
+					return integral_to_string(
+							base_16_to_integral<WholeType>(digit_string_view.substr(2))
+						);
+				};
 		constexpr const static auto parse_whole 
 				= whole(digits) >= [](auto digit_string) {
 					return to_integral<WholeType>(digit_string);
@@ -245,6 +269,9 @@ namespace Warp::Parsing
 		{
 			return ctpg::rules(
 					parse_base_10_digits, 
+					parse_base_2_digits, 
+					parse_base_8_digits, 
+					parse_base_16_digits, 
 					parse_whole, 
 					parse_explicit_whole, 
 					parse_integer, 

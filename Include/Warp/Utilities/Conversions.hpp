@@ -102,9 +102,14 @@ namespace Warp::Utilities
         return std::string{std::string_view{to_stringify}.data()};
     }
 
+	struct Characters {
+		const std::string string;
+		constexpr Characters(std::initializer_list<char> characters) noexcept : string(std::data(characters)) {}
+	};
+
 	template<>
-	constexpr std::string to_string(std::initializer_list<char> characters) {
-		return std::string{std::data(characters)};
+	constexpr std::string to_string<Characters>(Characters characters) {
+		return characters.string;
 	}
 
     template<typename ParameterType>
@@ -116,35 +121,39 @@ namespace Warp::Utilities
         return to_string(static_cast<UnderylingType>(to_stringify));
     }
 
-    constexpr char to_char( char from ) {
+    constexpr char to_char(char from) {
         return from;
     }
 
     template< 
-            std::integral IntegralParameterType, 
-            std::integral auto BaseParameterConstant = 10, 
+            std::integral auto BaseParameterConstant = 10u, 
             char BaseStringParameterConstant = '0', 
-            size_t RecursionMaxParameterConstant = 850 
+            std::unsigned_integral auto RecursionMaxParameterConstant = 850u
         >
     constexpr std::string integral_to_string_implementation( 
-            const IntegralParameterType to_stringify, 
+            const std::integral auto to_stringify, 
             const std::integral auto number_of_digits, 
             const auto... string_digits 
         ) noexcept 
     {
         if constexpr(RecursionMaxParameterConstant > 0)
         {
+			using IntegralType = decltype(to_stringify);
             if(to_stringify < BaseParameterConstant)
-                return std::string{TemplateString<string_digits..., to_stringify + BaseStringParameterConstant, '\0'>::array};
+			{
+				return to_string(Characters{
+						static_cast<char>(string_digits)..., 
+						'\0'
+					});
+			}
 
-            const size_t raised = raise_constexpr(BaseParameterConstant, number_of_digits);
-            const auto high_number = BaseParameterConstant * static_cast<const IntegralParameterType>( 
+            const auto raised = raise(BaseParameterConstant, number_of_digits+1);
+            const auto high_number = BaseParameterConstant * static_cast<IntegralType>( 
                     to_stringify / (BaseParameterConstant * raised) 
                 );
-            const char digit = static_cast<const IntegralParameterType>(to_stringify / raised) - high_number;
+            const char digit = static_cast<IntegralType>(to_stringify / raised) - high_number;
 
             return integral_to_string_implementation<
-                    IntegralParameterType, 
                     BaseParameterConstant, 
                     BaseStringParameterConstant, 
                     RecursionMaxParameterConstant - 1
@@ -155,31 +164,29 @@ namespace Warp::Utilities
                 );
 
         }
-        else {
-            return std::string{TemplateString<
-					string_digits..., 
-					to_stringify + BaseStringParameterConstant, 
+        else
+		{
+			return to_string(Characters{
+					static_cast<char>(string_digits)..., 
+					static_cast<char>(to_stringify + BaseStringParameterConstant), 
 					'\0'
-				>::array};
+				});
 		}
     }
 
     template< 
-            std::integral IntegralParameterType, 
-            std::integral auto BaseParameterConstant = 10, 
+            std::integral auto BaseParameterConstant = 10u, 
             char BaseStringParameterConstant = '0', 
-            size_t RecursionMaxParameterConstant = 90  
+            std::unsigned_integral auto RecursionMaxParameterConstant = 90u
         >
-    constexpr std::string integral_to_string( IntegralParameterType to_stringify )
+    constexpr std::string integral_to_string(const std::integral auto to_stringify)
     {
         const auto number_of_digits = log<
-				IntegralParameterType, 
 				BaseParameterConstant, 
-				0, 
+				0u, 
 				RecursionMaxParameterConstant
 			>(to_stringify);
         return integral_to_string_implementation< 
-                IntegralParameterType, 
                 BaseParameterConstant, 
                 BaseStringParameterConstant, 
                 RecursionMaxParameterConstant 
