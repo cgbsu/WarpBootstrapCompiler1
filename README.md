@@ -7,19 +7,19 @@ Warp has heavy constraints, the typing scheme is a WIP, it has typed literals bu
 This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCompiler0)) I am making at implementing the compiler, immediate goals are: 
 
 ## TODO: 
-0. Evaluate literals
+ - [-] Evaluate literals
 	- [ ] Mark bit precision of each variable
 	- [x] Make it so fixed-points do not have to specify their base after decimal
 	- [x] A few more ways to write fixed-points
-1. Evaluate mathematical-expressions (in a type-safe way)
-2. Evaluate boolean-expressions
-3. Evaluate compile-time functions
-4. Runtime functions & modules
+ - [ ] Evaluate mathematical-expressions (in a type-safe way)
+ - [ ] Evaluate boolean-expressions
+ - [ ] Evaluate compile-time functions
+ - [ ] Runtime functions & modules
 
 ## Optimizations
 
-0. Static caches on `raise`, `raise_constexpr`, `log` and similar math functions
-1. Branching/forking `raise`
+ - [ ] Static caches on `raise`, `raise_constexpr`, `log` and similar math functions
+ - [ ] Branching/forking `raise`
 
 ## Features
 - Literals
