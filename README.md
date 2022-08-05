@@ -28,6 +28,8 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 	- [x] Fixed point values
 	- [x] Characters
 	- [x] Bools
+	- [ ] Specify size of data in bits (abitrary length integrals)
+	- [ ] Specify fixed-point precision
 
 ## Longer Term Goals
  - [ ] Mixed basis for fixed-points/fix the way basis are specified
