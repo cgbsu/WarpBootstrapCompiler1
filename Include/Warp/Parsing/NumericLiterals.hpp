@@ -28,6 +28,7 @@ namespace Warp::Parsing
 		UnsignedMark, 
 		FixedMark, 
 		AnyDecimalDigits, 
+		AnyDecimalDigitsReduction, 
 		CharacterMark 
 	};
 
@@ -128,7 +129,7 @@ namespace Warp::Parsing
 			TreeTerm<
 					NumericLiteral::FixedMark, 
 					StringTerm, 
-					FixedString{"fxp"}, 
+					FixedString{"xp"}, 
 					ctpg::associativity::no_assoc
 				>, 
 			TypeTreeTerm<
@@ -166,6 +167,12 @@ namespace Warp::Parsing
 					NonTerminalTerm, 
 					NumericLiteralTypeResolver<NumericLiteral::Character>::Type, 
 					FixedString{"Character"}
+				>, 
+			TypeTreeTerm<
+					NumericLiteral::AnyDecimalDigitsReduction, 
+					NonTerminalTerm, 
+					std::string, 
+					FixedString{"AnyDecimalDigitsReduction"}
 				>, 
 			TreeTerm<
 					NumericLiteral::Base10Digits, 
@@ -244,6 +251,8 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::Base2Digits>;
 		constexpr const static auto any_decimal_digits 
 				= TermsParameterTemplate::template term<NumericLiteral::AnyDecimalDigits>;
+		constexpr const static auto any_decimal_digits_reduction 
+				= TermsParameterTemplate::template term<NumericLiteral::AnyDecimalDigitsReduction>;
 		constexpr const static auto digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Digits>;
 		constexpr const static auto radix
@@ -288,7 +297,8 @@ namespace Warp::Parsing
 				whole, 
 				integer, 
 				fixed_point, 
-				character
+				character, 
+				any_decimal_digits_reduction
 			);
 
 		template<std::unsigned_integral auto BaseParameterConstant>
@@ -369,6 +379,16 @@ namespace Warp::Parsing
 				= integer(minus, integer) >= [](auto minus, auto integer_value) {
 					return -integer_value;
 				};
+		constexpr const static auto parse_fixed_point_explicit
+				= fixed_point(digits, fixed_point_mark) 
+				>= [](auto digits_string, auto fixed_point_mark_string) {
+					return FixedPointType{to_integral<WholeType>(digits_string)};
+				};
+		constexpr const static auto parse_fixed_point_radix_explicit
+				= fixed_point(digits, radix, fixed_point_mark) 
+				>= [](auto digits_string, auto radix_character, auto fixed_point_mark_string) {
+					return FixedPointType{to_integral<WholeType>(digits_string)};
+				};
 		constexpr const static auto parse_fixed_point
 				= fixed_point(digits, radix, digits) 
 				>= [](auto major, auto radix, auto minor) {
@@ -377,8 +397,18 @@ namespace Warp::Parsing
 							to_integral<WholeType>(minor)
 						);
 				};
+		constexpr const static auto parse_any_decimal_digits_reduction
+				= any_decimal_digits_reduction(any_decimal_digits)
+				>= [](auto any_decimal_digits_string) {
+					return std::string{any_decimal_digits_string};
+				};
+		constexpr const static auto parse_explicit_any_decimal_digits_reduction
+				= any_decimal_digits_reduction(any_decimal_digits, fixed_point_mark)
+				>= [](auto any_decimal_digits_string, auto fixed_point_mark_string) {
+					return std::string{any_decimal_digits_string};
+				};
 		constexpr const static auto parse_base_10_fixed_point
-				= fixed_point(base_10_digits, any_decimal_digits) 
+				= fixed_point(base_10_digits, any_decimal_digits_reduction) 
 				>= [](auto major, auto minor)
 				{
 					return make_fixed_point_from_base<10u>(
@@ -387,7 +417,7 @@ namespace Warp::Parsing
 						);
 				};
 		constexpr const static auto parse_base_2_fixed_point
-				= fixed_point(base_2_digits, any_decimal_digits) 
+				= fixed_point(base_2_digits, any_decimal_digits_reduction) 
 				>= [](auto major, auto minor)
 				{
 					return make_fixed_point_from_base<2u>(
@@ -396,7 +426,7 @@ namespace Warp::Parsing
 						);
 				};
 		constexpr const static auto parse_base_8_fixed_point
-				= fixed_point(base_8_digits, any_decimal_digits) 
+				= fixed_point(base_8_digits, any_decimal_digits_reduction) 
 				>= [](auto major, auto minor)
 				{
 					return make_fixed_point_from_base<8u>(
@@ -405,7 +435,7 @@ namespace Warp::Parsing
 						);
 				};
 		constexpr const static auto parse_base_16_fixed_point
-				= fixed_point(base_16_digits, any_decimal_digits) 
+				= fixed_point(base_16_digits, any_decimal_digits_reduction) 
 				>= [](auto major, auto minor)
 				{
 					return make_fixed_point_from_base<16u>(
@@ -469,7 +499,11 @@ namespace Warp::Parsing
 					parse_integer, 
 					parse_negative_whole, 
 					parse_negate_integer, 
-					//parse_fixed_point, 
+					parse_fixed_point, 
+					parse_any_decimal_digits_reduction, 
+					parse_explicit_any_decimal_digits_reduction, 
+					parse_fixed_point_explicit, 
+					parse_fixed_point_radix_explicit, 
 					parse_base_16_fixed_point, 
 					parse_base_10_fixed_point, 
 					parse_base_8_fixed_point, 

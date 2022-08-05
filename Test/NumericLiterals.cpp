@@ -126,23 +126,39 @@ TEST(NumericLiterals, ParseIntegers)
 
 TEST(NumericLiterals, ParseFixedPoints)
 {
-	//std::cout << "VAL: " << runtime_parse<FixedString{"123.123"}, NumericLiteral::FixedPoint>().value() << "\n";
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
 			runtime_parse<FixedString{"123.123"}, NumericLiteral::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
-	///////////TESTING/////////////
-	//std::cout << "VAL: " << runtime_parse<FixedString{"0x7B.123"}, NumericLiteral::FixedPoint>().value() << "\n";
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"123xp"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123) // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"123.xp"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123) // Expected
+		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
 			runtime_parse<FixedString{"0x7B.123"}, NumericLiteral::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.291) // Expected
 		);
-	/////////////TESTING/////////////
-	//Failing!
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"0b1111011.123"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123.123) // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"0x7B.123xp"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123.291) // Expected
+		);
+	// TODO: Mix basis //
 	//strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-	//		runtime_parse<FixedString{"123.123fxp"}, NumericLiteral::FixedPoint>(), // Actual
+	//		runtime_parse<FixedString{"0x7B.0o173"}, NumericLiteral::FixedPoint>(), // Actual
 	//		static_cast<FixedType>(123.123) // Expected
 	//	);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"123.123xp"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123.123) // Expected
+		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
 			runtime_parse<FixedString{"-123.123"}, NumericLiteral::FixedPoint>(), // Actual
 			static_cast<FixedType>(-123.123) // Expected
