@@ -29,7 +29,9 @@ namespace Warp::Parsing
 		FixedMark, 
 		AnyDecimalDigits, 
 		AnyDecimalDigitsReduction, 
-		CharacterMark 
+		CharacterMark, 
+		Bool, 
+		BooleanLiteral
 	};
 
 	//template<typename NumericParameterType>
@@ -58,20 +60,6 @@ namespace Warp::Parsing
 	//	const size_t bits = whole_part_bits + decimal_part_bits;
 	//};
 	
-	struct Digits
-	{
-		const std::string digits;
-		const size_t base;
-		constexpr Digits(std::string digits, size_t base) noexcept : digits(digits), base(base) {}
-		constexpr Digits(std::string_view digits) noexcept : digits(digits), base(base) {}
-		constexpr operator std::string_view() const {
-			return digits;
-		}
-		constexpr operator std::string() const {
-			return digits;
-		}
-	};
-
 	template<auto NumericalTypeTag>
 	struct NumericLiteralTypeResolver {};
 	
@@ -93,6 +81,11 @@ namespace Warp::Parsing
 	template<>
 	struct NumericLiteralTypeResolver<NumericLiteral::Character> {
 		using Type = char;
+	};
+
+	template<>
+	struct NumericLiteralTypeResolver<NumericLiteral::Bool> {
+		using Type = bool;
 	};
 
 	using NumericLiteralTermsType = MakeTerms<
@@ -169,6 +162,12 @@ namespace Warp::Parsing
 					FixedString{"Character"}
 				>, 
 			TypeTreeTerm<
+					NumericLiteral::Bool, 
+					NonTerminalTerm, 
+					NumericLiteralTypeResolver<NumericLiteral::Bool>::Type, 
+					FixedString{"Bool"}
+				>, 
+			TypeTreeTerm<
 					NumericLiteral::AnyDecimalDigitsReduction, 
 					NonTerminalTerm, 
 					std::string, 
@@ -209,6 +208,13 @@ namespace Warp::Parsing
 					FixedString{"CharacterLiteral"}, 
 					ctpg::associativity::no_assoc
 				>,
+			TreeTerm<
+					NumericLiteral::BooleanLiteral, 
+					RegexTerm, 
+					FixedString{"(true)|(false)"}, 
+					FixedString{"BooleanLiteral"}, 
+					ctpg::associativity::no_assoc
+				>, 
 			TreeTerm<
 					NumericLiteral::EscapeCharacterLiteral, 
 					RegexTerm, 
@@ -255,6 +261,8 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::AnyDecimalDigitsReduction>;
 		constexpr const static auto digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Digits>;
+		constexpr const static auto boolean_literal
+				= TermsParameterTemplate::template term<NumericLiteral::BooleanLiteral>;
 		constexpr const static auto radix
 				= TermsParameterTemplate::template term<NumericLiteral::Dot>;
 		constexpr const static auto minus
@@ -275,6 +283,8 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::FixedPoint>;
 		constexpr const static auto character
 				= TermsParameterTemplate::template term<NumericLiteral::Character>;
+		constexpr const static auto boolean
+				= TermsParameterTemplate::template term<NumericLiteral::Bool>;
 
 		constexpr static const auto terms = ctpg::terms(
 				character_literal, 
@@ -284,6 +294,7 @@ namespace Warp::Parsing
 				base_8_digits, 
 				base_2_digits, 
 				any_decimal_digits, 
+				boolean_literal, 
 				radix, 
 				minus, 
 				unsigned_mark, 
@@ -298,7 +309,8 @@ namespace Warp::Parsing
 				integer, 
 				fixed_point, 
 				character, 
-				any_decimal_digits_reduction
+				any_decimal_digits_reduction, 
+				boolean
 			);
 
 		template<std::unsigned_integral auto BaseParameterConstant>
@@ -316,10 +328,30 @@ namespace Warp::Parsing
 			}
 			else
 			{
-				return to_fixed_point_integral<WholeType, FixedPointType>(
-						to_integral<WholeType, BaseParameterConstant>(major), 
-						to_integral<WholeType, BaseParameterConstant>(minor.substr(1))
-					);
+				//bool skip2 = false;
+				//if(minor.size() > 2)
+				//{
+				//	if(minor[0] == '0')
+				//	{
+				//		const char base_char = minor[1];
+				//		for(auto canidate_base : std::string{"xdob"})
+				//			skip2 = skip2 | (base_char == canidate_base);
+				//	}
+				//}
+				//if(skip2 == true)
+				//{
+				//	return to_fixed_point_integral<WholeType, FixedPointType>(
+				//			to_integral<WholeType, BaseParameterConstant>(major), 
+				//			to_integral<WholeType, BaseParameterConstant>(minor.substr(2))
+				//		);
+				//}
+				//else
+				//{
+					return to_fixed_point_integral<WholeType, FixedPointType>(
+							to_integral<WholeType, BaseParameterConstant>(major), 
+							to_integral<WholeType, BaseParameterConstant>(minor.substr(1))
+						);
+				//}
 			}
 		}
 
@@ -407,6 +439,10 @@ namespace Warp::Parsing
 				>= [](auto any_decimal_digits_string, auto fixed_point_mark_string) {
 					return std::string{any_decimal_digits_string};
 				};
+		// TODO: Possible representation change 
+		// BASIS_MARK DIGITS RADIX DIGITS
+		// and
+		// BASIS_MARK DIGITS RADIX BASIS_MARK DIGITS
 		constexpr const static auto parse_base_10_fixed_point
 				= fixed_point(base_10_digits, any_decimal_digits_reduction) 
 				>= [](auto major, auto minor)
@@ -421,7 +457,7 @@ namespace Warp::Parsing
 				>= [](auto major, auto minor)
 				{
 					return make_fixed_point_from_base<2u>(
-							to_string_view(major), 
+							to_string_view(major).substr(2), 
 							to_string_view(minor)
 						);
 				};
@@ -430,7 +466,7 @@ namespace Warp::Parsing
 				>= [](auto major, auto minor)
 				{
 					return make_fixed_point_from_base<8u>(
-							to_string_view(major), 
+							to_string_view(major).substr(2), 
 							to_string_view(minor)
 						);
 				};
@@ -439,7 +475,7 @@ namespace Warp::Parsing
 				>= [](auto major, auto minor)
 				{
 					return make_fixed_point_from_base<16u>(
-							to_string_view(major), 
+							to_string_view(major).substr(2), 
 							to_string_view(minor)
 						);
 				};
@@ -487,6 +523,12 @@ namespace Warp::Parsing
 					return to_integral<CharacterType>(character_number); 
 			};
 
+		constexpr const static auto parse_boolean_value
+				= boolean(boolean_literal) 
+				>= [](auto boolean_literal_string) {
+					return to_bool(boolean_literal_string);
+				};
+
 		consteval static const auto rules()
 		{
 			return ctpg::rules(
@@ -513,7 +555,8 @@ namespace Warp::Parsing
 					parse_character, 
 					parse_escape_character, 
 					parse_marked_character_number, 
-					parse_marked_character
+					parse_marked_character, 
+					parse_boolean_value
 				);
 		}
 	};

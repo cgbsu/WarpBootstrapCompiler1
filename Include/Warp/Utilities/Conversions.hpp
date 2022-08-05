@@ -88,13 +88,13 @@ namespace Warp::Utilities
 	}
 
 	template<
-			FixedString TrueTokenParameterConstant = FixedString("true"), 
+			FixedString TrueTokenParameterConstant = FixedString{"true"}, 
 			FixedString FalseTokenParameterConstant = FixedString{"false"}
 		>
     constexpr std::optional<bool> to_bool(std::string_view boolean_token)
     {
-		constexpr static const std::string_view true_token{TrueTokenParameterConstant}; 
-		constexpr static const std::string_view false_token{FalseTokenParameterConstant}; 
+		constexpr static const std::string_view true_token{TrueTokenParameterConstant.string}; 
+		constexpr static const std::string_view false_token{FalseTokenParameterConstant.string}; 
         return ((boolean_token == true_token) 
 				? std::optional{true} 
 				: ((boolean_token == false_token) ? std::optional{false} : std::nullopt)

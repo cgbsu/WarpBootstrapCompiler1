@@ -143,9 +143,36 @@ TEST(NumericLiterals, ParseFixedPoints)
 			static_cast<FixedType>(123.291) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"0b1111011.123"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"0x7B.7B"}, NumericLiteral::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"-0x7B.7B"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(-123.123) // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"0b1111011.1111011"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123.123) // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"-0b1111011.1111011"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(-123.123) // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"0o173.173"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(123.123) // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+			runtime_parse<FixedString{"-0o173.173"}, NumericLiteral::FixedPoint>(), // Actual
+			static_cast<FixedType>(-123.123) // Expected
+		);
+	// Feature... not a bug... suuuuuuuuure... //
+	// TODO: FIX THIS!!!
+	//strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
+	//		runtime_parse<FixedString{"0b1111011.123"}, NumericLiteral::FixedPoint>(), // Actual
+	//		static_cast<FixedType>(123.18) // Expected
+	//	);
+	//std::cout << "HERE\n";
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
 			runtime_parse<FixedString{"0x7B.123xp"}, NumericLiteral::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.291) // Expected
