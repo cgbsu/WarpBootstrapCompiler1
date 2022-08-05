@@ -8,7 +8,7 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 
 ## TODO: 
 0. Evaluate literals
-	- [] Mark bit precision of each variable
+	- [ ] Mark bit precision of each variable
 	- [x] Make it so fixed-points do not have to specify their base after decimal
 	- [x] A few more ways to write fixed-points
 1. Evaluate mathematical-expressions (in a type-safe way)
@@ -30,9 +30,9 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 	- [x] Bools
 
 ## Longer Term Goals
- - [] Mixed basis for fixed-points/fix the way basis are specified
- - [] Specify precision for fixed-points
- - [] Floating point types?
+ - [ ] Mixed basis for fixed-points/fix the way basis are specified
+ - [ ] Specify precision for fixed-points
+ - [ ] Floating point types?
 
 # Branchless?
 
