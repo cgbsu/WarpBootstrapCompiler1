@@ -93,8 +93,8 @@ namespace Warp::Utilities
 		>
     constexpr std::optional<bool> to_bool(std::string_view boolean_token)
     {
-		constexpr static const std::string_view true_token{TrueTokenParameterConstant.string}; 
-		constexpr static const std::string_view false_token{FalseTokenParameterConstant.string}; 
+		constexpr const std::string_view true_token{TrueTokenParameterConstant.string}; 
+		constexpr const std::string_view false_token{FalseTokenParameterConstant.string}; 
         return ((boolean_token == true_token) 
 				? std::optional{true} 
 				: ((boolean_token == false_token) ? std::optional{false} : std::nullopt)

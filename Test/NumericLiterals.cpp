@@ -67,6 +67,7 @@ constexpr void strict_check_parse(
 }
 using FixedType = NumericLiteralParserTestType::FixedPointType;
 using CharType = NumericLiteralParserTestType::CharacterType;
+using BoolType = NumericLiteralParserTestType::BoolType;
 
 TEST(NumericLiterals, ParseWholeAnyBase)
 {
@@ -234,9 +235,21 @@ TEST(NumericLiterals, ParseCharacters)
 			parse<FixedString{"'\\\\'"}, NumericLiteral::Character>(), // Actual
 			static_cast<CharType>('\\') // Expected
 		);
-	//strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-	//		parse<FixedString{"' '"}, NumericLiteral::Character>(), // Actual
-	//		static_cast<CharType>(' ') // Expected
-	//	);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"' '"}, NumericLiteral::Character>(), // Actual
+			static_cast<CharType>(' ') // Expected
+		);
+};
+
+TEST(NumericLiterals, Booleans)
+{
+	strict_check_parse<NumericLiteralParserTestType::BoolType>(
+			parse<FixedString{"true"}, NumericLiteral::Bool>(), // Actual
+			true // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::BoolType>(
+			parse<FixedString{"false"}, NumericLiteral::Bool>(), // Actual
+			false // Expected
+		);
 };
 

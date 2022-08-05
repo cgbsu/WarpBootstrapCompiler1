@@ -8,9 +8,9 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 
 ## TODO: 
 0. Evaluate literals
-	- Mark bit precision of each variable
-	- Make it so fixed-points do not have to specify their base after decimal
-	- A few more ways to write fixed-points
+	- [] Mark bit precision of each variable
+	- [x] Make it so fixed-points do not have to specify their base after decimal
+	- [x] A few more ways to write fixed-points
 1. Evaluate mathematical-expressions (in a type-safe way)
 2. Evaluate boolean-expressions
 3. Evaluate compile-time functions
@@ -20,6 +20,19 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 
 0. Static caches on `raise`, `raise_constexpr`, `log` and similar math functions
 1. Branching/forking `raise`
+
+## Features
+- Literals
+	- [x] Unsigned integers
+	- [x] Signed integers
+	- [x] Fixed point values
+	- [x] Characters
+	- [x] Bools
+
+## Longer Term Goals
+ - [] Mixed basis for fixed-points/fix the way basis are specified
+ - [] Specify precision for fixed-points
+ - [] Floating point types?
 
 # Branchless?
 

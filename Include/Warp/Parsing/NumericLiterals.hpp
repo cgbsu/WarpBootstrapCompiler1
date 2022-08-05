@@ -204,7 +204,7 @@ namespace Warp::Parsing
 			TreeTerm<
 					NumericLiteral::CharacterLiteral, 
 					RegexTerm, 
-					FixedString{"'[a-zA-Z~`!@#$%^&*()-=_+<>,\\.\"/?;:\\s|{}]'"}, 
+					FixedString{"('[a-zA-Z~`!@#$%^&*()-=_+<>,\\.\"/?;:|{}]')|(' ')"}, //(' ') is a quick fix for now.
 					FixedString{"CharacterLiteral"}, 
 					ctpg::associativity::no_assoc
 				>,
@@ -242,6 +242,7 @@ namespace Warp::Parsing
 		using IntegerType = ResolverParameterTemplate<NumericLiteral::Integer>::Type;
 		using FixedPointType = ResolverParameterTemplate<NumericLiteral::FixedPoint>::Type;
 		using CharacterType = ResolverParameterTemplate<NumericLiteral::Character>::Type;
+		using BoolType = ResolverParameterTemplate<NumericLiteral::Bool>::Type;
 
 		constexpr const static auto character_literal
 				= TermsParameterTemplate::template term<NumericLiteral::CharacterLiteral>;
@@ -328,30 +329,10 @@ namespace Warp::Parsing
 			}
 			else
 			{
-				//bool skip2 = false;
-				//if(minor.size() > 2)
-				//{
-				//	if(minor[0] == '0')
-				//	{
-				//		const char base_char = minor[1];
-				//		for(auto canidate_base : std::string{"xdob"})
-				//			skip2 = skip2 | (base_char == canidate_base);
-				//	}
-				//}
-				//if(skip2 == true)
-				//{
-				//	return to_fixed_point_integral<WholeType, FixedPointType>(
-				//			to_integral<WholeType, BaseParameterConstant>(major), 
-				//			to_integral<WholeType, BaseParameterConstant>(minor.substr(2))
-				//		);
-				//}
-				//else
-				//{
-					return to_fixed_point_integral<WholeType, FixedPointType>(
-							to_integral<WholeType, BaseParameterConstant>(major), 
-							to_integral<WholeType, BaseParameterConstant>(minor.substr(1))
-						);
-				//}
+				return to_fixed_point_integral<WholeType, FixedPointType>(
+						to_integral<WholeType, BaseParameterConstant>(major), 
+						to_integral<WholeType, BaseParameterConstant>(minor.substr(1))
+					);
 			}
 		}
 
@@ -526,7 +507,7 @@ namespace Warp::Parsing
 		constexpr const static auto parse_boolean_value
 				= boolean(boolean_literal) 
 				>= [](auto boolean_literal_string) {
-					return to_bool(boolean_literal_string);
+					return to_bool(boolean_literal_string).value();
 				};
 
 		consteval static const auto rules()
