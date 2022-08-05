@@ -14,6 +14,7 @@
 #include <limits>
 #include <compare>
 #include <cmath>
+#include <climits>
 
 #include <ctpg/ctpg.hpp>
 #include <ctre.hpp>

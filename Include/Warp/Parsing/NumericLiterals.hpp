@@ -27,7 +27,48 @@ namespace Warp::Parsing
 		IntegerMark, 
 		UnsignedMark, 
 		FixedMark, 
+		AnyDecimalDigits, 
 		CharacterMark 
+	};
+
+	//template<typename NumericParameterType>
+	//struct NumericType
+	//{
+	//	using UnderylingType = NumericType;
+	//	constexpr static const bool fixed_point_type = false;
+	//	const UnderylingType number;
+	//	const size_t bits = sizeof(UnderylingType) * 8;//* CHAR_BIT;
+	//};
+
+	//template<
+	//		size_t WholePartBitsParameterConstant, 
+	//		size_t DecimalPartBitsParameterConstant
+	//	>
+	//struct NumericType<numeric::fixed<
+	//		WholePartBitsParameterConstant, 
+	//		DecimalPartBitsParameterConstant
+	//	>>
+	//{
+	//	constexpr const static auto whole_part_bits = WholePartBitsParameterConstant;
+	//	constexpr const static auto decimal_part_bits = DecimalPartBitsParameterConstant;
+	//	using UnderylingType = numeric::fixed<whole_part_bits, decimal_part_bits>;
+	//	constexpr static const bool fixed_point_type = true;
+	//	const UnderylingType number;
+	//	const size_t bits = whole_part_bits + decimal_part_bits;
+	//};
+	
+	struct Digits
+	{
+		const std::string digits;
+		const size_t base;
+		constexpr Digits(std::string digits, size_t base) noexcept : digits(digits), base(base) {}
+		constexpr Digits(std::string_view digits) noexcept : digits(digits), base(base) {}
+		constexpr operator std::string_view() const {
+			return digits;
+		}
+		constexpr operator std::string() const {
+			return digits;
+		}
 	};
 
 	template<auto NumericalTypeTag>
@@ -54,48 +95,6 @@ namespace Warp::Parsing
 	};
 
 	using NumericLiteralTermsType = MakeTerms<
-			TreeTerm<
-					NumericLiteral::Base10Digits, 
-					RegexTerm, 
-					FixedString{"([0-9]+)|(0d[0-9]+)"}, 
-					FixedString{"Base10Digits"}, 
-					ctpg::associativity::no_assoc
-				>, 
-			TreeTerm<
-					NumericLiteral::Base2Digits, 
-					RegexTerm, 
-					FixedString{"0b[0-1]+"}, 
-					FixedString{"Base2Digits"}, 
-					ctpg::associativity::no_assoc
-				>, 
-			TreeTerm<
-					NumericLiteral::Base16Digits, 
-					RegexTerm, 
-					FixedString{"0x[0-9A-Fa-f]+"}, 
-					FixedString{"Base16Digits"}, 
-					ctpg::associativity::no_assoc
-				>, 
-			TreeTerm<
-					NumericLiteral::Base8Digits, 
-					RegexTerm, 
-					FixedString{"0o[0-7]+"}, 
-					FixedString{"Base8Digits"}, 
-					ctpg::associativity::no_assoc
-				>, 
-			TreeTerm<
-					NumericLiteral::CharacterLiteral, 
-					RegexTerm, 
-					FixedString{"'[a-zA-Z~`!@#$%^&*()-=_+<>,\\.\"/?;:s|{}]'"}, 
-					FixedString{"CharacterLiteral"}, 
-					ctpg::associativity::no_assoc
-				>,
-			TreeTerm<
-					NumericLiteral::EscapeCharacterLiteral, 
-					RegexTerm, 
-					FixedString{"'\\\\[0nt'\\\\]'"}, 
-					FixedString{"CharacterLiteral"}, 
-					ctpg::associativity::no_assoc
-				>, 
 			TreeTerm<
 					NumericLiteral::Minus, 
 					CharTerm, 
@@ -139,6 +138,12 @@ namespace Warp::Parsing
 					FixedString{"Digits"}
 				>, 
 			TypeTreeTerm<
+					NumericLiteral::FixedPoint, 
+					NonTerminalTerm, 
+					NumericLiteralTypeResolver<NumericLiteral::FixedPoint>::Type, 
+					FixedString{"FixedPoint"}
+				>, 
+			TypeTreeTerm<
 					NumericLiteral::Whole, 
 					NonTerminalTerm, 
 					NumericLiteralTypeResolver<NumericLiteral::Whole>::Type, 
@@ -161,8 +166,58 @@ namespace Warp::Parsing
 					NonTerminalTerm, 
 					NumericLiteralTypeResolver<NumericLiteral::Character>::Type, 
 					FixedString{"Character"}
+				>, 
+			TreeTerm<
+					NumericLiteral::Base10Digits, 
+					RegexTerm, 
+					FixedString{"([0-9]+)|(0d[0-9]+)"}, 
+					FixedString{"Base10Digits"}, 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::Base2Digits, 
+					RegexTerm, 
+					FixedString{"0b[0-1]+"}, 
+					FixedString{"Base2Digits"}, 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::Base16Digits, 
+					RegexTerm, 
+					FixedString{"0x[0-9A-Fa-f]+"}, 
+					FixedString{"Base16Digits"}, 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::Base8Digits, 
+					RegexTerm, 
+					FixedString{"0o[0-7]+"}, 
+					FixedString{"Base8Digits"}, 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::CharacterLiteral, 
+					RegexTerm, 
+					FixedString{"'[a-zA-Z~`!@#$%^&*()-=_+<>,\\.\"/?;:\\s|{}]'"}, 
+					FixedString{"CharacterLiteral"}, 
+					ctpg::associativity::no_assoc
+				>,
+			TreeTerm<
+					NumericLiteral::EscapeCharacterLiteral, 
+					RegexTerm, 
+					FixedString{"'\\\\[0nt'\\\\]'"}, 
+					FixedString{"CharacterLiteral"}, 
+					ctpg::associativity::no_assoc
 				>
-		>;
+			>::AddOnePriority<
+					TreeTerm<
+							NumericLiteral::AnyDecimalDigits, 
+							RegexTerm, 
+							FixedString{"\\.[0-9A-Fa-f]+"}, 
+							FixedString{"AnyDecimalDigits"}, 
+							ctpg::associativity::no_assoc
+						>
+					>;
 
 	template<
 			typename TermsParameterTemplate, 
@@ -187,6 +242,8 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::Base8Digits>;
 		constexpr const static auto base_2_digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Base2Digits>;
+		constexpr const static auto any_decimal_digits 
+				= TermsParameterTemplate::template term<NumericLiteral::AnyDecimalDigits>;
 		constexpr const static auto digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Digits>;
 		constexpr const static auto radix
@@ -217,6 +274,7 @@ namespace Warp::Parsing
 				base_16_digits, 
 				base_8_digits, 
 				base_2_digits, 
+				any_decimal_digits, 
 				radix, 
 				minus, 
 				unsigned_mark, 
@@ -232,6 +290,28 @@ namespace Warp::Parsing
 				fixed_point, 
 				character
 			);
+
+		template<std::unsigned_integral auto BaseParameterConstant>
+		constexpr static const FixedPointType make_fixed_point_from_base(
+				std::string_view major, 
+				std::string_view minor
+			)
+		{
+			if constexpr(BaseParameterConstant == 16)
+			{
+				return to_fixed_point_integral<WholeType, FixedPointType>(
+						base_16_to_integral<WholeType>(major), 
+						base_16_to_integral<WholeType>(minor.substr(1))
+					);
+			}
+			else
+			{
+				return to_fixed_point_integral<WholeType, FixedPointType>(
+						to_integral<WholeType, BaseParameterConstant>(major), 
+						to_integral<WholeType, BaseParameterConstant>(minor.substr(1))
+					);
+			}
+		}
 
 		constexpr const static auto parse_base_10_digits
 				= digits(base_10_digits) >= [](auto digit_string)
@@ -272,50 +352,90 @@ namespace Warp::Parsing
 					return to_integral<WholeType>(digit_string);
 				};
 		constexpr const static auto parse_explicit_whole 
-				= whole(digits, unsigned_mark) >= [](auto digit_string, auto unsigned_mark) {
+				= whole(digits, unsigned_mark) 
+				>= [](auto digit_string, auto unsigned_mark) {
 					return to_integral<WholeType>(digit_string);
 				};
 		constexpr const static auto parse_integer
-				= integer(digits, integer_mark) >= [](auto digits_string, auto integer_mark_character) {
+				= integer(digits, integer_mark) 
+				>= [](auto digits_string, auto integer_mark_character) {
 					return to_integral<IntegerType>(digits_string);
 				};
 		constexpr const static auto parse_negative_whole
-				= integer(minus, whole) >= [](auto minus, auto whole_value) {
-					return -static_cast<IntegerType>(whole_value);
+				= integer(minus, digits) >= [](auto minus, auto digits_string) {
+					return -to_integral<IntegerType>(digits_string);
 				};
 		constexpr const static auto parse_negate_integer
 				= integer(minus, integer) >= [](auto minus, auto integer_value) {
 					return -integer_value;
 				};
 		constexpr const static auto parse_fixed_point
-				= fixed_point(digits, radix, digits) >= [](auto major, auto radix, auto minor)
+				= fixed_point(digits, radix, digits) 
+				>= [](auto major, auto radix, auto minor) {
+					return to_fixed_point_integral<WholeType, FixedPointType>(
+							to_integral<WholeType>(major), 
+							to_integral<WholeType>(minor)
+						);
+				};
+		constexpr const static auto parse_base_10_fixed_point
+				= fixed_point(base_10_digits, any_decimal_digits) 
+				>= [](auto major, auto minor)
 				{
-					const auto minor_value 
-							= to_integral<WholeType>(minor); 
-					const auto major_value = to_integral<WholeType>(major);
-					FixedPointType major_fixed{major_value};
-					FixedPointType denomonator{raise(10u, std::string_view{minor}.size())};
-					return FixedPointType{major_fixed 
-							+ (FixedPointType{minor_value} / denomonator)};
+					return make_fixed_point_from_base<10u>(
+							to_string_view(major), 
+							to_string_view(minor)
+						);
+				};
+		constexpr const static auto parse_base_2_fixed_point
+				= fixed_point(base_2_digits, any_decimal_digits) 
+				>= [](auto major, auto minor)
+				{
+					return make_fixed_point_from_base<2u>(
+							to_string_view(major), 
+							to_string_view(minor)
+						);
+				};
+		constexpr const static auto parse_base_8_fixed_point
+				= fixed_point(base_8_digits, any_decimal_digits) 
+				>= [](auto major, auto minor)
+				{
+					return make_fixed_point_from_base<8u>(
+							to_string_view(major), 
+							to_string_view(minor)
+						);
+				};
+		constexpr const static auto parse_base_16_fixed_point
+				= fixed_point(base_16_digits, any_decimal_digits) 
+				>= [](auto major, auto minor)
+				{
+					return make_fixed_point_from_base<16u>(
+							to_string_view(major), 
+							to_string_view(minor)
+						);
 				};
 		constexpr const static auto parse_redundent_fixed_point
-				= fixed_point(fixed_point, fixed_point_mark) >= [](auto fixed_point_value, auto mark) {
+				= fixed_point(fixed_point, fixed_point_mark) 
+				>= [](auto fixed_point_value, auto mark) {
 					return fixed_point_value;
 				};
 		constexpr const static auto parse_negate_fixed_point
-				= fixed_point(minus, fixed_point) >= [](auto negate, auto fixed_point_value) {
+				= fixed_point(minus, fixed_point) 
+				>= [](auto negate, auto fixed_point_value) {
 					return -fixed_point_value;
 				};
 		constexpr const static auto parse_character
-				= character(character_literal) >= [](auto character_literal_string) {
+				= character(character_literal) 
+				>= [](auto character_literal_string) {
 					return std::string_view{character_literal_string}[1];
 				};
 		constexpr const static auto parse_marked_character
-				= character(character_literal, character_mark) >= [](auto character_literal_string, auto character_mark) {
+				= character(character_literal, character_mark) 
+				>= [](auto character_literal_string, auto character_mark) {
 					return std::string_view{character_literal_string}[1];
 				};
 		constexpr const static auto parse_escape_character
-				= character(escape_character_literal) >= [](auto escape_character_string) {
+				= character(escape_character_literal) 
+				>= [](auto escape_character_string) {
 					const char character = std::string_view{escape_character_string}[2];
 					switch(character)
 					{
@@ -332,7 +452,8 @@ namespace Warp::Parsing
 					}
 				};
 		constexpr const static auto parse_marked_character_number
-				= character(digits, character_mark) >= [](auto character_number, auto character_mark) {
+				= character(digits, character_mark) 
+				>= [](auto character_number, auto character_mark) {
 					return to_integral<CharacterType>(character_number); 
 			};
 
@@ -348,7 +469,11 @@ namespace Warp::Parsing
 					parse_integer, 
 					parse_negative_whole, 
 					parse_negate_integer, 
-					parse_fixed_point, 
+					//parse_fixed_point, 
+					parse_base_16_fixed_point, 
+					parse_base_10_fixed_point, 
+					parse_base_8_fixed_point, 
+					parse_base_2_fixed_point, 
 					parse_redundent_fixed_point, 
 					parse_negate_fixed_point, 
 					parse_character, 

@@ -6,6 +6,10 @@
 #define WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
 namespace Warp::Utilities
 {
+	std::string_view to_string_view(auto from) {
+		return std::string_view{from};
+	}
+
 	template<typename ToParameterType>
 	struct FromString
 	{
@@ -222,6 +226,23 @@ namespace Warp::Utilities
         }
         return hash;
     }
+
+	template<
+			std::unsigned_integral WholeParameterType, 
+			typename FixedPointParameterType, 
+			std::unsigned_integral auto BaseParameterConstant = 10u
+		>
+	auto to_fixed_point_integral(
+			const std::unsigned_integral auto major_value, 
+			const std::unsigned_integral auto minor_value
+		)
+	{
+		using FixedPointType = FixedPointParameterType;
+		using WholeType = WholeParameterType;
+		FixedPointType major_fixed{major_value};
+		FixedPointType denomonator{raise(BaseParameterConstant, integral_to_string(minor_value).size())};
+		return FixedPointType{major_fixed + (FixedPointType{minor_value} / denomonator)};
+	}
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
 

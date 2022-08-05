@@ -16,8 +16,8 @@ namespace Warp::Utilities
 
 	constexpr static const size_t default_max_recursion = 850;
 	template<
-            std::unsigned_integral auto BaseParameterConstant = 10, 
-            std::unsigned_integral auto StartBaseParameterConstant = 0, 
+            std::unsigned_integral auto BaseParameterConstant = 10u, 
+            std::unsigned_integral auto StartBaseParameterConstant = 0u, 
             std::unsigned_integral auto RecursionMaxParameterConstant = default_max_recursion
         >
     constexpr std::unsigned_integral auto log(const std::integral auto number) noexcept 
@@ -179,6 +179,8 @@ namespace Warp::Utilities
 				= raise_constexpr<FromBaseParameterConstant, FromPowerParameterConstant>();
 		return log<maximum, ToBaseParameterConstant>();
 	}
+
+
 }
 
 #endif // WARP__UTILITIES__HEADER__UTILITIES__MATH__HPP
