@@ -120,24 +120,37 @@ namespace Warp::Parsing
 		>
 	consteval auto get_term_with_tag()
 	{
-		if constexpr(TagParameterConstant == CurrentParameterType::tag)
-			return TypeHolder<CurrentParameterType>();
-		else if constexpr(sizeof...(TermParameterTypes) <= 0)
+		constexpr const auto no_match = []()
 		{
-			static_assert(
-					ErrorOnNoMatchParameterConstant, 
-					"Term not found in get_term_with_tag"
-				);
-			return std::nullopt;
+			if constexpr(sizeof...(TermParameterTypes) <= 0)
+			{
+				static_assert(
+						ErrorOnNoMatchParameterConstant, 
+						"Term not found in get_term_with_tag"
+					);
+				return std::nullopt;
+			}
+			else
+			{
+				return get_term_with_tag<
+						ErrorOnNoMatchParameterConstant, 
+						TagParameterConstant, 
+						TermParameterTypes...
+					>();
+			}
+		};
+		if constexpr(std::is_same_v<
+					decltype(TagParameterConstant), 
+					decltype(CurrentParameterType::tag)
+				> == true)
+		{
+			if constexpr(TagParameterConstant == CurrentParameterType::tag)
+				return TypeHolder<CurrentParameterType>();
+			else
+				return no_match();
 		}
 		else
-		{
-			return get_term_with_tag<
-					ErrorOnNoMatchParameterConstant, 
-					TagParameterConstant, 
-					TermParameterTypes...
-				>();
-		}
+			return no_match();
 	}
 
 	template<

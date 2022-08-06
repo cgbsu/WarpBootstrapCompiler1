@@ -72,27 +72,27 @@ using BoolType = NumericLiteralParserTestType::BoolType;
 TEST(NumericLiterals, ParseWholeAnyBase)
 {
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
-			parse<FixedString{"0d123"}, NumericLiteral::Whole>(), // Actual
+			parse<FixedString{"0d123"}, NumericType::Whole>(), // Actual
 			123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
-			parse<FixedString{"123"}, NumericLiteral::Whole>(), // Actual
+			parse<FixedString{"123"}, NumericType::Whole>(), // Actual
 			123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
-			parse<FixedString{"123u"}, NumericLiteral::Whole>(), // Actual
+			parse<FixedString{"123u"}, NumericType::Whole>(), // Actual
 			123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
-			parse<FixedString{"0b1111011"}, NumericLiteral::Whole>(), // Actual
+			parse<FixedString{"0b1111011"}, NumericType::Whole>(), // Actual
 			123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
-			parse<FixedString{"0o173"}, NumericLiteral::Whole>(), // Actual
+			parse<FixedString{"0o173"}, NumericType::Whole>(), // Actual
 			123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::WholeType>(
-			parse<FixedString{"0x7B"}, NumericLiteral::Whole>(), // Actual
+			parse<FixedString{"0x7B"}, NumericType::Whole>(), // Actual
 			123 // Expected
 		);
 };
@@ -100,27 +100,27 @@ TEST(NumericLiterals, ParseWholeAnyBase)
 TEST(NumericLiterals, ParseIntegers)
 {
 	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
-			parse<FixedString{"-0b1111011"}, NumericLiteral::Integer>(), // Actual
+			parse<FixedString{"-0b1111011"}, NumericType::Integer>(), // Actual
 			-123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
-			parse<FixedString{"-0b1111011"}, NumericLiteral::Integer>(), // Actual
+			parse<FixedString{"-0b1111011"}, NumericType::Integer>(), // Actual
 			-123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
-			parse<FixedString{"-0o173"}, NumericLiteral::Integer>(), // Actual
+			parse<FixedString{"-0o173"}, NumericType::Integer>(), // Actual
 			-123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
-			parse<FixedString{"-123"}, NumericLiteral::Integer>(), // Actual
+			parse<FixedString{"-123"}, NumericType::Integer>(), // Actual
 			-123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
-			parse<FixedString{"-123i"}, NumericLiteral::Integer>(), // Actual
+			parse<FixedString{"-123i"}, NumericType::Integer>(), // Actual
 			-123 // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::IntegerType>(
-			parse<FixedString{"123i"}, NumericLiteral::Integer>(), // Actual
+			parse<FixedString{"123i"}, NumericType::Integer>(), // Actual
 			123 // Expected
 		);
 };
@@ -128,67 +128,67 @@ TEST(NumericLiterals, ParseIntegers)
 TEST(NumericLiterals, ParseFixedPoints)
 {
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"123.123"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"123.123"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"123xp"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"123xp"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"123.xp"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"123.xp"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"0x7B.123"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"0x7B.123"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.291) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"0x7B.7B"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"0x7B.7B"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"-0x7B.7B"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"-0x7B.7B"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(-123.123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"0b1111011.1111011"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"0b1111011.1111011"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"-0b1111011.1111011"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"-0b1111011.1111011"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(-123.123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"0o173.173"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"0o173.173"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"-0o173.173"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"-0o173.173"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(-123.123) // Expected
 		);
 	// Feature... not a bug... suuuuuuuuure... //
 	// TODO: FIX THIS!!!
 	//strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-	//		runtime_parse<FixedString{"0b1111011.123"}, NumericLiteral::FixedPoint>(), // Actual
+	//		runtime_parse<FixedString{"0b1111011.123"}, NumericType::FixedPoint>(), // Actual
 	//		static_cast<FixedType>(123.18) // Expected
 	//	);
 	//std::cout << "HERE\n";
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"0x7B.123xp"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"0x7B.123xp"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.291) // Expected
 		);
 	// TODO: Mix basis //
 	//strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-	//		runtime_parse<FixedString{"0x7B.0o173"}, NumericLiteral::FixedPoint>(), // Actual
+	//		runtime_parse<FixedString{"0x7B.0o173"}, NumericType::FixedPoint>(), // Actual
 	//		static_cast<FixedType>(123.123) // Expected
 	//	);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"123.123xp"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"123.123xp"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::FixedPointType>(
-			runtime_parse<FixedString{"-123.123"}, NumericLiteral::FixedPoint>(), // Actual
+			runtime_parse<FixedString{"-123.123"}, NumericType::FixedPoint>(), // Actual
 			static_cast<FixedType>(-123.123) // Expected
 		);
 };
@@ -196,47 +196,47 @@ TEST(NumericLiterals, ParseFixedPoints)
 TEST(NumericLiterals, ParseCharacters)
 {
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'q'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'q'"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('q') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'a'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'a'"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('a') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'q'c"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'q'c"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('q') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"65c"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"65c"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('A') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'1'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'1'"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('1') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'2'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'2'"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('2') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'3'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'3'"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('3') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'\\n'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'\\n'"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('\n') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'\\0'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'\\0'"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('\0') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"'\\\\'"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"'\\\\'"}, NumericType::Character>(), // Actual
 			static_cast<CharType>('\\') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
-			parse<FixedString{"' '"}, NumericLiteral::Character>(), // Actual
+			parse<FixedString{"' '"}, NumericType::Character>(), // Actual
 			static_cast<CharType>(' ') // Expected
 		);
 };
@@ -244,11 +244,11 @@ TEST(NumericLiterals, ParseCharacters)
 TEST(NumericLiterals, Booleans)
 {
 	strict_check_parse<NumericLiteralParserTestType::BoolType>(
-			parse<FixedString{"true"}, NumericLiteral::Bool>(), // Actual
+			parse<FixedString{"true"}, NumericType::Bool>(), // Actual
 			true // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::BoolType>(
-			parse<FixedString{"false"}, NumericLiteral::Bool>(), // Actual
+			parse<FixedString{"false"}, NumericType::Bool>(), // Actual
 			false // Expected
 		);
 };

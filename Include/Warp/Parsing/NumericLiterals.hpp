@@ -16,10 +16,10 @@ namespace Warp::Parsing
 		Base16Digits, 
 		Base2Digits, 
 		Base8Digits, 
-		Whole, 
-		Integer, 
-		FixedPoint, 
-		Character, 
+		//Whole, 
+		//Integer, 
+		//FixedPoint, 
+		//Character, 
 		CharacterLiteral, 
 		EscapeCharacterLiteral, 
 		Minus, 
@@ -30,8 +30,12 @@ namespace Warp::Parsing
 		AnyDecimalDigits, 
 		AnyDecimalDigitsReduction, 
 		CharacterMark, 
-		Bool, 
+		//Bool, 
 		BooleanLiteral
+	};
+
+	enum class NumericType {
+		Whole, Integer, FixedPoint, Character, Bool
 	};
 
 	//template<typename NumericParameterType>
@@ -64,27 +68,27 @@ namespace Warp::Parsing
 	struct NumericLiteralTypeResolver {};
 	
 	template<>
-	struct NumericLiteralTypeResolver<NumericLiteral::Whole> {
+	struct NumericLiteralTypeResolver<NumericType::Whole> {
 		using Type = size_t;
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericLiteral::Integer> {
+	struct NumericLiteralTypeResolver<NumericType::Integer> {
 		using Type = long long signed int;
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericLiteral::FixedPoint> {
+	struct NumericLiteralTypeResolver<NumericType::FixedPoint> {
 		using Type = numeric::fixed<16, 16>;
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericLiteral::Character> {
+	struct NumericLiteralTypeResolver<NumericType::Character> {
 		using Type = char;
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericLiteral::Bool> {
+	struct NumericLiteralTypeResolver<NumericType::Bool> {
 		using Type = bool;
 	};
 
@@ -132,39 +136,39 @@ namespace Warp::Parsing
 					FixedString{"Digits"}
 				>, 
 			TypeTreeTerm<
-					NumericLiteral::FixedPoint, 
+					NumericType::FixedPoint, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericLiteral::FixedPoint>::Type, 
+					NumericLiteralTypeResolver<NumericType::FixedPoint>::Type, 
 					FixedString{"FixedPoint"}
 				>, 
 			TypeTreeTerm<
-					NumericLiteral::Whole, 
+					NumericType::Whole, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericLiteral::Whole>::Type, 
+					NumericLiteralTypeResolver<NumericType::Whole>::Type, 
 					FixedString{"Whole"}
 				>, 
 			TypeTreeTerm<
-					NumericLiteral::Integer, 
+					NumericType::Integer, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericLiteral::Integer>::Type, 
+					NumericLiteralTypeResolver<NumericType::Integer>::Type, 
 					FixedString{"Integer"}
 				>, 
 			TypeTreeTerm<
-					NumericLiteral::FixedPoint, 
+					NumericType::FixedPoint, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericLiteral::FixedPoint>::Type, 
+					NumericLiteralTypeResolver<NumericType::FixedPoint>::Type, 
 					FixedString{"FixedPoint"}
 				>, 
 			TypeTreeTerm<
-					NumericLiteral::Character, 
+					NumericType::Character, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericLiteral::Character>::Type, 
+					NumericLiteralTypeResolver<NumericType::Character>::Type, 
 					FixedString{"Character"}
 				>, 
 			TypeTreeTerm<
-					NumericLiteral::Bool, 
+					NumericType::Bool, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericLiteral::Bool>::Type, 
+					NumericLiteralTypeResolver<NumericType::Bool>::Type, 
 					FixedString{"Bool"}
 				>, 
 			TypeTreeTerm<
@@ -238,11 +242,11 @@ namespace Warp::Parsing
 		>
 	struct NumericLiteralParser
 	{
-		using WholeType = ResolverParameterTemplate<NumericLiteral::Whole>::Type;
-		using IntegerType = ResolverParameterTemplate<NumericLiteral::Integer>::Type;
-		using FixedPointType = ResolverParameterTemplate<NumericLiteral::FixedPoint>::Type;
-		using CharacterType = ResolverParameterTemplate<NumericLiteral::Character>::Type;
-		using BoolType = ResolverParameterTemplate<NumericLiteral::Bool>::Type;
+		using WholeType = ResolverParameterTemplate<NumericType::Whole>::Type;
+		using IntegerType = ResolverParameterTemplate<NumericType::Integer>::Type;
+		using FixedPointType = ResolverParameterTemplate<NumericType::FixedPoint>::Type;
+		using CharacterType = ResolverParameterTemplate<NumericType::Character>::Type;
+		using BoolType = ResolverParameterTemplate<NumericType::Bool>::Type;
 
 		constexpr const static auto character_literal
 				= TermsParameterTemplate::template term<NumericLiteral::CharacterLiteral>;
@@ -277,15 +281,15 @@ namespace Warp::Parsing
 		constexpr const static auto character_mark
 				= TermsParameterTemplate::template term<NumericLiteral::CharacterMark>;
 		constexpr const static auto whole 
-				= TermsParameterTemplate::template term<NumericLiteral::Whole>;
+				= TermsParameterTemplate::template term<NumericType::Whole>;
 		constexpr const static auto integer
-				= TermsParameterTemplate::template term<NumericLiteral::Integer>;
+				= TermsParameterTemplate::template term<NumericType::Integer>;
 		constexpr const static auto fixed_point
-				= TermsParameterTemplate::template term<NumericLiteral::FixedPoint>;
+				= TermsParameterTemplate::template term<NumericType::FixedPoint>;
 		constexpr const static auto character
-				= TermsParameterTemplate::template term<NumericLiteral::Character>;
+				= TermsParameterTemplate::template term<NumericType::Character>;
 		constexpr const static auto boolean
-				= TermsParameterTemplate::template term<NumericLiteral::Bool>;
+				= TermsParameterTemplate::template term<NumericType::Bool>;
 
 		constexpr static const auto terms = ctpg::terms(
 				character_literal, 
