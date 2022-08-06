@@ -256,12 +256,12 @@ namespace Warp::Utilities
 	template<auto LeftParamterConstant, auto RightParameterConstant>
 	consteval bool equal_if_comparible()
 	{
-		//if constexpr(ComparibleConcept<
-		//		CleanType<decltype(LeftParamterConstant)>, 
-		//		CleanType<decltype(RightParameterConstant)>
-		//	>)
+		if constexpr(ComparibleConcept<
+				CleanType<decltype(LeftParamterConstant)>, 
+				CleanType<decltype(RightParameterConstant)>
+			>)
 			return (LeftParamterConstant == RightParameterConstant);
-		//return false;
+		return false;
 	}
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP

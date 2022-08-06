@@ -113,26 +113,6 @@ namespace Warp::Parsing
 		}
 	};
 
-	enum class NoTermTag {
-		NoTerm
-	};
-
-	struct NoTerm
-	{
-		constexpr static const auto tag = NoTermTag::NoTerm;
-		struct MockData
-		{
-			constexpr static const auto get_data() {
-				return std::nullopt;
-			}
-		};
-		template<auto>
-		constexpr static const auto term = MockData{};
-		consteval bool operator==(const NoTerm&) {
-			return true;
-		}
-	};
-
 	template<
 			bool ErrorOnNoMatchParameterConstant, 
 			auto TagParameterConstant, 
@@ -141,12 +121,11 @@ namespace Warp::Parsing
 		>
 	consteval auto get_term_with_tag()
 	{
-		//if constexpr(equal_if_comparible<
-		//			TagParameterConstant, 
-		//			CurrentParameterType::tag
-		//		>() == true)
-		if constexpr(TagParameterConstant == CurrentParameterType::tag)
-			return TypeHolder<CurrentParameterType>{};
+		if constexpr(equal_if_comparible<
+					TagParameterConstant, 
+					CurrentParameterType::tag
+				>() == true)
+			return TypeHolder<CurrentParameterType>();
 		else if constexpr(sizeof...(TermParameterTypes) <= 0)
 		{
 			static_assert(
@@ -154,7 +133,6 @@ namespace Warp::Parsing
 					"Term not found in get_term_with_tag"
 				);
 			return std::nullopt;
-			//return TypeHolder<NoTerm>{};
 		}
 		else
 		{
@@ -164,25 +142,6 @@ namespace Warp::Parsing
 					TermParameterTypes...
 				>();
 		}
-		//else if constexpr(sizeof...(TermParameterTypes) <= 0)
-		//{
-		//	static_assert(
-		//			ErrorOnNoMatchParameterConstant, 
-		//			"Term not found in get_term_with_tag"
-		//		);
-		//	return std::nullopt;
-		//}
-		//else
-		//{
-		//	return get_term_with_tag<
-		//			ErrorOnNoMatchParameterConstant, 
-		//			TagParameterConstant, 
-		//			TermParameterTypes...
-		//		>();
-		//}
-		//}
-		//else
-		//	return no_match();
 	}
 
 	template<
@@ -222,7 +181,7 @@ namespace Warp::Parsing
 						std::is_void_v<PreviousType> == false, 
 						TagParameterConstant, 
 						TermParameterTypes...
-					>(); std::is_same<decltype(result), NoTerm>::value == false)
+					>(); std::is_same<decltype(result), std::nullopt_t>::value == false)
 				return result;
 			else
 				return PreviousType::template get_term<TagParameterConstant>();
