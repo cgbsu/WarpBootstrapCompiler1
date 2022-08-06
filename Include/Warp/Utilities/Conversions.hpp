@@ -243,6 +243,26 @@ namespace Warp::Utilities
 		FixedPointType denomonator{raise(BaseParameterConstant, integral_to_string(minor_value).size())};
 		return FixedPointType{major_fixed + (FixedPointType{minor_value} / denomonator)};
 	}
+
+	template<typename ParameterType>
+	using CleanType = std::remove_pointer_t<std::decay_t<ParameterType>>;
+
+	template<typename LeftParameterType, typename RightParameterType>
+	concept ComparibleConcept = std::is_same_v<LeftParameterType, RightParameterType>
+			|| requires(LeftParameterType left, RightParameterType right) { left == right; }
+			|| requires(LeftParameterType left) { { left } -> std::convertible_to<RightParameterType>; }
+			|| requires(RightParameterType right) { { right } -> std::convertible_to<LeftParameterType>; };
+
+	template<auto LeftParamterConstant, auto RightParameterConstant>
+	consteval bool equal_if_comparible()
+	{
+		//if constexpr(ComparibleConcept<
+		//		CleanType<decltype(LeftParamterConstant)>, 
+		//		CleanType<decltype(RightParameterConstant)>
+		//	>)
+			return (LeftParamterConstant == RightParameterConstant);
+		//return false;
+	}
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
 

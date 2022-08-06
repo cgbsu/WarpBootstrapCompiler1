@@ -1,4 +1,5 @@
 #include <Warp/Common.hpp>
+#include <Warp/Utilities/Conversions.hpp>
 
 #ifndef WARP__PARSING__HEADER__PARSING__TERMS_HPP
 #define WARP__PARSING__HEADER__PARSING__TERMS_HPP
@@ -112,6 +113,26 @@ namespace Warp::Parsing
 		}
 	};
 
+	enum class NoTermTag {
+		NoTerm
+	};
+
+	struct NoTerm
+	{
+		constexpr static const auto tag = NoTermTag::NoTerm;
+		struct MockData
+		{
+			constexpr static const auto get_data() {
+				return std::nullopt;
+			}
+		};
+		template<auto>
+		constexpr static const auto term = MockData{};
+		consteval bool operator==(const NoTerm&) {
+			return true;
+		}
+	};
+
 	template<
 			bool ErrorOnNoMatchParameterConstant, 
 			auto TagParameterConstant, 
@@ -120,37 +141,48 @@ namespace Warp::Parsing
 		>
 	consteval auto get_term_with_tag()
 	{
-		constexpr const auto no_match = []()
+		//if constexpr(equal_if_comparible<
+		//			TagParameterConstant, 
+		//			CurrentParameterType::tag
+		//		>() == true)
+		if constexpr(TagParameterConstant == CurrentParameterType::tag)
+			return TypeHolder<CurrentParameterType>{};
+		else if constexpr(sizeof...(TermParameterTypes) <= 0)
 		{
-			if constexpr(sizeof...(TermParameterTypes) <= 0)
-			{
-				static_assert(
-						ErrorOnNoMatchParameterConstant, 
-						"Term not found in get_term_with_tag"
-					);
-				return std::nullopt;
-			}
-			else
-			{
-				return get_term_with_tag<
-						ErrorOnNoMatchParameterConstant, 
-						TagParameterConstant, 
-						TermParameterTypes...
-					>();
-			}
-		};
-		if constexpr(std::is_same_v<
-					decltype(TagParameterConstant), 
-					decltype(CurrentParameterType::tag)
-				> == true)
-		{
-			if constexpr(TagParameterConstant == CurrentParameterType::tag)
-				return TypeHolder<CurrentParameterType>();
-			else
-				return no_match();
+			static_assert(
+					ErrorOnNoMatchParameterConstant, 
+					"Term not found in get_term_with_tag"
+				);
+			return std::nullopt;
+			//return TypeHolder<NoTerm>{};
 		}
 		else
-			return no_match();
+		{
+			return get_term_with_tag<
+					ErrorOnNoMatchParameterConstant, 
+					TagParameterConstant, 
+					TermParameterTypes...
+				>();
+		}
+		//else if constexpr(sizeof...(TermParameterTypes) <= 0)
+		//{
+		//	static_assert(
+		//			ErrorOnNoMatchParameterConstant, 
+		//			"Term not found in get_term_with_tag"
+		//		);
+		//	return std::nullopt;
+		//}
+		//else
+		//{
+		//	return get_term_with_tag<
+		//			ErrorOnNoMatchParameterConstant, 
+		//			TagParameterConstant, 
+		//			TermParameterTypes...
+		//		>();
+		//}
+		//}
+		//else
+		//	return no_match();
 	}
 
 	template<
@@ -190,7 +222,7 @@ namespace Warp::Parsing
 						std::is_void_v<PreviousType> == false, 
 						TagParameterConstant, 
 						TermParameterTypes...
-					>(); std::is_same<decltype(result), std::nullopt_t>::value == false)
+					>(); std::is_same<decltype(result), NoTerm>::value == false)
 				return result;
 			else
 				return PreviousType::template get_term<TagParameterConstant>();

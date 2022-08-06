@@ -74,7 +74,7 @@ consteval auto find_term_with_tag_test()
 }
 
 template<MyTerms TermParameterConstant>
-consteval auto get_term_with_tag()
+consteval auto get_term_with_tag_concrete()
 {
 	return TreeTermWithTag<
 			true, 
@@ -92,9 +92,9 @@ TEST(Terms, TermIndexWithTag)
 
 TEST(Terms, GetTreeTermWithTag)
 {
-	CHECK(MyTerms::Digits == get_term_with_tag<MyTerms::Digits>().tag);
-	CHECK(MyTerms::Dot == get_term_with_tag<MyTerms::Dot>().tag);
-	CHECK(MyTerms::Hello == get_term_with_tag<MyTerms::Hello>().tag);
+	CHECK(MyTerms::Digits == get_term_with_tag_concrete<MyTerms::Digits>().tag);
+	CHECK(MyTerms::Dot == get_term_with_tag_concrete<MyTerms::Dot>().tag);
+	CHECK(MyTerms::Hello == get_term_with_tag_concrete<MyTerms::Hello>().tag);
 };
 
 std::string_view get_term_pattern(const auto& term) {
