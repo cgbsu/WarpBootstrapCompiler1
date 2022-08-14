@@ -457,7 +457,23 @@ namespace Warp::Parsing
 					};
 			}
 		}
-
+		constexpr static const CharacterType character_to_escape_character(char character)
+		{
+			switch(character)
+			{
+				case 'n':
+					return CharacterType{'\n'};
+				case 't': 
+					return CharacterType{'\t'};
+				case '\\': 
+					return CharacterType{'\\'};
+				case '\'': 
+					return CharacterType{'\''};
+				default:
+					return CharacterType{'\0'};
+			}
+		}
+		
 		constexpr const static auto parse_base_10_digits
 				= digits(base_10_digits) >= [](auto digit_string)
 				{
@@ -609,28 +625,46 @@ namespace Warp::Parsing
 				>= [](auto character_literal_string, auto character_mark) {
 					return std::string_view{character_literal_string}[1];
 				};
+		constexpr const static auto parse_character_with_bit_precision
+				= character(character_literal, character_mark, digits) 
+				>= [](auto character_literal_string, auto character_mark, auto bit_precision_digits)
+				{
+					return CharacterType{
+							std::string_view{character_literal_string}[1], 
+							to_integral<size_t>(bit_precision_digits)
+						};
+				};
 		constexpr const static auto parse_escape_character
 				= character(escape_character_literal) 
 				>= [](auto escape_character_string) {
 					const char character = std::string_view{escape_character_string}[2];
-					switch(character)
-					{
-						case 'n':
-							return CharacterType{'\n'};
-						case 't': 
-							return CharacterType{'\t'};
-						case '\\': 
-							return CharacterType{'\\'};
-						case '\'': 
-							return CharacterType{'\''};
-						default:
-							return CharacterType{'\0'};
-					}
+					return character_to_escape_character(character);
+				};
+		constexpr const static auto parse_marked_escape_character
+				= character(escape_character_literal, character_mark) 
+				>= [](auto escape_character_string, auto character_mark) {
+					const char character = std::string_view{escape_character_string}[2];
+					return character_to_escape_character(character);
+				};
+		constexpr const static auto parse_escape_character_with_bit_precision
+				= character(escape_character_literal, character_mark, digits) 
+				>= [](auto escape_character_string, auto character_mark, auto bit_precision_digits)
+				{
+					const char character = std::string_view{escape_character_string}[2];
+					return CharacterType{
+							character_to_escape_character(character), 
+							to_integral<size_t>(bit_precision_digits)
+						};
 				};
 		constexpr const static auto parse_marked_character_number
 				= character(digits, character_mark) 
 				>= [](auto character_number, auto character_mark) {
 					return CharacterType{character_number}; 
+			};
+		constexpr const static auto parse_marked_character_number_with_bit_precision
+				= character(digits, character_mark, digits) 
+				>= [](auto character_number, auto character_mark, auto bit_precision_digits) {
+					return CharacterType{character_number, to_integral<size_t>(bit_precision_digits)}; 
 			};
 
 		constexpr const static auto parse_boolean_value
@@ -650,6 +684,7 @@ namespace Warp::Parsing
 					parse_explicit_whole, 
 					parse_whole_with_bit_precision, 
 					parse_integer, 
+					parse_integer_with_bit_precision, 
 					parse_negative_whole, 
 					parse_negate_integer, 
 					parse_fixed_point, 
@@ -664,9 +699,13 @@ namespace Warp::Parsing
 					parse_redundent_fixed_point, 
 					parse_negate_fixed_point, 
 					parse_character, 
-					parse_escape_character, 
-					parse_marked_character_number, 
 					parse_marked_character, 
+					parse_character_with_bit_precision, 
+					parse_escape_character, 
+					parse_marked_escape_character, 
+					parse_escape_character_with_bit_precision, 
+					parse_marked_character_number, 
+					parse_marked_character_number_with_bit_precision, 
 					parse_boolean_value
 				);
 		}

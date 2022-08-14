@@ -239,6 +239,10 @@ TEST(NumericLiterals, ParseCharacters)
 			parse<FixedString{"' '"}, NumericTypeTag::Character>(), // Actual
 			static_cast<CharType>(' ') // Expected
 		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"'\\0'c"}, NumericTypeTag::Character>(), // Actual
+			static_cast<CharType>('\0') // Expected
+		);
 };
 
 TEST(NumericLiterals, Booleans)
@@ -252,6 +256,15 @@ TEST(NumericLiterals, Booleans)
 			WarpBool::False // Expected
 		);
 };
+
+template<typename ResultParameterType, auto ValueParameterConstant>
+constexpr void check_varible_bit_against_value(const auto& to_check, const auto& bitness_values)
+{
+	for(size_t ii = 0; ii < to_check.size(); ++ii) {
+		strict_check_parse<ResultParameterType, ValueParameterConstant>(to_check[ii], ValueParameterConstant);
+		CHECK((to_check[ii].value().bits == bitness_values[ii % bitness_values.size()]));
+	}
+}
 
 TEST(NumericLiterals, WholeVariableBitArity)
 {
@@ -276,10 +289,93 @@ TEST(NumericLiterals, WholeVariableBitArity)
 			parse<FixedString{"0d123u27"}, NumericTypeTag::Whole>(), 
 			parse<FixedString{"0d123u12"}, NumericTypeTag::Whole>()
 		);
-	CHECK((parse<FixedString{"0d123u8"}, NumericTypeTag::Whole>().value().bits == 8));
-	CHECK((parse<FixedString{"0d123u16"}, NumericTypeTag::Whole>().value().bits == 16));
-	CHECK((parse<FixedString{"0d123u27"}, NumericTypeTag::Whole>().value().bits == 27));
-	CHECK((parse<FixedString{"0d123u35"}, NumericTypeTag::Whole>().value().bits == 35));
 
+	constexpr const auto to_check = std::array{
+			parse<FixedString{"0d123u8"},      NumericTypeTag::Whole>(), 
+			parse<FixedString{"0d123u16"},     NumericTypeTag::Whole>(), 
+			parse<FixedString{"0d123u27"},     NumericTypeTag::Whole>(), 
+			parse<FixedString{"0d123u35"},     NumericTypeTag::Whole>(), 
+			parse<FixedString{"0x7Bu8"},       NumericTypeTag::Whole>(), 
+			parse<FixedString{"0x7Bu16"},      NumericTypeTag::Whole>(), 
+			parse<FixedString{"0x7Bu27"},      NumericTypeTag::Whole>(), 
+			parse<FixedString{"0x7Bu35"},      NumericTypeTag::Whole>(), 
+			parse<FixedString{"0o173u8"},      NumericTypeTag::Whole>(), 
+			parse<FixedString{"0o173u16"},     NumericTypeTag::Whole>(), 
+			parse<FixedString{"0o173u27"},     NumericTypeTag::Whole>(), 
+			parse<FixedString{"0o173u35"},     NumericTypeTag::Whole>(), 
+			parse<FixedString{"0b1111011u8"},  NumericTypeTag::Whole>(), 
+			parse<FixedString{"0b1111011u16"}, NumericTypeTag::Whole>(), 
+			parse<FixedString{"0b1111011u27"}, NumericTypeTag::Whole>(), 
+			parse<FixedString{"0b1111011u35"}, NumericTypeTag::Whole>()
+		};
+
+	constexpr const auto bit_values = std::array{8, 16, 27, 35};
+
+	check_varible_bit_against_value<NumericLiteralParserTestType::WholeType, 123>(to_check, bit_values);
 };
+
+
+TEST(NumericLiterals, IntegerVariableBitArity)
+{
+	auto integer = parse<FixedString{"0d123i"}, NumericTypeTag::Integer>().value();
+	integer.bits = 8;
+	CHECK((integer == 123));
+	auto integer2 = parse<FixedString{"0d123i"}, NumericTypeTag::Integer>().value();
+	CHECK((integer == integer2));
+	check_parse(
+			parse<FixedString{"0d123i8"}, NumericTypeTag::Integer>(), 
+			parse<FixedString{"0d123i"}, NumericTypeTag::Integer>()
+		);
+	check_parse(
+			parse<FixedString{"0d123i8"}, NumericTypeTag::Integer>(), 
+			parse<FixedString{"0d123i16"}, NumericTypeTag::Integer>()
+		);
+	check_parse(
+			parse<FixedString{"0d123i16"}, NumericTypeTag::Integer>(), 
+			parse<FixedString{"0d123i8"}, NumericTypeTag::Integer>()
+		);
+	check_parse(
+			parse<FixedString{"0d123i27"}, NumericTypeTag::Integer>(), 
+			parse<FixedString{"0d123i12"}, NumericTypeTag::Integer>()
+		);
+
+	constexpr const auto to_check = std::array{
+			parse<FixedString{"0d123i8"},      NumericTypeTag::Integer>(), 
+			parse<FixedString{"0d123i16"},     NumericTypeTag::Integer>(), 
+			parse<FixedString{"0d123i27"},     NumericTypeTag::Integer>(), 
+			parse<FixedString{"0d123i35"},     NumericTypeTag::Integer>(), 
+			parse<FixedString{"0x7Bi8"},       NumericTypeTag::Integer>(), 
+			parse<FixedString{"0x7Bi16"},      NumericTypeTag::Integer>(), 
+			parse<FixedString{"0x7Bi27"},      NumericTypeTag::Integer>(), 
+			parse<FixedString{"0x7Bi35"},      NumericTypeTag::Integer>(), 
+			parse<FixedString{"0o173i8"},      NumericTypeTag::Integer>(), 
+			parse<FixedString{"0o173i16"},     NumericTypeTag::Integer>(), 
+			parse<FixedString{"0o173i27"},     NumericTypeTag::Integer>(), 
+			parse<FixedString{"0o173i35"},     NumericTypeTag::Integer>(), 
+			parse<FixedString{"0b1111011i8"},  NumericTypeTag::Integer>(), 
+			parse<FixedString{"0b1111011i16"}, NumericTypeTag::Integer>(), 
+			parse<FixedString{"0b1111011i27"}, NumericTypeTag::Integer>(), 
+			parse<FixedString{"0b1111011i35"}, NumericTypeTag::Integer>()
+		};
+
+	constexpr const auto bit_values = std::array{8, 16, 27, 35};
+
+	check_varible_bit_against_value<NumericLiteralParserTestType::IntegerType, 123>(to_check, bit_values);
+};
+
+//TEST(NumericLiterals, CharacterVariableBitArity)
+//{
+//	check_parse(
+//			parse<FixedString{"0d123c8"}, NumericTypeTag::Integer>(), 
+//			parse<FixedString{"0d123c"}, NumericTypeTag::Integer>()
+//		);
+//	check_parse(
+//			parse<FixedString{"0d123c8"}, NumericTypeTag::Integer>(), 
+//			parse<FixedString{"0d123c16"}, NumericTypeTag::Integer>()
+//		);
+//	check_parse(
+//			parse<FixedString{"0d123c8"}, NumericTypeTag::Integer>(), 
+//			parse<FixedString{"0d123c16"}, NumericTypeTag::Integer>()
+//		);
+//};
 
