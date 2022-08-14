@@ -72,10 +72,10 @@ namespace Warp::Parsing
 		size_t bits = default_bits;
 
 
-		constexpr NumericType(const UnderylingType number) noexcept 
-				: number(number), bits(default_bits) {}
-		constexpr NumericType(const std::string_view numeric_string_representation) noexcept 
-				: number(to_integral<UnderylingType>(numeric_string_representation)), bits(default_bits) {}
+		constexpr NumericType(const UnderylingType number, size_t bits = default_bits) noexcept 
+				: number(number), bits(bits) {}
+		constexpr NumericType(const std::string_view numeric_string_representation, size_t bits = default_bits) noexcept 
+				: number(to_integral<UnderylingType>(numeric_string_representation)), bits(bits) {}
 
 		constexpr NumericType(const NumericType& other) noexcept = default;
 		constexpr NumericType(NumericType&& other) noexcept = default;
@@ -501,10 +501,20 @@ namespace Warp::Parsing
 				>= [](auto digit_string, auto unsigned_mark) {
 					return WholeType{digit_string};
 				};
+		constexpr const static auto parse_whole_with_bit_precision
+				= whole(digits, unsigned_mark, digits) 
+				>= [](auto digit_string, auto unsigned_mark, auto bit_precision_digits) {
+					return WholeType{digit_string, to_integral<size_t>(std::string_view{bit_precision_digits})};
+				};
 		constexpr const static auto parse_integer
 				= integer(digits, integer_mark) 
 				>= [](auto digits_string, auto integer_mark_character) {
 					return IntegerType{digits_string};
+				};
+		constexpr const static auto parse_integer_with_bit_precision
+				= integer(digits, integer_mark, digits) 
+				>= [](auto digits_string, auto integer_mark_character, auto bit_precision_digits) {
+					return IntegerType{digits_string, to_integral<size_t>(std::string_view{bit_precision_digits})};
 				};
 		constexpr const static auto parse_negative_whole
 				= integer(minus, digits) >= [](auto minus, auto digits_string) {
@@ -638,6 +648,7 @@ namespace Warp::Parsing
 					parse_base_16_digits, 
 					parse_whole, 
 					parse_explicit_whole, 
+					parse_whole_with_bit_precision, 
 					parse_integer, 
 					parse_negative_whole, 
 					parse_negate_integer, 

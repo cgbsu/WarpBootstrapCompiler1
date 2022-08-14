@@ -258,5 +258,28 @@ TEST(NumericLiterals, WholeVariableBitArity)
 	auto whole = parse<FixedString{"0d123"}, NumericTypeTag::Whole>().value();
 	whole.bits = 8;
 	CHECK((whole == 123u));
+	auto whole2 = parse<FixedString{"0d123"}, NumericTypeTag::Whole>().value();
+	CHECK((whole == whole2));
+	check_parse(
+			parse<FixedString{"0d123u8"}, NumericTypeTag::Whole>(), 
+			parse<FixedString{"0d123"}, NumericTypeTag::Whole>()
+		);
+	check_parse(
+			parse<FixedString{"0d123u8"}, NumericTypeTag::Whole>(), 
+			parse<FixedString{"0d123u16"}, NumericTypeTag::Whole>()
+		);
+	check_parse(
+			parse<FixedString{"0d123u16"}, NumericTypeTag::Whole>(), 
+			parse<FixedString{"0d123u8"}, NumericTypeTag::Whole>()
+		);
+	check_parse(
+			parse<FixedString{"0d123u27"}, NumericTypeTag::Whole>(), 
+			parse<FixedString{"0d123u12"}, NumericTypeTag::Whole>()
+		);
+	CHECK((parse<FixedString{"0d123u8"}, NumericTypeTag::Whole>().value().bits == 8));
+	CHECK((parse<FixedString{"0d123u16"}, NumericTypeTag::Whole>().value().bits == 16));
+	CHECK((parse<FixedString{"0d123u27"}, NumericTypeTag::Whole>().value().bits == 27));
+	CHECK((parse<FixedString{"0d123u35"}, NumericTypeTag::Whole>().value().bits == 35));
+
 };
 

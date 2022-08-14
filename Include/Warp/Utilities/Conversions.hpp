@@ -23,10 +23,11 @@ namespace Warp::Utilities
 			auto BaseParameterConstant = 10, 
 			auto CharacterOffsetParameterConstant = '0'
 		>
-    constexpr ParameterType to_integral(std::string_view integer_token)
+    constexpr ParameterType to_integral(std::convertible_to<std::string_view> auto integer_token)
     {
+		auto integer_token_as_string_view = std::string_view{integer_token};
         ParameterType sum = ParameterType{0};
-        for(auto digit : integer_token)
+        for(auto digit : integer_token_as_string_view)
             sum = (sum * BaseParameterConstant) + digit - CharacterOffsetParameterConstant;
         return sum;
     }
