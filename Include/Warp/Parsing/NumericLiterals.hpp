@@ -34,62 +34,170 @@ namespace Warp::Parsing
 		BooleanLiteral
 	};
 
-	enum class NumericType {
+	enum class WarpBool : unsigned char {
+		True = 1, 
+		False = 0 
+	};
+
+	//constexpr const WarpBool& operator=(WarpBool& to, bool from) {
+	//	return from == true ? (to = WarpBool::True) : (to = WarpBool::False);
+	//}
+	
+	constexpr WarpBool to_warp_bool(const bool from) {
+		return from == true ? WarpBool::True : WarpBool::False;
+	}
+
+	enum class NumericTypeTag {
 		Whole, Integer, FixedPoint, Character, Bool
 	};
 
-	//template<typename NumericParameterType>
-	//struct NumericType
-	//{
-	//	using UnderylingType = NumericType;
-	//	constexpr static const bool fixed_point_type = false;
-	//	const UnderylingType number;
-	//	const size_t bits = sizeof(UnderylingType) * 8;//* CHAR_BIT;
-	//};
+	template<NumericTypeTag ParameterTypeConstant, typename NumericParameterType>
+	struct NumericType
+	{
+		using UnderylingType = NumericParameterType;
+		constexpr static const NumericTypeTag type = ParameterTypeConstant;
+		constexpr static const bool fixed_point_type = false;
+		constexpr static const size_t bits = sizeof(UnderylingType) * CHAR_BIT;
+		using ThisType = NumericType<type, UnderylingType>;
+		UnderylingType number; // This would be const, but CTPG requires it this object be writable. //
 
-	//template<
-	//		size_t WholePartBitsParameterConstant, 
-	//		size_t DecimalPartBitsParameterConstant
-	//	>
-	//struct NumericType<numeric::fixed<
-	//		WholePartBitsParameterConstant, 
-	//		DecimalPartBitsParameterConstant
-	//	>>
-	//{
-	//	constexpr const static auto whole_part_bits = WholePartBitsParameterConstant;
-	//	constexpr const static auto decimal_part_bits = DecimalPartBitsParameterConstant;
-	//	using UnderylingType = numeric::fixed<whole_part_bits, decimal_part_bits>;
-	//	constexpr static const bool fixed_point_type = true;
-	//	const UnderylingType number;
-	//	const size_t bits = whole_part_bits + decimal_part_bits;
-	//};
+		constexpr NumericType(const UnderylingType number) noexcept 
+				: number(number) {}
+		constexpr NumericType(const std::string_view numeric_string_representation) noexcept 
+				: number(to_integral<UnderylingType>(numeric_string_representation)) {}
+
+		constexpr NumericType(const NumericType& other) noexcept = default;
+		constexpr NumericType(NumericType&& other) noexcept = default;
+		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
+		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
+
+		constexpr std::strong_ordering operator<=>(const NumericType& other) const noexcept = default;
+
+		constexpr std::strong_ordering operator<=>(const UnderylingType& other) const noexcept
+		{
+			return (other < number) 
+					? std::strong_ordering::less
+					: ((other > number) 
+							? std::strong_ordering::greater 
+							: std::strong_ordering::equivalent);
+		}
+
+		constexpr operator UnderylingType() const noexcept {
+			return number;
+		}
+		constexpr NumericType operator+(const NumericType& other) const noexcept {
+			return number + other.number;
+		}
+		constexpr NumericType operator*(const NumericType& other) const noexcept {
+			return number * other.number;
+		}
+		constexpr NumericType operator-(const NumericType& other) const noexcept {
+			return number - other.number;
+		}
+		constexpr NumericType operator/(const NumericType& other) const noexcept {
+			return number / other.number;
+		}
+		constexpr NumericType operator-() const noexcept {
+			//static_assert(std::is_unsigned_v<UnderylingType> == true);
+			return -number;
+		}
+	};
+
+	template<
+			NumericTypeTag ParameterTypeConstant, 
+			size_t WholePartBitsParameterConstant, 
+			size_t DecimalPartBitsParameterConstant
+		>
+	struct NumericType<
+			ParameterTypeConstant, 
+			numeric::fixed<
+					WholePartBitsParameterConstant, 
+					DecimalPartBitsParameterConstant
+				>
+		>
+	{
+		constexpr static const NumericTypeTag type = ParameterTypeConstant;
+		constexpr const static auto whole_part_bits = WholePartBitsParameterConstant;
+		constexpr const static auto decimal_part_bits = DecimalPartBitsParameterConstant;
+		using UnderylingType = numeric::fixed<whole_part_bits, decimal_part_bits>;
+		using ThisType = NumericType<type, UnderylingType>;
+		constexpr static const bool fixed_point_type = true;
+		constexpr static const size_t bits = whole_part_bits + decimal_part_bits;
+		UnderylingType number; // This would be const, but CTPG requires it this object be writable. //
+
+		constexpr NumericType(const UnderylingType number) noexcept 
+				: number(number) {}
+		constexpr NumericType(const std::string_view whole_part, const std::string_view decimal_part) noexcept
+				: number(to_fixed_point_integral<size_t, UnderylingType>(
+							to_integral<size_t>(whole_part), 
+							to_integral<size_t>(decimal_part)
+						)) {}
+		constexpr NumericType(const std::string_view whole_part) noexcept
+				: number(to_fixed_point_integral<size_t, UnderylingType>(to_integral<size_t>(whole_part), 0u)) {}
+		constexpr NumericType(const size_t whole_part, const size_t decimal_part) noexcept
+				: number(to_fixed_point_integral<size_t, UnderylingType>(whole_part, decimal_part)) {}
+
+		constexpr NumericType(const NumericType& other) noexcept = default;
+		constexpr NumericType(NumericType&& other) noexcept = default;
+		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
+		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
+
+
+		constexpr std::strong_ordering operator<=>(const NumericType& other) const noexcept = default;
+		constexpr std::strong_ordering operator<=>(const UnderylingType& other) const noexcept
+		{
+			return (other < number) 
+					? std::strong_ordering::less
+					: ((other > number) 
+							? std::strong_ordering::greater 
+							: std::strong_ordering::equivalent);
+		}
+		constexpr operator UnderylingType() const noexcept {
+			return number;
+		}
+		constexpr NumericType operator+(const NumericType& other) const noexcept {
+			return number + other.number;
+		}
+		constexpr NumericType operator*(const NumericType& other) const noexcept {
+			return number * other.number;
+		}
+		constexpr NumericType operator-(const NumericType& other) const noexcept {
+			return number - other.number;
+		}
+		constexpr NumericType operator/(const NumericType& other) const noexcept {
+			return number / other.number;
+		}
+		constexpr NumericType operator-() const noexcept {
+			return -number;
+		}
+	};
 	
 	template<auto NumericalTypeTag>
 	struct NumericLiteralTypeResolver {};
 	
 	template<>
-	struct NumericLiteralTypeResolver<NumericType::Whole> {
-		using Type = size_t;
+	struct NumericLiteralTypeResolver<NumericTypeTag::Whole> {
+		using Type = NumericType<NumericTypeTag::Whole, size_t>;
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericType::Integer> {
-		using Type = long long signed int;
+	struct NumericLiteralTypeResolver<NumericTypeTag::Integer> {
+		using Type = NumericType<NumericTypeTag::Integer, long long signed int>;
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericType::FixedPoint> {
-		using Type = numeric::fixed<16, 16>;
+	struct NumericLiteralTypeResolver<NumericTypeTag::FixedPoint> {
+		using Type = NumericType<NumericTypeTag::FixedPoint, numeric::fixed<16, 16>>;
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericType::Character> {
-		using Type = char;
+	struct NumericLiteralTypeResolver<NumericTypeTag::Character> {
+		using Type = NumericType<NumericTypeTag::Character, char>;
 	};
 
 	template<>
-	struct NumericLiteralTypeResolver<NumericType::Bool> {
-		using Type = bool;
+	struct NumericLiteralTypeResolver<NumericTypeTag::Bool> {
+		using Type = NumericType<NumericTypeTag::Bool, WarpBool>;
 	};
 
 	using NumericLiteralTermsType = MakeTerms<
@@ -136,39 +244,39 @@ namespace Warp::Parsing
 					FixedString{"Digits"}
 				>, 
 			TypeTreeTerm<
-					NumericType::FixedPoint, 
+					NumericTypeTag::FixedPoint, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericType::FixedPoint>::Type, 
+					NumericLiteralTypeResolver<NumericTypeTag::FixedPoint>::Type, 
 					FixedString{"FixedPoint"}
 				>, 
 			TypeTreeTerm<
-					NumericType::Whole, 
+					NumericTypeTag::Whole, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericType::Whole>::Type, 
+					NumericLiteralTypeResolver<NumericTypeTag::Whole>::Type, 
 					FixedString{"Whole"}
 				>, 
 			TypeTreeTerm<
-					NumericType::Integer, 
+					NumericTypeTag::Integer, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericType::Integer>::Type, 
+					NumericLiteralTypeResolver<NumericTypeTag::Integer>::Type, 
 					FixedString{"Integer"}
 				>, 
 			TypeTreeTerm<
-					NumericType::FixedPoint, 
+					NumericTypeTag::FixedPoint, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericType::FixedPoint>::Type, 
+					NumericLiteralTypeResolver<NumericTypeTag::FixedPoint>::Type, 
 					FixedString{"FixedPoint"}
 				>, 
 			TypeTreeTerm<
-					NumericType::Character, 
+					NumericTypeTag::Character, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericType::Character>::Type, 
+					NumericLiteralTypeResolver<NumericTypeTag::Character>::Type, 
 					FixedString{"Character"}
 				>, 
 			TypeTreeTerm<
-					NumericType::Bool, 
+					NumericTypeTag::Bool, 
 					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericType::Bool>::Type, 
+					NumericLiteralTypeResolver<NumericTypeTag::Bool>::Type, 
 					FixedString{"Bool"}
 				>, 
 			TypeTreeTerm<
@@ -242,11 +350,11 @@ namespace Warp::Parsing
 		>
 	struct NumericLiteralParser
 	{
-		using WholeType = ResolverParameterTemplate<NumericType::Whole>::Type;
-		using IntegerType = ResolverParameterTemplate<NumericType::Integer>::Type;
-		using FixedPointType = ResolverParameterTemplate<NumericType::FixedPoint>::Type;
-		using CharacterType = ResolverParameterTemplate<NumericType::Character>::Type;
-		using BoolType = ResolverParameterTemplate<NumericType::Bool>::Type;
+		using WholeType = ResolverParameterTemplate<NumericTypeTag::Whole>::Type;
+		using IntegerType = ResolverParameterTemplate<NumericTypeTag::Integer>::Type;
+		using FixedPointType = ResolverParameterTemplate<NumericTypeTag::FixedPoint>::Type;
+		using CharacterType = ResolverParameterTemplate<NumericTypeTag::Character>::Type;
+		using BoolType = ResolverParameterTemplate<NumericTypeTag::Bool>::Type;
 
 		constexpr const static auto character_literal
 				= TermsParameterTemplate::template term<NumericLiteral::CharacterLiteral>;
@@ -281,15 +389,15 @@ namespace Warp::Parsing
 		constexpr const static auto character_mark
 				= TermsParameterTemplate::template term<NumericLiteral::CharacterMark>;
 		constexpr const static auto whole 
-				= TermsParameterTemplate::template term<NumericType::Whole>;
+				= TermsParameterTemplate::template term<NumericTypeTag::Whole>;
 		constexpr const static auto integer
-				= TermsParameterTemplate::template term<NumericType::Integer>;
+				= TermsParameterTemplate::template term<NumericTypeTag::Integer>;
 		constexpr const static auto fixed_point
-				= TermsParameterTemplate::template term<NumericType::FixedPoint>;
+				= TermsParameterTemplate::template term<NumericTypeTag::FixedPoint>;
 		constexpr const static auto character
-				= TermsParameterTemplate::template term<NumericType::Character>;
+				= TermsParameterTemplate::template term<NumericTypeTag::Character>;
 		constexpr const static auto boolean
-				= TermsParameterTemplate::template term<NumericType::Bool>;
+				= TermsParameterTemplate::template term<NumericTypeTag::Bool>;
 
 		constexpr static const auto terms = ctpg::terms(
 				character_literal, 
@@ -326,17 +434,17 @@ namespace Warp::Parsing
 		{
 			if constexpr(BaseParameterConstant == 16)
 			{
-				return to_fixed_point_integral<WholeType, FixedPointType>(
-						base_16_to_integral<WholeType>(major), 
-						base_16_to_integral<WholeType>(minor.substr(1))
-					);
+				return FixedPointType{
+						base_16_to_integral<size_t>(major), 
+						base_16_to_integral<size_t>(minor.substr(1))
+					};
 			}
 			else
 			{
-				return to_fixed_point_integral<WholeType, FixedPointType>(
-						to_integral<WholeType, BaseParameterConstant>(major), 
-						to_integral<WholeType, BaseParameterConstant>(minor.substr(1))
-					);
+				return FixedPointType{
+						to_integral<size_t, BaseParameterConstant>(major), 
+						to_integral<size_t, BaseParameterConstant>(minor.substr(1))
+					};
 			}
 		}
 
@@ -355,7 +463,7 @@ namespace Warp::Parsing
 				{
 					const std::string_view digit_string_view = digit_string;
 					return integral_to_string(
-							to_integral<WholeType, 2>(digit_string_view.substr(2))
+							to_integral<typename WholeType::UnderylingType, 2>(digit_string_view.substr(2))
 						);
 				};
 		constexpr const static auto parse_base_8_digits
@@ -363,7 +471,7 @@ namespace Warp::Parsing
 				{
 					const std::string_view digit_string_view = digit_string;
 					return integral_to_string(
-							to_integral<WholeType, 8>(digit_string_view.substr(2))
+							to_integral<typename WholeType::UnderylingType, 8>(digit_string_view.substr(2))
 						);
 				};
 		constexpr const static auto parse_base_16_digits
@@ -371,26 +479,26 @@ namespace Warp::Parsing
 				{
 					const std::string_view digit_string_view = digit_string;
 					return integral_to_string(
-							base_16_to_integral<WholeType>(digit_string_view.substr(2))
+							base_16_to_integral<typename WholeType::UnderylingType>(digit_string_view.substr(2))
 						);
 				};
 		constexpr const static auto parse_whole 
 				= whole(digits) >= [](auto digit_string) {
-					return to_integral<WholeType>(digit_string);
+					return WholeType{digit_string};
 				};
 		constexpr const static auto parse_explicit_whole 
 				= whole(digits, unsigned_mark) 
 				>= [](auto digit_string, auto unsigned_mark) {
-					return to_integral<WholeType>(digit_string);
+					return WholeType{digit_string};
 				};
 		constexpr const static auto parse_integer
 				= integer(digits, integer_mark) 
 				>= [](auto digits_string, auto integer_mark_character) {
-					return to_integral<IntegerType>(digits_string);
+					return IntegerType{digits_string};
 				};
 		constexpr const static auto parse_negative_whole
 				= integer(minus, digits) >= [](auto minus, auto digits_string) {
-					return -to_integral<IntegerType>(digits_string);
+					return -IntegerType{digits_string};
 				};
 		constexpr const static auto parse_negate_integer
 				= integer(minus, integer) >= [](auto minus, auto integer_value) {
@@ -399,20 +507,17 @@ namespace Warp::Parsing
 		constexpr const static auto parse_fixed_point_explicit
 				= fixed_point(digits, fixed_point_mark) 
 				>= [](auto digits_string, auto fixed_point_mark_string) {
-					return FixedPointType{to_integral<WholeType>(digits_string)};
+					return FixedPointType{digits_string};
 				};
 		constexpr const static auto parse_fixed_point_radix_explicit
 				= fixed_point(digits, radix, fixed_point_mark) 
 				>= [](auto digits_string, auto radix_character, auto fixed_point_mark_string) {
-					return FixedPointType{to_integral<WholeType>(digits_string)};
+					return FixedPointType{digits_string};
 				};
 		constexpr const static auto parse_fixed_point
 				= fixed_point(digits, radix, digits) 
 				>= [](auto major, auto radix, auto minor) {
-					return to_fixed_point_integral<WholeType, FixedPointType>(
-							to_integral<WholeType>(major), 
-							to_integral<WholeType>(minor)
-						);
+					return FixedPointType{major, minor};
 				};
 		constexpr const static auto parse_any_decimal_digits_reduction
 				= any_decimal_digits_reduction(any_decimal_digits)
@@ -491,27 +596,27 @@ namespace Warp::Parsing
 					switch(character)
 					{
 						case 'n':
-							return '\n';
+							return CharacterType{'\n'};
 						case 't': 
-							return '\t';
+							return CharacterType{'\t'};
 						case '\\': 
-							return '\\';
+							return CharacterType{'\\'};
 						case '\'': 
-							return '\'';
+							return CharacterType{'\''};
 						default:
-							return '\0';
+							return CharacterType{'\0'};
 					}
 				};
 		constexpr const static auto parse_marked_character_number
 				= character(digits, character_mark) 
 				>= [](auto character_number, auto character_mark) {
-					return to_integral<CharacterType>(character_number); 
+					return CharacterType{character_number}; 
 			};
 
 		constexpr const static auto parse_boolean_value
 				= boolean(boolean_literal) 
 				>= [](auto boolean_literal_string) {
-					return to_bool(boolean_literal_string).value();
+					return BoolType{to_warp_bool(to_bool(boolean_literal_string).value())};
 				};
 
 		consteval static const auto rules()
