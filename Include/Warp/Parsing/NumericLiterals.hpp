@@ -43,6 +43,13 @@ namespace Warp::Parsing
 	//	return from == true ? (to = WarpBool::True) : (to = WarpBool::False);
 	//}
 	
+	template<typename DoNotConvertToParameterType, typename ConvertToParameterType, typename CanidateParameterType>
+	concept ConvertableToExceptConcept =
+			(!std::convertible_to<CleanType<DoNotConvertToParameterType>, CleanType<CanidateParameterType>> 
+					&& std::convertible_to<CleanType<ConvertToParameterType>, CleanType<CanidateParameterType>>)
+			|| (!std::same_as<CleanType<DoNotConvertToParameterType>, CleanType<CanidateParameterType>> 
+					&& std::convertible_to<CleanType<ConvertToParameterType>, CleanType<CanidateParameterType>>);
+	
 	constexpr WarpBool to_warp_bool(const bool from) {
 		return from == true ? WarpBool::True : WarpBool::False;
 	}
@@ -56,30 +63,31 @@ namespace Warp::Parsing
 	{
 		using UnderylingType = NumericParameterType;
 		constexpr static const NumericTypeTag type = ParameterTypeConstant;
-		constexpr static const bool fixed_point_type = false;
-		constexpr static const size_t bits = sizeof(UnderylingType) * CHAR_BIT;
 		using ThisType = NumericType<type, UnderylingType>;
+
+		constexpr static const bool fixed_point_type = false;
+		constexpr static const size_t default_bits = sizeof(UnderylingType) * CHAR_BIT;
+
 		UnderylingType number; // This would be const, but CTPG requires it this object be writable. //
+		size_t bits = default_bits;
+
 
 		constexpr NumericType(const UnderylingType number) noexcept 
-				: number(number) {}
+				: number(number), bits(default_bits) {}
 		constexpr NumericType(const std::string_view numeric_string_representation) noexcept 
-				: number(to_integral<UnderylingType>(numeric_string_representation)) {}
+				: number(to_integral<UnderylingType>(numeric_string_representation)), bits(default_bits) {}
 
 		constexpr NumericType(const NumericType& other) noexcept = default;
 		constexpr NumericType(NumericType&& other) noexcept = default;
 		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
 		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
 
-		constexpr std::strong_ordering operator<=>(const NumericType& other) const noexcept = default;
+		constexpr std::strong_ordering operator<=>(const ConvertableToExceptConcept<UnderylingType, ThisType> auto& other) const noexcept {
+			return number <=> other.number;
+		}
 
-		constexpr std::strong_ordering operator<=>(const UnderylingType& other) const noexcept
-		{
-			return (other < number) 
-					? std::strong_ordering::less
-					: ((other > number) 
-							? std::strong_ordering::greater 
-							: std::strong_ordering::equivalent);
+		constexpr std::strong_ordering operator<=>(const ConvertableToExceptConcept<ThisType, UnderylingType> auto& other) const noexcept {
+			return number <=> other.number;
 		}
 
 		constexpr operator UnderylingType() const noexcept {
@@ -121,8 +129,10 @@ namespace Warp::Parsing
 		constexpr const static auto decimal_part_bits = DecimalPartBitsParameterConstant;
 		using UnderylingType = numeric::fixed<whole_part_bits, decimal_part_bits>;
 		using ThisType = NumericType<type, UnderylingType>;
+
 		constexpr static const bool fixed_point_type = true;
-		constexpr static const size_t bits = whole_part_bits + decimal_part_bits;
+		constexpr static size_t const bits = whole_part_bits + decimal_part_bits; // Constant for now. //
+
 		UnderylingType number; // This would be const, but CTPG requires it this object be writable. //
 
 		constexpr NumericType(const UnderylingType number) noexcept 
