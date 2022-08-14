@@ -682,6 +682,11 @@ namespace Warp::Parsing
 				>= [](auto character_number, auto character_mark) {
 					return CharacterType{character_number}; 
 			};
+		constexpr const static auto parse_marked_character_number_with_deliniator
+				= character(digits, numerical_delinator, character_mark) 
+				>= [](auto character_number, auto numerical_delinator, auto character_mark) {
+					return CharacterType{character_number}; 
+			};
 		constexpr const static auto parse_marked_character_number_with_bit_precision
 				= character(digits, character_mark, digits) 
 				>= [](auto character_number, auto character_mark, auto bit_precision_digits) {
@@ -749,6 +754,7 @@ namespace Warp::Parsing
 					parse_marked_escape_character, 
 					parse_escape_character_with_bit_precision, 
 					parse_marked_character_number, 
+					parse_marked_character_number_with_deliniator, 
 					parse_marked_character_number_with_bit_precision, 
 					parse_marked_character_number_with_bit_precision_with_delinator, 
 					parse_boolean_value, 

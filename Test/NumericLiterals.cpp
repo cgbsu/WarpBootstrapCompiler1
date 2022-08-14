@@ -212,6 +212,10 @@ TEST(NumericLiterals, ParseCharacters)
 			static_cast<CharType>('A') // Expected
 		);
 	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"0x41_c"}, NumericTypeTag::Character>(), // Actual
+			static_cast<CharType>('A') // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
 			parse<FixedString{"'1'"}, NumericTypeTag::Character>(), // Actual
 			static_cast<CharType>('1') // Expected
 		);

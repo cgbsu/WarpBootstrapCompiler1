@@ -21,6 +21,10 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
  - [ ] Static caches on `raise`, `raise_constexpr`, `log` and similar math functions
  - [ ] Branching/forking `raise`
 
+## Refactoring
+
+ - [ ] Seperate out everything in NumericLiterals into different classes/files
+
 ## Features
 - Literals
 	- [x] Unsigned integers
