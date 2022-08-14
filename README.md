@@ -7,8 +7,8 @@ Warp has heavy constraints, the typing scheme is a WIP, it has typed literals bu
 This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCompiler0)) I am making at implementing the compiler, immediate goals are: 
 
 ## TODO (Immediate): 
- - [x] Evaluate literals (partial)
-	- [ ] Mark bit precision of each variable
+ - [x] Evaluate literals 🚀
+	- [x] Mark bit precision of each variable
 	- [x] Make it so fixed-points do not have to specify their base after decimal
 	- [x] A few more ways to write fixed-points
  - [ ] Evaluate mathematical-expressions (in a type-safe way)
@@ -28,10 +28,13 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 	- [x] Fixed point values
 	- [x] Characters
 	- [x] Bools
-	- [ ] Specify size of data in bits (abitrary length integrals)
+	- [x] Specify size of data in bits
 	- [ ] Specify fixed-point precision
+	- [ ] Numerical Deliniator
+	- [ ] Specify mixed bases for whole and decimal parts of fixed-points
 
 ## Longer Term Goals
+ - [ ] Numerical Deliniator
  - [ ] Mixed basis for fixed-points/fix the way basis are specified
  - [ ] Specify precision for fixed-points
  - [ ] Floating point types?

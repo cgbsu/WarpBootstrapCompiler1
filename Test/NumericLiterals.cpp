@@ -255,6 +255,22 @@ TEST(NumericLiterals, Booleans)
 			parse<FixedString{"false"}, NumericTypeTag::Bool>(), // Actual
 			WarpBool::False // Expected
 		);
+	strict_check_parse<NumericLiteralParserTestType::BoolType>(
+			parse<FixedString{"truebl"}, NumericTypeTag::Bool>(), // Actual
+			WarpBool::True // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::BoolType>(
+			parse<FixedString{"falsebl"}, NumericTypeTag::Bool>(), // Actual
+			WarpBool::False // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::BoolType>(
+			parse<FixedString{"0b1bl"}, NumericTypeTag::Bool>(), // Actual
+			WarpBool::True // Expected
+		);
+	strict_check_parse<NumericLiteralParserTestType::BoolType>(
+			parse<FixedString{"0b0bl"}, NumericTypeTag::Bool>(), // Actual
+			WarpBool::False // Expected
+		);
 };
 
 template<typename ResultParameterType, auto ValueParameterConstant>
@@ -363,19 +379,52 @@ TEST(NumericLiterals, IntegerVariableBitArity)
 	check_varible_bit_against_value<NumericLiteralParserTestType::IntegerType, 123>(to_check, bit_values);
 };
 
-//TEST(NumericLiterals, CharacterVariableBitArity)
-//{
-//	check_parse(
-//			parse<FixedString{"0d123c8"}, NumericTypeTag::Integer>(), 
-//			parse<FixedString{"0d123c"}, NumericTypeTag::Integer>()
-//		);
-//	check_parse(
-//			parse<FixedString{"0d123c8"}, NumericTypeTag::Integer>(), 
-//			parse<FixedString{"0d123c16"}, NumericTypeTag::Integer>()
-//		);
-//	check_parse(
-//			parse<FixedString{"0d123c8"}, NumericTypeTag::Integer>(), 
-//			parse<FixedString{"0d123c16"}, NumericTypeTag::Integer>()
-//		);
-//};
+TEST(NumericLiterals, CharacterVariableBitArity)
+{
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"0d123c8"}, NumericTypeTag::Character>(), 
+			parse<FixedString{"0d123c"}, NumericTypeTag::Character>().value()
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"0d123c8"}, NumericTypeTag::Character>(), 
+			parse<FixedString{"0d123c16"}, NumericTypeTag::Character>().value()
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"0d123c37"}, NumericTypeTag::Character>(), 
+			parse<FixedString{"0d123c16"}, NumericTypeTag::Character>().value()
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"0d123c37"}, NumericTypeTag::Character>(), 
+			parse<FixedString{"0d123c21"}, NumericTypeTag::Character>().value()
+		);
+	strict_check_parse<NumericLiteralParserTestType::CharacterType>(
+			parse<FixedString{"0d123c8"}, NumericTypeTag::Character>(), 
+			parse<FixedString{"0d123c21"}, NumericTypeTag::Character>().value()
+		);
+
+	const auto to_check = std::array{
+			parse<FixedString{"0d123c8"},      NumericTypeTag::Character>(), 
+			parse<FixedString{"0d123c16"},     NumericTypeTag::Character>(), 
+			parse<FixedString{"0d123c27"},     NumericTypeTag::Character>(), 
+			parse<FixedString{"0d123c35"},     NumericTypeTag::Character>(), 
+			parse<FixedString{"0x7B_c8"},       NumericTypeTag::Character>(), /*This test prompted the introduction of the numerical * 
+																					   * delinator '_' only supported here so far, see *******
+																					   * NumericLiterals.hpp for details ********************/
+			parse<FixedString{"0x7B_c16"},      NumericTypeTag::Character>(), 
+			parse<FixedString{"0x7B_c27"},      NumericTypeTag::Character>(), 
+			parse<FixedString{"0x7B_c35"},      NumericTypeTag::Character>(), 
+			parse<FixedString{"0o173c8"},      NumericTypeTag::Character>(), 
+			parse<FixedString{"0o173c16"},     NumericTypeTag::Character>(), 
+			parse<FixedString{"0o173c27"},     NumericTypeTag::Character>(), 
+			parse<FixedString{"0o173c35"},     NumericTypeTag::Character>(), 
+			parse<FixedString{"0b1111011c8"},  NumericTypeTag::Character>(), 
+			parse<FixedString{"0b1111011c16"}, NumericTypeTag::Character>(), 
+			parse<FixedString{"0b1111011c27"}, NumericTypeTag::Character>(), 
+			parse<FixedString{"0b1111011c35"}, NumericTypeTag::Character>()
+		};
+
+	constexpr const auto bit_values = std::array{8, 16, 27, 35};
+
+	check_varible_bit_against_value<NumericLiteralParserTestType::CharacterType, 123>(to_check, bit_values);
+};
 

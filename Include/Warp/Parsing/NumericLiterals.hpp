@@ -27,11 +27,14 @@ namespace Warp::Parsing
 		IntegerMark, 
 		UnsignedMark, 
 		FixedMark, 
+		BoolMark, 
 		AnyDecimalDigits, 
 		AnyDecimalDigitsReduction, 
 		CharacterMark, 
 		//Bool, 
-		BooleanLiteral
+		BooleanLiteral, 
+		NumericalDelinator /* TODO: Add more support for this 100_000, and 0x_7D or 0x8A.0o_71 or 0x3B.1F_fxp, 
+							* support currently limited to integral char. */
 	};
 
 	enum class WarpBool : unsigned char {
@@ -247,6 +250,12 @@ namespace Warp::Parsing
 					FixedString{"xp"}, 
 					ctpg::associativity::no_assoc
 				>, 
+			TreeTerm<
+					NumericLiteral::BoolMark, 
+					StringTerm, 
+					FixedString{"bl"}, 
+					ctpg::associativity::no_assoc
+				>, 
 			TypeTreeTerm<
 					NumericLiteral::Digits, 
 					NonTerminalTerm, 
@@ -343,6 +352,12 @@ namespace Warp::Parsing
 					FixedString{"'\\\\[0nt'\\\\]'"}, 
 					FixedString{"CharacterLiteral"}, 
 					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::NumericalDelinator, 
+					CharTerm, 
+					'_', 
+					ctpg::associativity::no_assoc
 				>
 			>::AddOnePriority<
 					TreeTerm<
@@ -366,9 +381,9 @@ namespace Warp::Parsing
 		using CharacterType = ResolverParameterTemplate<NumericTypeTag::Character>::Type;
 		using BoolType = ResolverParameterTemplate<NumericTypeTag::Bool>::Type;
 
-		constexpr const static auto character_literal
+		constexpr const static auto character_literal 
 				= TermsParameterTemplate::template term<NumericLiteral::CharacterLiteral>;
-		constexpr const static auto escape_character_literal
+		constexpr const static auto escape_character_literal 
 				= TermsParameterTemplate::template term<NumericLiteral::EscapeCharacterLiteral>;
 		constexpr const static auto base_10_digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Base10Digits>;
@@ -384,29 +399,33 @@ namespace Warp::Parsing
 				= TermsParameterTemplate::template term<NumericLiteral::AnyDecimalDigitsReduction>;
 		constexpr const static auto digits 
 				= TermsParameterTemplate::template term<NumericLiteral::Digits>;
-		constexpr const static auto boolean_literal
+		constexpr const static auto boolean_literal 
 				= TermsParameterTemplate::template term<NumericLiteral::BooleanLiteral>;
-		constexpr const static auto radix
+		constexpr const static auto radix 
 				= TermsParameterTemplate::template term<NumericLiteral::Dot>;
-		constexpr const static auto minus
+		constexpr const static auto minus 
 				= TermsParameterTemplate::template term<NumericLiteral::Minus>;
-		constexpr const static auto unsigned_mark
+		constexpr const static auto unsigned_mark 
 				= TermsParameterTemplate::template term<NumericLiteral::UnsignedMark>;
-		constexpr const static auto integer_mark
+		constexpr const static auto integer_mark 
 				= TermsParameterTemplate::template term<NumericLiteral::IntegerMark>;
-		constexpr const static auto fixed_point_mark
+		constexpr const static auto fixed_point_mark 
 				= TermsParameterTemplate::template term<NumericLiteral::FixedMark>;
-		constexpr const static auto character_mark
+		constexpr const static auto bool_mark 
+				= TermsParameterTemplate::template term<NumericLiteral::BoolMark>;
+		constexpr const static auto numerical_delinator 
+				= TermsParameterTemplate::template term<NumericLiteral::NumericalDelinator>;
+		constexpr const static auto character_mark 
 				= TermsParameterTemplate::template term<NumericLiteral::CharacterMark>;
 		constexpr const static auto whole 
 				= TermsParameterTemplate::template term<NumericTypeTag::Whole>;
-		constexpr const static auto integer
+		constexpr const static auto integer 
 				= TermsParameterTemplate::template term<NumericTypeTag::Integer>;
-		constexpr const static auto fixed_point
+		constexpr const static auto fixed_point 
 				= TermsParameterTemplate::template term<NumericTypeTag::FixedPoint>;
-		constexpr const static auto character
+		constexpr const static auto character 
 				= TermsParameterTemplate::template term<NumericTypeTag::Character>;
-		constexpr const static auto boolean
+		constexpr const static auto boolean 
 				= TermsParameterTemplate::template term<NumericTypeTag::Bool>;
 
 		constexpr static const auto terms = ctpg::terms(
@@ -423,7 +442,9 @@ namespace Warp::Parsing
 				unsigned_mark, 
 				integer_mark, 
 				fixed_point_mark, 
-				character_mark
+				character_mark, 
+				numerical_delinator, 
+				bool_mark
 			);
 
 		constexpr static const auto non_terminal_terms = ctpg::nterms(
@@ -479,7 +500,7 @@ namespace Warp::Parsing
 				{
 					const std::string_view digit_string_view = digit_string;
 					if(digit_string_view.size() > 2) {
-						if(digit_string_view.substr(0, 2) == "0d")
+						if(digit_string_view.substr(0, 2) == "0d") // TODO: Derive offsets and string constants "0d" from terms //
 							return digit_string_view.substr(2);
 					}
 					return std::string_view{digit_string};
@@ -667,11 +688,34 @@ namespace Warp::Parsing
 					return CharacterType{character_number, to_integral<size_t>(bit_precision_digits)}; 
 			};
 
+		constexpr const static auto parse_marked_character_number_with_bit_precision_with_delinator
+				= character(digits, numerical_delinator, character_mark, digits) 
+				>= [](auto character_number, auto delinator, auto character_mark, auto bit_precision_digits) {
+					return CharacterType{character_number, to_integral<size_t>(bit_precision_digits)}; 
+			};
+
 		constexpr const static auto parse_boolean_value
 				= boolean(boolean_literal) 
 				>= [](auto boolean_literal_string) {
 					return BoolType{to_warp_bool(to_bool(boolean_literal_string).value())};
 				};
+
+		constexpr const static auto parse_explicit_boolean_value
+				= boolean(boolean_literal, bool_mark) 
+				>= [](auto boolean_literal_string, auto bool_mark_string) {
+					return BoolType{to_warp_bool(to_bool(boolean_literal_string).value())};
+				};
+
+		constexpr const static auto parse_integral_boolean_value
+				= boolean(base_2_digits, bool_mark) 
+				>= [](auto boolean_literal_string, auto bool_mark_string) {
+					return BoolType{to_warp_bool( // TODO: Derive offset and string constants "0" and "1" from terms //
+							to_bool<FixedString{"1"}, FixedString{"0"}>( 
+									std::string_view{boolean_literal_string}.substr(2) 
+								).value()
+						)};
+				};
+
 
 		consteval static const auto rules()
 		{
@@ -706,7 +750,10 @@ namespace Warp::Parsing
 					parse_escape_character_with_bit_precision, 
 					parse_marked_character_number, 
 					parse_marked_character_number_with_bit_precision, 
-					parse_boolean_value
+					parse_marked_character_number_with_bit_precision_with_delinator, 
+					parse_boolean_value, 
+					parse_explicit_boolean_value, 
+					parse_integral_boolean_value
 				);
 		}
 	};
