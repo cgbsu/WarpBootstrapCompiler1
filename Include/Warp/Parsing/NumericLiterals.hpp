@@ -219,63 +219,48 @@ namespace Warp::Parsing
 					>;
 
 	template<
-			typename TermsParameterTemplate, 
-			template<auto> typename ResolverParameterTemplate
+			typename TermsParameterType, 
+			template<auto> typename TypeResolverParameterTemplate
 		>
 	struct NumericLiteralParser
 	{
-		using WholeType = ResolverParameterTemplate<NumericTypeTag::Whole>::Type;
-		using IntegerType = ResolverParameterTemplate<NumericTypeTag::Integer>::Type;
-		using FixedPointType = ResolverParameterTemplate<NumericTypeTag::FixedPoint>::Type;
-		using CharacterType = ResolverParameterTemplate<NumericTypeTag::Character>::Type;
-		using BoolType = ResolverParameterTemplate<NumericTypeTag::Bool>::Type;
+		using TermsType = TermsParameterType;
 
-		constexpr const static auto character_literal 
-				= TermsParameterTemplate::template term<NumericLiteral::CharacterLiteral>;
-		constexpr const static auto escape_character_literal 
-				= TermsParameterTemplate::template term<NumericLiteral::EscapeCharacterLiteral>;
-		constexpr const static auto base_10_digits 
-				= TermsParameterTemplate::template term<NumericLiteral::Base10Digits>;
-		constexpr const static auto base_16_digits 
-				= TermsParameterTemplate::template term<NumericLiteral::Base16Digits>;
-		constexpr const static auto base_8_digits 
-				= TermsParameterTemplate::template term<NumericLiteral::Base8Digits>;
-		constexpr const static auto base_2_digits 
-				= TermsParameterTemplate::template term<NumericLiteral::Base2Digits>;
-		constexpr const static auto any_decimal_digits 
-				= TermsParameterTemplate::template term<NumericLiteral::AnyDecimalDigits>;
-		constexpr const static auto any_decimal_digits_reduction 
-				= TermsParameterTemplate::template term<NumericLiteral::AnyDecimalDigitsReduction>;
-		constexpr const static auto digits 
-				= TermsParameterTemplate::template term<NumericLiteral::Digits>;
-		constexpr const static auto boolean_literal 
-				= TermsParameterTemplate::template term<NumericLiteral::BooleanLiteral>;
-		constexpr const static auto radix 
-				= TermsParameterTemplate::template term<NumericLiteral::Dot>;
-		constexpr const static auto minus 
-				= TermsParameterTemplate::template term<NumericLiteral::Minus>;
-		constexpr const static auto unsigned_mark 
-				= TermsParameterTemplate::template term<NumericLiteral::UnsignedMark>;
-		constexpr const static auto integer_mark 
-				= TermsParameterTemplate::template term<NumericLiteral::IntegerMark>;
-		constexpr const static auto fixed_point_mark 
-				= TermsParameterTemplate::template term<NumericLiteral::FixedMark>;
-		constexpr const static auto bool_mark 
-				= TermsParameterTemplate::template term<NumericLiteral::BoolMark>;
-		constexpr const static auto numerical_delinator 
-				= TermsParameterTemplate::template term<NumericLiteral::NumericalDelinator>;
-		constexpr const static auto character_mark 
-				= TermsParameterTemplate::template term<NumericLiteral::CharacterMark>;
-		constexpr const static auto whole 
-				= TermsParameterTemplate::template term<NumericTypeTag::Whole>;
-		constexpr const static auto integer 
-				= TermsParameterTemplate::template term<NumericTypeTag::Integer>;
-		constexpr const static auto fixed_point 
-				= TermsParameterTemplate::template term<NumericTypeTag::FixedPoint>;
-		constexpr const static auto character 
-				= TermsParameterTemplate::template term<NumericTypeTag::Character>;
-		constexpr const static auto boolean 
-				= TermsParameterTemplate::template term<NumericTypeTag::Bool>;
+		template<auto NonTerminalTypeTagParameterConstant>
+		using TypeResolverTemplate = TypeResolverParameterTemplate<NonTerminalTypeTagParameterConstant>::Type;
+
+		using WholeType = TypeResolverTemplate<NumericTypeTag::Whole>;
+		using IntegerType = TypeResolverTemplate<NumericTypeTag::Integer>;
+		using FixedPointType = TypeResolverTemplate<NumericTypeTag::FixedPoint>;
+		using CharacterType = TypeResolverTemplate<NumericTypeTag::Character>;
+		using BoolType = TypeResolverTemplate<NumericTypeTag::Bool>;
+
+		template<auto TermTagParameterConstant>
+		constexpr static const auto term = TermsType::template term<TermTagParameterConstant>;
+
+		constexpr const static auto character_literal = term<NumericLiteral::CharacterLiteral>;
+		constexpr const static auto escape_character_literal = term<NumericLiteral::EscapeCharacterLiteral>;
+		constexpr const static auto base_10_digits = term<NumericLiteral::Base10Digits>;
+		constexpr const static auto base_16_digits = term<NumericLiteral::Base16Digits>;
+		constexpr const static auto base_8_digits = term<NumericLiteral::Base8Digits>;
+		constexpr const static auto base_2_digits = term<NumericLiteral::Base2Digits>;
+		constexpr const static auto any_decimal_digits = term<NumericLiteral::AnyDecimalDigits>;
+		constexpr const static auto any_decimal_digits_reduction = term<NumericLiteral::AnyDecimalDigitsReduction>;
+		constexpr const static auto digits = term<NumericLiteral::Digits>;
+		constexpr const static auto boolean_literal = term<NumericLiteral::BooleanLiteral>;
+		constexpr const static auto radix = term<NumericLiteral::Dot>;
+		constexpr const static auto minus = term<NumericLiteral::Minus>;
+		constexpr const static auto unsigned_mark = term<NumericLiteral::UnsignedMark>;
+		constexpr const static auto integer_mark = term<NumericLiteral::IntegerMark>;
+		constexpr const static auto fixed_point_mark = term<NumericLiteral::FixedMark>;
+		constexpr const static auto bool_mark = term<NumericLiteral::BoolMark>;
+		constexpr const static auto numerical_delinator = term<NumericLiteral::NumericalDelinator>;
+		constexpr const static auto character_mark = term<NumericLiteral::CharacterMark>;
+		constexpr const static auto whole = term<NumericTypeTag::Whole>;
+		constexpr const static auto integer = term<NumericTypeTag::Integer>;
+		constexpr const static auto fixed_point = term<NumericTypeTag::FixedPoint>;
+		constexpr const static auto character = term<NumericTypeTag::Character>;
+		constexpr const static auto boolean = term<NumericTypeTag::Bool>;
 
 		constexpr static const auto terms = ctpg::terms(
 				character_literal, 

@@ -13,6 +13,13 @@ namespace Warp::Parsing
 		Subtract, 
 		Multiply, 
 		Divide
+		// Modulo
+		// Raise
+		// Log
+		// BaseConvert
+		// Solve
+		OpenPrioritization, 
+		ClosePrioritization
 	};
 
 	using MathematicalExpressionTermsType = MakeTerms<
@@ -29,6 +36,20 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>
 		>;
+
+	template<
+			typename TermsParameterTemplate, 
+			template<auto> typename TypeResolverParameterTemplate>, 
+			auto ReductionTagParameterConstant
+		>
+	struct MathematicalExpressionParser
+	{
+		using TermsType = TermsParameterType;
+		constexpr static const auto reduce_to_tag = ReductionTagParameterConstant;
+		template<auto TermTagParameterConstant>
+		constexpr static const auto term = TermsType::template term<TermTagParameterConstant>;
+	};
+
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP

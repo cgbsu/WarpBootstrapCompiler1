@@ -6,12 +6,16 @@ Warp has heavy constraints, the typing scheme is a WIP, it has typed literals bu
 
 This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCompiler0)) I am making at implementing the compiler, immediate goals are: 
 
-## TODO (Immediate): 
+## TODO (Immediate for MVP): 
  - [x] Evaluate literals 🚀
 	- [x] Mark bit precision of each variable
 	- [x] Make it so fixed-points do not have to specify their base after decimal
 	- [x] A few more ways to write fixed-points
  - [ ] Evaluate mathematical-expressions (in a type-safe way)
+	- [ ] Addition/Subtraction
+	- [ ] Muiltiplication/Division
+	- [ ] Parenthesis Prioritization
+	- [ ] Bitwise?
  - [ ] Evaluate boolean-expressions
  - [ ] Evaluate compile-time functions
  - [ ] Runtime functions & modules
@@ -20,11 +24,16 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
  - [ ] Parsing
 	- [x] Literals
 	- [ ] Mathematical Expressions
+		- [ ] Addition/Subtraction
+		- [ ] Multiplication/Division
+		- [ ] Parenthesis Prioritization
+		- [ ] Bitwise?
 	- [ ] Boolean expressions
 	- [ ] Functions
  - [ ] Compile Time evaluation
  - [ ] Compilation
- - [ ] Interopability (C/C++)
+ - [ ] Interopability C/"C ABI"
+ - [ ] Interopability C++
 
 
 ## Optimizations
@@ -40,22 +49,45 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 
 ## Features
 - Literals
-	- [x] Unsigned integers
-	- [x] Signed integers
-	- [x] Fixed point values
-	- [x] Characters
-	- [x] Bools
-	- [x] Specify size of data in bits
+	- [x] (MVP) Unsigned integers
+	- [x] (MVP) Signed integers
+	- [x] (MVP) Fixed point values
+	- [x] (MVP) Characters
+	- [x] (MVP) Bools
+	- [x] (MVP) Specify size of data in bits
 	- [ ] Specify fixed-point precision
 	- [ ] Numerical Deliniator
 	- [ ] Specify mixed bases for whole and decimal parts of fixed-points
 	- [ ] Complex value type
+- [ ] Mathematical Expressions
+	- [ ] (MVP) Compile Time
+		- [ ] (MVP) Addition/Subtraction
+		- [ ] (MVP) Multiplication/Division
+		- [ ] (MVP) Parenthesis Prioritization
+		- [ ] Raise
+		- [ ] Log
+		- [ ] (MVP?) Bitshift left/Bitshift right
+		- [ ] (MVP?) Bitwise And
+		- [ ] (MVP?) Bitwise Or
+		- [ ] (MVP?) Bitwise Xor
+	- [ ] (MVP) Run Time
+		- [ ] (MVP) Addition/Subtraction
+		- [ ] (MVP) Multiplication/Division
+		- [ ] (MVP) Parenthesis Prioritization
+		- [ ] Raise
+		- [ ] Log
+		- [ ] (MVP?) Bitshift left/Bitshift right
+		- [ ] (MVP?) Bitwise And
+		- [ ] (MVP?) Bitwise Or
+		- [ ] (MVP?) Bitwise Xor
 
 ## Longer Term Goals
  - [ ] Numerical Deliniator
  - [ ] Mixed basis for fixed-points/fix the way basis are specified
  - [ ] Specify precision for fixed-points
  - [ ] Floating point types?
+ - [ ] Raise/Log
+ - [ ] C and C++ interoperability (possibly Rust as well)
 
 # Branchless?
 
