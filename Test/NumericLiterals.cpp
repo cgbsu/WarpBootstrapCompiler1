@@ -1,9 +1,10 @@
-#define WARP__TESTING__HEADER__TESTING__PARSE__TESTING__UTILITIES__HPP__CHECK__MACRO__REQUIRED
-#include <Warp/Testing/ParseTestingUtilities.hpp>
 #include <Warp/Parsing/NumericLiterals.hpp>
 #include <ThirdParty/fpm/ios.hpp>
 #include <Warp/Parsing/Terms.hpp>
 #include <CppUTest/TestHarness.h>
+
+#define WARP__TESTING__HEADER__TESTING__PARSE__TESTING__UTILITIES__HPP__CHECK__MACRO__REQUIRED CHECK
+#include <Warp/Testing/ParseTestingUtilities.hpp>
 
 using namespace Warp::Testing;
 using namespace Warp::Parsing;
@@ -17,14 +18,6 @@ using ParserTestType = NumericLiteralParser<
 		NumericLiteralTermsType, 
 		NumericLiteralTypeResolver
 	>;
-
-//template<auto ReduceToTagParameterConstant>
-//constexpr const static auto parser = ctpg::parser(
-//		ParserTestType::term<ReduceToTagParameterConstant>, 
-//		ParserTestType::terms, 
-//		ParserTestType::non_terminal_terms, 
-//		ParserTestType::rules()
-//	);
 
 using FixedType = ParserTestType::FixedPointType;
 using CharType = ParserTestType::CharacterType;
