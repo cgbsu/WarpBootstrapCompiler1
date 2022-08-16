@@ -16,6 +16,17 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
  - [ ] Evaluate compile-time functions
  - [ ] Runtime functions & modules
 
+## MVP: 
+ - [ ] Parsing
+	- [x] Literals
+	- [ ] Mathematical Expressions
+	- [ ] Boolean expressions
+	- [ ] Functions
+ - [ ] Compile Time evaluation
+ - [ ] Compilation
+ - [ ] Interopability (C/C++)
+
+
 ## Optimizations
 
  - [ ] Static caches on `raise`, `raise_constexpr`, `log` and similar math functions
@@ -24,6 +35,8 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 ## Refactoring
 
  - [ ] Seperate out everything in NumericLiterals into different classes/files
+ - [ ] Find a way to make rules automatically/template rules easily
+ - [ ] Find a way to make "optionals"/optional terms in rules 
 
 ## Features
 - Literals
@@ -36,6 +49,7 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 	- [ ] Specify fixed-point precision
 	- [ ] Numerical Deliniator
 	- [ ] Specify mixed bases for whole and decimal parts of fixed-points
+	- [ ] Complex value type
 
 ## Longer Term Goals
  - [ ] Numerical Deliniator
@@ -67,3 +81,5 @@ let raise( base : base > 0, power : power = 0 ) @ = 1 :: 1 * 1;
 
 This will raise a number to a certain power.
 
+## Ideas: 
+ - [ ] "Solve for" operator (`-->`) can "solve" for parameter or yeild a constant in the function

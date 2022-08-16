@@ -18,10 +18,6 @@ namespace Warp::Parsing
 		Base16Digits, 
 		Base2Digits, 
 		Base8Digits, 
-		//Whole, 
-		//Integer, 
-		//FixedPoint, 
-		//Character, 
 		CharacterLiteral, 
 		EscapeCharacterLiteral, 
 		Minus, 
@@ -33,7 +29,6 @@ namespace Warp::Parsing
 		AnyDecimalDigits, 
 		AnyDecimalDigitsReduction, 
 		CharacterMark, 
-		//Bool, 
 		BooleanLiteral, 
 		NumericalDelinator /* TODO: Add more support for this 100_000, and 0x_7D or 0x8A.0o_71 or 0x3B.1F_fxp, 
 							* support currently limited to integral char. */
