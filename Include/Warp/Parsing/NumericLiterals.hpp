@@ -145,16 +145,15 @@ namespace Warp::Parsing
 					CharTerm, 
 					'_', 
 					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					NumericLiteral::AnyDecimalDigits, 
+					RegexTerm, 
+					FixedString{"\\.[0-9A-Fa-f]+"}, 
+					FixedString{"AnyDecimalDigits"}, 
+					ctpg::associativity::no_assoc
 				>
-			>>::AddOnePriority<
-					TreeTerm<
-							NumericLiteral::AnyDecimalDigits, 
-							RegexTerm, 
-							FixedString{"\\.[0-9A-Fa-f]+"}, 
-							FixedString{"AnyDecimalDigits"}, 
-							ctpg::associativity::no_assoc
-						>
-					>;
+			>>;
 
 	template<
 			typename TermsParameterType = NumericLiteralTermsType, 
