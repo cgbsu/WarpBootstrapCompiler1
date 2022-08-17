@@ -1,5 +1,6 @@
 #include <Warp/Parsing/TermWrappers.hpp>
 #include <Warp/Parsing/Terms.hpp>
+#include <Warp/Parsing/TypeTerms.hpp>
 #include <Warp/Utilities.hpp>
 #include <Warp/Runtime/Compiler/NumericType.hpp>
 
@@ -34,7 +35,8 @@ namespace Warp::Parsing
 							* support currently limited to integral char. */
 	};
 	
-	using NumericLiteralTermsType = MakeTerms<
+
+	using NumericLiteralTermsType = TypeTerms::FlatMerge<MakeTerms<
 			TreeTerm<
 					NumericLiteral::Minus, 
 					CharTerm, 
@@ -144,7 +146,7 @@ namespace Warp::Parsing
 					'_', 
 					ctpg::associativity::no_assoc
 				>
-			>::AddOnePriority<
+			>>::AddOnePriority<
 					TreeTerm<
 							NumericLiteral::AnyDecimalDigits, 
 							RegexTerm, 

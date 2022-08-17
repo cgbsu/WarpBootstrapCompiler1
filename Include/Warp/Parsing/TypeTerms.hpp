@@ -8,6 +8,7 @@
 
 namespace Warp::Parsing
 {
+	using namespace Warp::Runtime::Compiler;
 	using TypeTerms = MakeTerms<
 			TypeTreeTerm<
 					NumericTypeTag::FixedPoint, 

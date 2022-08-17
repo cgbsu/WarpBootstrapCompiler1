@@ -224,184 +224,31 @@ namespace Warp::Parsing
 		template<AssociatedTemplateConcept... NewTermParameterTypes>
 		using MergeTerms = Terms<PreviousType, precedence, TermParameterTypes..., NewTermParameterTypes...>;
 
-		//template<typename NewPreviousParameterType, //A bit of an oximoron </humor>
-		//		auto NewPrecedenceParameterConstant>
-		//using NewTermsType = TypeHolder<Terms<
-		//		NewPreviousParameterType, 
-		//		NewPrecedenceParameterConstant, 
-		//		TermParameterTypes...
-		//	>>;
-
-		//template<typename NewPreviousParameterType, 
-		//		auto NewPrecedenceParameterConstant>
-		//constinit const auto new_terms = NewTermsType<
-		//		NewPreviousParameterType, 
-		//		NewPrecedenceParameterConstant
-		//	>{};
-		
 		template<
 				typename OtherPreviousParameterType, 
-				auto OtherPrecedenceParameterConstant, 
-				AssociatedTemplateConcept... OtherTermParameterTypes
+				auto OtherPreviousParameterConstant, 
+				typename... OtherTermParameterTypes
 			>
-		requires(OtherPreviousParameterType::precedence > PreviousType::precedence
-				&& is_root == false)
-		consteval static const auto merge(Terms<
-				OtherTermParameterTypes, 
-				OtherPrecedenceParameterConstant, 
-				OtherTermParameterTypes...>
+		requires(
+				std::same_as<OtherPreviousParameterType, NoPreviousType>
+				&& is_root == true 
+				&& OtherPreviousParameterConstant == precedence
 			)
-		{
-			return TypeHolder<
-					decltype(ReplacePrevious<
-							OtherPreviousParameterType, 
-							OtherPreviousParameterType::precedence
-						>::merge(PreviousType{}))::Type
-				>{};
+		constexpr const static auto flat_merge(Terms<
+				OtherPreviousParameterType, 
+				OtherPreviousParameterConstant, 
+				OtherTermParameterTypes...
+			>) {
+			return TypeHolder<Terms<
+					OtherPreviousParameterType, 
+					OtherPreviousParameterConstant, 
+					TermParameterTypes..., 
+					OtherTermParameterTypes...
+				>>{};
 		}
 
-		//template<
-		//		typename OtherPreviousParameterType, 
-		//		auto OtherPrecedenceParameterConstant, 
-		//		AssociatedTemplateConcept... OtherTermParameterTypes
-		//	>
-		//requires(OtherPreviouseParameterType::precedence < PreviousType::precedence
-		//		&& is_root == false)
-		//consteval static const auto merge(Terms<
-		//		OtherTermParameterTypes, 
-		//		OtherPrecedenceParameterConstant, 
-		//		OtherTermParameterTypes...>
-		//	)
-		//{
-		//	return TypeHolder<ReplacePrevious<
-		//			decltype(PreviousType::merge(OtherPreviousParameterType{}))::Type, 
-		//			precedence
-		//		>>{};
-		//}
-
-		//template<
-		//		typename OtherPreviousParameterType, 
-		//		auto OtherPrecedenceParameterConstant, 
-		//		AssociatedTemplateConcept... OtherTermParameterTypes
-		//	>
-		//requires(OtherPreviousParameterType::precedence == PreviousType::precedence
-		//		&& is_root == false)
-		//consteval static const auto merge(Terms<
-		//		OtherTermParameterTypes, 
-		//		OtherPrecedenceParameterConstant, 
-		//		OtherTermParameterTypes...>
-		//	) {
-		//	return TypeHolder<MergeTerms<OtherTermParameterTypes...>::ReplacePrevious<
-		//			decltype(OtherPreviousParameterType::merge(PreviousType{}))::Type>, 
-		//			precedence
-		//		>{};
-		//}
-
-		//template<
-		//		typename OtherPreviousParameterType, 
-		//		auto OtherPrecedenceParameterConstant, 
-		//		AssociatedTemplateConcept... OtherTermParameterTypes
-		//	>
-		//requires(is_root == true)
-		//consteval static const auto merge(Terms<
-		//		OtherTermParameterTypes, 
-		//		OtherPrecedenceParameterConstant, 
-		//		OtherTermParameterTypes...>
-		//	) {
-		//	return TypeHolder<ReplacePrevious<OtherPreviouseType>>{};
-		//}
-
-
-
-
-
-
-
-
-
-		//template<
-		//		typename OtherPreviousParameterType, 
-		//		auto OtherPrecedenceParameterConstant, 
-		//		AssociatedTemplateConcept... OtherTermParameterTypes
-		//	>
-		//consteval static const auto merge(Terms<
-		//		OtherTermParameterTypes, 
-		//		OtherPrecedenceParameterConstant, 
-		//		OtherTermParameterTypes...>
-		//	)
-		//{
-		//	using OtherPreviouseType = OtherPreviousParameterType;
-		//	constinit const auto other_precedence = OtherPrecedenceParameterConstant;
-		//	using OtherPrecedenceType = decltype(other_precedence);
-		//	using OtherTermsType = Terms<
-		//			OtherPreviouseType, 
-		//			other_precedence, 
-		//			OtherTermParameterTypes...
-		//		>;
-
-		//	constinit bool equally_comparible = is_equally_comparible<
-		//			OtherPrecedenceType, 
-		//			PrecedenceType
-		//		>;
-		//	constinit bool comparible = is_comparible<
-		//			OtherPrecedenceType, 
-		//			PrecedenceType
-		//		>;
-		//	constinit bool other_has_previous = !std::is_same_v<
-		//			OtherPreviouseType, 
-		//			OtherTermsType::NoPreviousType
-		//		>;
-		//	constinit bool have_previous = !std::is_same_v<
-		//			PreviousType, 
-		//			NoPreviousType
-		//		>;
-		//	template<typename NewPreviousParameterType, //A bit of an oximoron </humor>
-		//			auto NewPrecedenceParameterConstant>
-		//	using MergedTermsType = TypeHolder<decltype(Terms<
-		//			NewPreviousParameterType, 
-		//			NewPrecedenceParameterConstant, 
-		//			TermParameterTypes..., 
-		//			OtherTermParameterTypes...
-		//		>)>;
-
-		//	template<typename NewPreviousParameterType, 
-		//			auto NewPrecedenceParameterConstant>
-		//	constinit const auto merged_terms = MergedTermsType<
-		//			NewPreviousParameterType, 
-		//			NewPrecedenceParameterConstant
-		//		>{};
-
-		//	if constexpr(equally_comparible == true)
-		//	{
-		//		if constexpr(other_precedence == precedence)
-		//		{
-		//			if constexpr(have_previous == true)
-		//			{
-		//				if constexpr(other_has_previous == true)
-		//				{
-		//					return MergedTermsType<
-		//							PreviousType, 
-		//							precedence, 
-		//						>::PreviousType::merge(OtherTermsType::PreviousType))>{};
-		//				}
-		//				return merged_terms<PreviousType, precedence>;
-		//			}
-		//			else if constexpr(have_previous == false) { /* It does not 
-		//														* matter wheather 
-		//														* or not other_has_previous 
-		//														* at this point. */
-		//				return merged_terms<OtherPreviouseType, precedence>;
-		//			}
-		//				
-		//		}
-		//		else if constexpr(comparible == true)
-		//		{
-		//			if constexpr(precedence < other_precedence)
-		//			{
-		//			}
-		//		}
-		//	}
-		//}
+		template<typename OtherTermParameterType>
+		using FlatMerge = decltype(flat_merge(std::declval<OtherTermParameterType>()))::Type;
 
 	};
 
