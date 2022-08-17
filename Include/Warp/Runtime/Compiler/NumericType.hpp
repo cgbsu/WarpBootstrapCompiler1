@@ -144,6 +144,34 @@ namespace Warp::Runtime::Compiler
 			return -number;
 		}
 	};
+
+	template<auto NumericalTypeTag>
+	struct NumericTypeResolver {};
+	
+	template<>
+	struct NumericTypeResolver<NumericTypeTag::Whole> {
+		using Type = NumericType<NumericTypeTag::Whole, size_t>;
+	};
+
+	template<>
+	struct NumericTypeResolver<NumericTypeTag::Integer> {
+		using Type = NumericType<NumericTypeTag::Integer, long long signed int>;
+	};
+
+	template<>
+	struct NumericTypeResolver<NumericTypeTag::FixedPoint> {
+		using Type = NumericType<NumericTypeTag::FixedPoint, numeric::fixed<16, 16>>;
+	};
+
+	template<>
+	struct NumericTypeResolver<NumericTypeTag::Character> {
+		using Type = NumericType<NumericTypeTag::Character, char>;
+	};
+
+	template<>
+	struct NumericTypeResolver<NumericTypeTag::Bool> {
+		using Type = NumericType<NumericTypeTag::Bool, WarpBool>;
+	};
 }
 
 #endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__NUMERIC__TYPE__HPP

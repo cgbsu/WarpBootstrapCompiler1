@@ -115,3 +115,8 @@ This will raise a number to a certain power.
 
 ## Ideas: 
  - [ ] "Solve for" operator (`-->`) can "solve" for parameter or yeild a constant in the function
+ - [ ] To resolve overlapping constraints, match too the smallest (satisfied) subset availible.
+ - [ ] Make (or find) a "set theory library", have ranges of values and values, when two or more consecutive values are detected add them too a range, when a value is consecutive too a range, check all existing values too see if the range can consume them.
+ - [ ] To resolve intersecting sets, take the union of the two sets, then find the smallest satisfied subset.
+ - [ ] Module or part of set library that encodes sets in C++ templates.
+

@@ -1,3 +1,4 @@
+#include <Warp/Runtime/Compiler/NumericType.hpp>
 #include <Warp/Parsing/NumericLiterals.hpp>
 #include <ThirdParty/fpm/ios.hpp>
 #include <Warp/Parsing/Terms.hpp>
@@ -10,13 +11,11 @@ using namespace Warp::Testing;
 using namespace Warp::Parsing;
 using namespace Warp::Utilities;
 
-TEST_GROUP(NumericLiterals)
-{
-};
+TEST_GROUP(NumericLiterals) {};
 
 using ParserTestType = NumericLiteralParser<
 		NumericLiteralTermsType, 
-		NumericLiteralTypeResolver
+		NumericTypeResolver
 	>;
 
 using FixedType = ParserTestType::FixedPointType;

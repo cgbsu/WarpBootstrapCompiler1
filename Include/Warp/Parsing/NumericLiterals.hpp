@@ -34,34 +34,6 @@ namespace Warp::Parsing
 							* support currently limited to integral char. */
 	};
 	
-	template<auto NumericalTypeTag>
-	struct NumericLiteralTypeResolver {};
-	
-	template<>
-	struct NumericLiteralTypeResolver<NumericTypeTag::Whole> {
-		using Type = NumericType<NumericTypeTag::Whole, size_t>;
-	};
-
-	template<>
-	struct NumericLiteralTypeResolver<NumericTypeTag::Integer> {
-		using Type = NumericType<NumericTypeTag::Integer, long long signed int>;
-	};
-
-	template<>
-	struct NumericLiteralTypeResolver<NumericTypeTag::FixedPoint> {
-		using Type = NumericType<NumericTypeTag::FixedPoint, numeric::fixed<16, 16>>;
-	};
-
-	template<>
-	struct NumericLiteralTypeResolver<NumericTypeTag::Character> {
-		using Type = NumericType<NumericTypeTag::Character, char>;
-	};
-
-	template<>
-	struct NumericLiteralTypeResolver<NumericTypeTag::Bool> {
-		using Type = NumericType<NumericTypeTag::Bool, WarpBool>;
-	};
-
 	using NumericLiteralTermsType = MakeTerms<
 			TreeTerm<
 					NumericLiteral::Minus, 
@@ -110,42 +82,6 @@ namespace Warp::Parsing
 					NonTerminalTerm, 
 					std::string, 
 					FixedString{"Digits"}
-				>, 
-			TypeTreeTerm<
-					NumericTypeTag::FixedPoint, 
-					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericTypeTag::FixedPoint>::Type, 
-					FixedString{"FixedPoint"}
-				>, 
-			TypeTreeTerm<
-					NumericTypeTag::Whole, 
-					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericTypeTag::Whole>::Type, 
-					FixedString{"Whole"}
-				>, 
-			TypeTreeTerm<
-					NumericTypeTag::Integer, 
-					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericTypeTag::Integer>::Type, 
-					FixedString{"Integer"}
-				>, 
-			TypeTreeTerm<
-					NumericTypeTag::FixedPoint, 
-					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericTypeTag::FixedPoint>::Type, 
-					FixedString{"FixedPoint"}
-				>, 
-			TypeTreeTerm<
-					NumericTypeTag::Character, 
-					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericTypeTag::Character>::Type, 
-					FixedString{"Character"}
-				>, 
-			TypeTreeTerm<
-					NumericTypeTag::Bool, 
-					NonTerminalTerm, 
-					NumericLiteralTypeResolver<NumericTypeTag::Bool>::Type, 
-					FixedString{"Bool"}
 				>, 
 			TypeTreeTerm<
 					NumericLiteral::AnyDecimalDigitsReduction, 
@@ -219,8 +155,8 @@ namespace Warp::Parsing
 					>;
 
 	template<
-			typename TermsParameterType, 
-			template<auto> typename TypeResolverParameterTemplate
+			typename TermsParameterType = NumericLiteralTermsType, 
+			template<auto> typename TypeResolverParameterTemplate = NumericTypeResolver
 		>
 	struct NumericLiteralParser
 	{
