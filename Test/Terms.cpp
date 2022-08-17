@@ -25,11 +25,11 @@ enum class MyTerms
 	Raise, 
 	OddTokens, 
 	Lower, 
-	Hola
+	Hola, 
 	// Quinary Test Terms //
 	Mumble, 
 	Grumble, 
-	Fumble
+	Fumble, 
 	// Senery Test Terms //
 	LeftParenthesis, 
 	LeftCurleyBracket, 
@@ -51,6 +51,37 @@ using DigitsTestTermType = TreeTerm<
 		FixedString("[0-9]+"), 
 		FixedString("Digits"), 
 		no_associativity
+	>;
+using DotTestTermType = TreeTerm<MyTerms::Dot, CharTerm, '.', no_associativity>;
+
+using HelloTestTermType = TreeTerm<
+		MyTerms::Hello, 
+		StringTerm, 
+		FixedString("Hello"), 
+		no_associativity
+	>;
+
+// Secondary Test Terms //
+
+using PlusTestTermType = TreeTerm<MyTerms::Plus, CharTerm, '+', no_associativity>;
+
+using GoodbyeTestTermType = TreeTerm<
+		MyTerms::Goodbye, 
+		StringTerm, 
+		FixedString("Goodbye"), 
+		no_associativity
+	>;
+
+using MinusTestTermType = TreeTerm<MyTerms::Minus, CharTerm, '-', no_associativity>;
+
+using LowercaseLettersTermType = TreeTerm<
+		MyTerms::LowercaseLetters, 
+		RegexTerm, 
+		FixedString("[a-z]+"), 
+		FixedString("LowercaseLetters"), 
+		no_associativity
+	>;
+
 // Terciary Test Terms //
 
 using MultiplyTestTermType = TreeTerm<MyTerms::Muliply, CharTerm, '*', no_associativity>;
@@ -84,13 +115,14 @@ using OddTokenTermType = TreeTerm<
 		no_associativity
 	>;
 
+using LowerTestTermType = TreeTerm<MyTerms::Lower, CharTerm, '_', no_associativity>;
+
 using HolaTestTermType = TreeTerm<
 		MyTerms::Hola, 
 		StringTerm, 
 		FixedString("Hola"), 
 		no_associativity
 	>;
-
 // Quinary Test Terms //
 
 using MumbleTestTermType = TreeTerm<
@@ -116,15 +148,15 @@ using FumbleTestTermType = TreeTerm<
 
 // Senery Test Terms
 
-using LeftParenthesisTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '(', no_associativity>;
-using LeftCurleyBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '{', no_associativity>;
-using LeftSquareBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '[', no_associativity>;
-using LeftAngleBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '<', no_associativity>;
+using LeftParenthesisTestTermType = TreeTerm<MyTerms::LeftParenthesis, CharTerm, '(', no_associativity>;
+using LeftCurleyBracketTestTermType = TreeTerm<MyTerms::LeftCurleyBracket, CharTerm, '{', no_associativity>;
+using LeftSquareBracketTestTermType = TreeTerm<MyTerms::LeftSquareBracket, CharTerm, '[', no_associativity>;
+using LeftAngleBracketTestTermType = TreeTerm<MyTerms::LeftAngleBracket, CharTerm, '<', no_associativity>;
 
-using RightParenthesisTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, ')', no_associativity>;
-using RightCurleyBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '}', no_associativity>;
-using RightSquareBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, ']', no_associativity>;
-using RightAngleBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '>', no_associativity>;
+using RightParenthesisTestTermType = TreeTerm<MyTerms::RightParenthesis, CharTerm, ')', no_associativity>;
+using RightCurleyBracketTestTermType = TreeTerm<MyTerms::RightCurleyBracket, CharTerm, '}', no_associativity>;
+using RightSquareBracketTestTermType = TreeTerm<MyTerms::RightSquareBracket, CharTerm, ']', no_associativity>;
+using RightAngleBracketTestTermType = TreeTerm<MyTerms::RightAngleBracket, CharTerm, '>', no_associativity>;
 
 #define TEST_TERMS DigitsTestTermType, DotTestTermType, HelloTestTermType
 
@@ -151,7 +183,7 @@ using RightAngleBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '
 	GrumbleTestTermType, \
 	FumbleTestTermType
 
-#define SENERY_TERMS_TYPE \
+#define SENERY_TEST_TERMS \
 	LeftAngleBracketTestTermType, \
 	LeftSquareBracketTestTermType, \
 	LeftCurleyBracketTestTermType, \
@@ -160,6 +192,7 @@ using RightAngleBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '
 	RightSquareBracketTestTermType, \
 	RightCurleyBracketTestTermType, \
 	RightParenthesisTestTermType
+
 
 template<MyTerms TermParameterConstant>
 consteval auto find_term_with_tag_test()
@@ -357,5 +390,25 @@ TEST(Terms, Merge)
 					::AddOnePriority<QUANTERNARY_TEST_TERMS>
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 		>);
-}
+	static_assert(std::is_same_v<
+			MergeTerms<
+					Terms<
+							Terms<TermsNoPreviousType, 1, TEST_TERMS>, 
+							4, 
+							SECONDARY_TEST_TERMS
+						>::AddOnePriority<QUINARY_TEST_TERMS>, 
+					Terms<
+							Terms<TermsNoPreviousType, 0, TERCIARY_TEST_TERMS>, 
+							2, 
+							QUANTERNARY_TEST_TERMS
+						>::AddOnePriority<SENERY_TEST_TERMS>
+				>,
+			MakeTerms<TERCIARY_TEST_TERMS>
+					::AddOnePriority<TEST_TERMS>
+					::AddOnePriority<QUANTERNARY_TEST_TERMS>
+					::AddOnePriority<SENERY_TEST_TERMS>
+					::AddOnePriority<SECONDARY_TEST_TERMS>
+					::AddOnePriority<QUINARY_TEST_TERMS>
+	>);
+};
 
