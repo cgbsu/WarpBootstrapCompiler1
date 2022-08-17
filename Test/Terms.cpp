@@ -26,6 +26,19 @@ enum class MyTerms
 	OddTokens, 
 	Lower, 
 	Hola
+	// Quinary Test Terms //
+	Mumble, 
+	Grumble, 
+	Fumble
+	// Senery Test Terms //
+	LeftParenthesis, 
+	LeftCurleyBracket, 
+	LeftSquareBracket, 
+	LeftAngleBracket, 
+	RightParenthesis, 
+	RightCurleyBracket, 
+	RightSquareBracket, 
+	RightAngleBracket
 };
 
 TEST_GROUP(Terms) {};
@@ -38,37 +51,6 @@ using DigitsTestTermType = TreeTerm<
 		FixedString("[0-9]+"), 
 		FixedString("Digits"), 
 		no_associativity
-	>;
-using DotTestTermType = TreeTerm<MyTerms::Dot, CharTerm, '.', no_associativity>;
-
-using HelloTestTermType = TreeTerm<
-		MyTerms::Hello, 
-		StringTerm, 
-		FixedString("Hello"), 
-		no_associativity
-	>;
-
-// Secondary Test Terms //
-
-using PlusTestTermType = TreeTerm<MyTerms::Plus, CharTerm, '+', no_associativity>;
-
-using GoodbyeTestTermType = TreeTerm<
-		MyTerms::Goodbye, 
-		StringTerm, 
-		FixedString("Goodbye"), 
-		no_associativity
-	>;
-
-using MinusTestTermType = TreeTerm<MyTerms::Minus, CharTerm, '-', no_associativity>;
-
-using LowercaseLettersTermType = TreeTerm<
-		MyTerms::LowercaseLetters, 
-		RegexTerm, 
-		FixedString("[a-z]+"), 
-		FixedString("LowercaseLetters"), 
-		no_associativity
-	>;
-
 // Terciary Test Terms //
 
 using MultiplyTestTermType = TreeTerm<MyTerms::Muliply, CharTerm, '*', no_associativity>;
@@ -102,8 +84,6 @@ using OddTokenTermType = TreeTerm<
 		no_associativity
 	>;
 
-using LowerTestTermType = TreeTerm<MyTerms::Lower, CharTerm, '_', no_associativity>;
-
 using HolaTestTermType = TreeTerm<
 		MyTerms::Hola, 
 		StringTerm, 
@@ -111,7 +91,40 @@ using HolaTestTermType = TreeTerm<
 		no_associativity
 	>;
 
+// Quinary Test Terms //
 
+using MumbleTestTermType = TreeTerm<
+		MyTerms::Mumble, 
+		StringTerm, 
+		FixedString("Mumble"), 
+		no_associativity
+	>;
+
+using GrumbleTestTermType = TreeTerm<
+		MyTerms::Grumble, 
+		StringTerm, 
+		FixedString("Grumble"), 
+		no_associativity
+	>;
+
+using FumbleTestTermType = TreeTerm<
+		MyTerms::Fumble, 
+		StringTerm, 
+		FixedString("Fumble"), 
+		no_associativity
+	>;
+
+// Senery Test Terms
+
+using LeftParenthesisTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '(', no_associativity>;
+using LeftCurleyBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '{', no_associativity>;
+using LeftSquareBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '[', no_associativity>;
+using LeftAngleBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '<', no_associativity>;
+
+using RightParenthesisTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, ')', no_associativity>;
+using RightCurleyBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '}', no_associativity>;
+using RightSquareBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, ']', no_associativity>;
+using RightAngleBracketTestTermType = TreeTerm<MyTerms::Parenthesis, CharTerm, '>', no_associativity>;
 
 #define TEST_TERMS DigitsTestTermType, DotTestTermType, HelloTestTermType
 
@@ -133,6 +146,20 @@ using HolaTestTermType = TreeTerm<
 		LowerTestTermType, \
 		HolaTestTermType 
 
+#define QUINARY_TEST_TERMS \
+	MumbleTestTermType, \
+	GrumbleTestTermType, \
+	FumbleTestTermType
+
+#define SENERY_TERMS_TYPE \
+	LeftAngleBracketTestTermType, \
+	LeftSquareBracketTestTermType, \
+	LeftCurleyBracketTestTermType, \
+	LeftParenthesisTestTermType, \
+	RightAngleBracketTestTermType, \
+	RightSquareBracketTestTermType, \
+	RightCurleyBracketTestTermType, \
+	RightParenthesisTestTermType
 
 template<MyTerms TermParameterConstant>
 consteval auto find_term_with_tag_test()
