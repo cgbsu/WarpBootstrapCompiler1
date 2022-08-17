@@ -13,7 +13,11 @@ enum class MyTerms
 	Plus, 
 	Goodbye, 
 	Minus, 
-	LowercaseLetters
+	LowercaseLetters, 
+	Muliply, 
+	Divide, 
+	Ciao, 
+	UppercaseLetters
 };
 
 TEST_GROUP(Terms)
@@ -55,6 +59,25 @@ using LowercaseLettersTermType = TreeTerm<
 		no_associativity
 	>;
 
+using MultiplyTestTermType = TreeTerm<MyTerms::Muliply, CharTerm, '*', no_associativity>;
+
+using CiaoTestTermType = TreeTerm<
+		MyTerms::Ciao, 
+		StringTerm, 
+		FixedString("Ciao"), 
+		no_associativity
+	>;
+
+using DivideTestTermType = TreeTerm<MyTerms::Divide, CharTerm, '/', no_associativity>;
+
+using UppercaseLettersTermType = TreeTerm<
+		MyTerms::UppercaseLetters, 
+		RegexTerm, 
+		FixedString("[A-Z]+"), 
+		FixedString("UppercaseLetters"), 
+		no_associativity
+	>;
+
 #define TEST_TERMS DigitsTestTermType, DotTestTermType, HelloTestTermType
 
 #define SECONDARY_TEST_TERMS \
@@ -62,6 +85,12 @@ using LowercaseLettersTermType = TreeTerm<
 		GoodbyeTestTermType, \
 		MinusTestTermType, \
 		LowercaseLettersTermType
+
+#define TERCIARY_TEST_TERMS \
+		MultiplyTestTermType, \
+		CiaoTestTermType, \
+		DivideTestTermType, \
+		UppercaseLettersTermType
 
 template<MyTerms TermParameterConstant>
 consteval auto find_term_with_tag_test()
@@ -182,5 +211,32 @@ TEST(Terms, AddOnePriority)
 			LowercaseLettersTermType::term<1>, 
 			TermsType::term<MyTerms::LowercaseLetters>
 		));
+};
+
+TEST(Terms, FlatMerge)
+{
+	static_assert(std::is_same_v<
+			MakeTerms<TEST_TERMS>::FlatMerge<MakeTerms<SECONDARY_TEST_TERMS>>, 
+			MakeTerms<TEST_TERMS, SECONDARY_TEST_TERMS>
+		>);
+	static_assert(std::is_same_v<
+			MakeTerms<TEST_TERMS>
+					::AddOnePriority<SECONDARY_TEST_TERMS>
+					::FlatMerge<Terms<TermsNoPreviousType, 1, TERCIARY_TEST_TERMS>>, 
+			MakeTerms<TEST_TERMS>
+					::AddOnePriority<
+							SECONDARY_TEST_TERMS, 
+							TERCIARY_TEST_TERMS
+						>
+		>);
+	static_assert(std::is_same_v<
+			Terms<TermsNoPreviousType, 1, TEST_TERMS>
+					::FlatMerge<
+							MakeTerms<SECONDARY_TEST_TERMS>
+									::AddOnePriority<TERCIARY_TEST_TERMS>
+						>, 
+			MakeTerms<SECONDARY_TEST_TERMS>
+					::AddOnePriority<TEST_TERMS, TERCIARY_TEST_TERMS>
+		>);
 };
 
