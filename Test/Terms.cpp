@@ -7,22 +7,30 @@ using namespace Warp::Parsing;
 
 enum class MyTerms
 {
+	// Test Terms //
 	Digits, 
 	Dot, 
 	Hello, 
 	Plus, 
+	// Secondary Test Terms //
 	Goodbye, 
 	Minus, 
 	LowercaseLetters, 
+	// Terciary Test Terms //
 	Muliply, 
 	Divide, 
 	Ciao, 
-	UppercaseLetters
+	UppercaseLetters, 
+	// Quanternary Test Terms //
+	Raise, 
+	OddTokens, 
+	Lower, 
+	Hola
 };
 
-TEST_GROUP(Terms)
-{
-};
+TEST_GROUP(Terms) {};
+
+// Test Terms //
 
 using DigitsTestTermType = TreeTerm<
 		MyTerms::Digits, 
@@ -39,6 +47,8 @@ using HelloTestTermType = TreeTerm<
 		FixedString("Hello"), 
 		no_associativity
 	>;
+
+// Secondary Test Terms //
 
 using PlusTestTermType = TreeTerm<MyTerms::Plus, CharTerm, '+', no_associativity>;
 
@@ -59,6 +69,8 @@ using LowercaseLettersTermType = TreeTerm<
 		no_associativity
 	>;
 
+// Terciary Test Terms //
+
 using MultiplyTestTermType = TreeTerm<MyTerms::Muliply, CharTerm, '*', no_associativity>;
 
 using CiaoTestTermType = TreeTerm<
@@ -78,6 +90,29 @@ using UppercaseLettersTermType = TreeTerm<
 		no_associativity
 	>;
 
+// Quanternary Test Terms //
+
+using RaiseTestTermType = TreeTerm<MyTerms::Raise, CharTerm, '^', no_associativity>;
+
+using OddTokenTermType = TreeTerm<
+		MyTerms::OddTokens, 
+		RegexTerm, 
+		FixedString("[!@#$%&*]"), 
+		FixedString("GrammarTokens"), 
+		no_associativity
+	>;
+
+using LowerTestTermType = TreeTerm<MyTerms::Lower, CharTerm, '_', no_associativity>;
+
+using HolaTestTermType = TreeTerm<
+		MyTerms::Hola, 
+		StringTerm, 
+		FixedString("Hola"), 
+		no_associativity
+	>;
+
+
+
 #define TEST_TERMS DigitsTestTermType, DotTestTermType, HelloTestTermType
 
 #define SECONDARY_TEST_TERMS \
@@ -91,6 +126,13 @@ using UppercaseLettersTermType = TreeTerm<
 		CiaoTestTermType, \
 		DivideTestTermType, \
 		UppercaseLettersTermType
+
+#define QUANTERNARY_TEST_TERMS \
+		RaiseTestTermType, \
+		OddTokenTermType, \
+		LowerTestTermType, \
+		HolaTestTermType 
+
 
 template<MyTerms TermParameterConstant>
 consteval auto find_term_with_tag_test()
@@ -239,4 +281,54 @@ TEST(Terms, FlatMerge)
 					::AddOnePriority<TEST_TERMS, TERCIARY_TEST_TERMS>
 		>);
 };
+
+TEST(Terms, Merge)
+{
+	//<Basically test forwarding to flat_merge>//
+	static_assert(std::is_same_v<
+			MergeTerms<
+					MakeTerms<TEST_TERMS>, 
+					MakeTerms<SECONDARY_TEST_TERMS>
+				>, 
+			MakeTerms<TEST_TERMS, SECONDARY_TEST_TERMS>
+		>);
+	static_assert(std::is_same_v<
+			MergeTerms<
+					MakeTerms<TEST_TERMS>::AddOnePriority<SECONDARY_TEST_TERMS>, 
+					Terms<TermsNoPreviousType, 1, TERCIARY_TEST_TERMS>
+				>, 
+			MakeTerms<TEST_TERMS>::AddOnePriority<
+					SECONDARY_TEST_TERMS, 
+					TERCIARY_TEST_TERMS
+				>
+		>);
+	static_assert(std::is_same_v<
+			MergeTerms<
+					Terms<TermsNoPreviousType, 1, TEST_TERMS>, 
+					MakeTerms<SECONDARY_TEST_TERMS>
+							::AddOnePriority<TERCIARY_TEST_TERMS>
+				>, 
+			MakeTerms<SECONDARY_TEST_TERMS>
+					::AddOnePriority<TEST_TERMS, TERCIARY_TEST_TERMS>
+		>);
+	//</Basically test forwarding to flat_merge>//
+	static_assert(std::is_same_v<
+			MergeTerms<
+					Terms<
+							Terms<TermsNoPreviousType, 1, TEST_TERMS>, 
+							3, 
+							SECONDARY_TEST_TERMS
+						>, 
+					Terms<
+							Terms<TermsNoPreviousType, 0, TERCIARY_TEST_TERMS>, 
+							2, 
+							QUANTERNARY_TEST_TERMS
+						>
+				>,
+			MakeTerms<TERCIARY_TEST_TERMS>
+					::AddOnePriority<TEST_TERMS>
+					::AddOnePriority<QUANTERNARY_TEST_TERMS>
+					::AddOnePriority<SECONDARY_TEST_TERMS>
+		>);
+}
 

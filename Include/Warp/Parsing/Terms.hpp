@@ -307,37 +307,80 @@ namespace Warp::Parsing
 		return decltype(left)::flat_merge(right);
 	}
 
-	//template<
-	//		typename LeftPreviousParameterType, 
-	//		auto LeftPrecedentParameterConstant, 
-	//		typename... LeftTermParameterTypes, 
-	//		typename RightPreviousParameterType, 
-	//		auto RightPrecedentParameterConstant, 
-	//		typename... RightTermParameterTypes
-	//	>
-	//requires(RightPrecedentParameterConstant < LeftPrecedentParameterConstant // Merging Right INTO Left
-	//		&& RightPrecedentParameterConstant > LeftPreviousParameterType::precedence) // This is the "in-between" case
-	//constexpr const static auto merge_terms( 
-	//		Terms<
-	//			LeftPreviousParameterType, 
-	//			LeftPrecedentParameterConstant, 
-	//			LeftTermParameterTypes...
-	//		>, 
-	//		Terms<
-	//			RightPreviousParameterType, 
-	//			RightPrecedentParameterConstant, 
-	//			RightTermParameterTypes...
-	//		>)
-	//{
-	//	using LeftTermsType = decltype(left);
-	//	using RightTermsType = decltype(right);
-	//	using LeftPreviousType = LeftPreviousParameterType;
-	//	using RightPreviousType = RightPreviousParameterType;
-	//	using MergedPreviousType = decltype(merge_terms(
-	//			std::declval<LeftPreviousType>(), 
-	//			std::declval<RightPreviousType>())
-	//		)::Type;
-	//}
+	template<
+			typename LeftPreviousParameterType, 
+			auto LeftPrecedentParameterConstant, 
+			typename... LeftTermParameterTypes, 
+			typename RightPreviousParameterType, 
+			auto RightPrecedentParameterConstant, 
+			typename... RightTermParameterTypes
+		>
+	requires(
+			RightPrecedentParameterConstant < LeftPrecedentParameterConstant 
+			&& (RightPrecedentParameterConstant > LeftPreviousParameterType::precedence
+						|| std::same_as<LeftPreviousParameterType, TermsNoPreviousType>)
+		)
+	constexpr const static auto merge_terms( // Merginer Right INTO Left "in-between" case
+			Terms<
+				LeftPreviousParameterType, 
+				LeftPrecedentParameterConstant, 
+				LeftTermParameterTypes...
+			> left, 
+			Terms<
+				RightPreviousParameterType, 
+				RightPrecedentParameterConstant, 
+				RightTermParameterTypes...
+			> right
+		)
+	{
+		using LeftTermsType = decltype(left);
+		using RightTermsType = decltype(right);
+		using LeftPreviousType = LeftPreviousParameterType;
+		using RightPreviousType = RightPreviousParameterType;
+		if constexpr(LeftTermsType::is_root == true)
+		{
+			return TypeHolder<Terms<
+					RightTermsType, 
+					LeftPrecedentParameterConstant, 
+					LeftTermParameterTypes...
+				>>{};
+		}
+		else if constexpr(RightTermsType::is_root == true)
+		{
+			return TypeHolder<Terms<
+					Terms<
+							LeftPreviousType, 
+							RightPrecedentParameterConstant, 
+							RightTermParameterTypes...
+						>, 
+					LeftPrecedentParameterConstant, 
+					LeftTermParameterTypes...
+				>>{};
+		}
+		else
+		{
+			using MergedPreviousType = decltype(merge_terms(
+					std::declval<LeftPreviousType>(), 
+					std::declval<RightPreviousType>())
+				)::Type;
+			using NewRightType = Terms<
+					MergedPreviousType, 
+					RightPrecedentParameterConstant, 
+					RightTermParameterTypes...
+				>;
+			return TypeHolder<Terms<
+					NewRightType, 
+					LeftPrecedentParameterConstant, 
+					LeftTermParameterTypes...
+				>>{};
+		}
+	}
+	
+	template<typename LeftTermParameterType, typename RightTermParameterType>
+	using MergeTerms = decltype(merge_terms(
+			std::declval<LeftTermParameterType>(), 
+			std::declval<RightTermParameterType>()
+		))::Type;
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__TERMS_HPP
