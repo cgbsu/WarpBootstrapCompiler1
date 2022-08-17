@@ -230,21 +230,33 @@ namespace Warp::Parsing
 				typename... OtherTermParameterTypes
 			>
 		requires(
-				std::same_as<OtherPreviousParameterType, NoPreviousType>
-				&& is_root == true 
+				(std::same_as<OtherPreviousParameterType, NoPreviousType> || is_root == true)
 				&& OtherPreviousParameterConstant == precedence
 			)
 		constexpr const static auto flat_merge(Terms<
 				OtherPreviousParameterType, 
 				OtherPreviousParameterConstant, 
 				OtherTermParameterTypes...
-			>) {
-			return TypeHolder<Terms<
-					OtherPreviousParameterType, 
-					OtherPreviousParameterConstant, 
-					TermParameterTypes..., 
-					OtherTermParameterTypes...
-				>>{};
+			>)
+		{
+			if constexpr(is_root == false)
+			{
+				return TypeHolder<Terms<
+						PreviousType, 
+						precedence, 
+						TermParameterTypes..., 
+						OtherTermParameterTypes...
+					>>{};
+			}
+			else if constexpr(is_root == true)
+			{
+				return TypeHolder<Terms<
+						OtherPreviousParameterType, 
+						precedence, 
+						TermParameterTypes..., 
+						OtherTermParameterTypes...
+					>>{};
+			}
 		}
 
 		template<typename OtherTermParameterType>
