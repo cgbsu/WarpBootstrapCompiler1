@@ -416,12 +416,6 @@ namespace Warp::Parsing
 					std::declval<LeftTermsType>(), 
 					std::declval<RightPreviousType>()
 				))::Type;
-			//MergedPreviousType::error;
-			//using NewRightType = Terms<
-			//		MergedPreviousType, 
-			//		LeftPrecedentParameterConstant, 
-			//		LeftTermParameterTypes...
-			//	>;
 			return TypeHolder<Terms<
 					MergedPreviousType, 
 					RightPrecedentParameterConstant, 

@@ -409,6 +409,7 @@ TEST(Terms, Merge)
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 					::AddOnePriority<QUINARY_TEST_TERMS>
 		>);
+	// <Less than and partial ordered cases> //
 	static_assert(std::is_same_v<
 			MergeTerms<
 					Terms<
@@ -417,7 +418,6 @@ TEST(Terms, Merge)
 							SECONDARY_TEST_TERMS
 						>::AddOnePriority<QUINARY_TEST_TERMS>, 
 					Terms<
-							//Terms<TermsNoPreviousType, 0, TERCIARY_TEST_TERMS>, 
 							TermsNoPreviousType, 
 							2, 
 							QUANTERNARY_TEST_TERMS
@@ -429,7 +429,7 @@ TEST(Terms, Merge)
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 					::AddOnePriority<QUINARY_TEST_TERMS>
 		>);
-	using T = 
+	static_assert(std::is_same_v<
 			MergeTerms<
 					Terms<
 							Terms<TermsNoPreviousType, 1, TEST_TERMS>, 
@@ -441,10 +441,7 @@ TEST(Terms, Merge)
 							2, 
 							QUANTERNARY_TEST_TERMS
 						>::AddOnePriority<SENERY_TEST_TERMS>
-				>;
-	//T::nothing;
-	static_assert(std::is_same_v<
-			T, 
+				>, 
 			MakeTerms<TERCIARY_TEST_TERMS>
 					::AddOnePriority<TEST_TERMS>
 					::AddOnePriority<QUANTERNARY_TEST_TERMS>
@@ -452,5 +449,36 @@ TEST(Terms, Merge)
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 					::AddOnePriority<QUINARY_TEST_TERMS>
 		>);
+	// </Less than, and partial ordered cases> //
+	// <Interleaving case> //
+	static_assert(std::is_same_v<
+			MergeTerms<
+					Terms<
+							Terms<
+									Terms<TermsNoPreviousType, 0, TEST_TERMS>, 
+									2, 
+									SECONDARY_TEST_TERMS
+								>, 
+							4, 
+							QUINARY_TEST_TERMS
+						>, 
+					Terms<
+							Terms<
+									Terms<TermsNoPreviousType, 1, TERCIARY_TEST_TERMS>, 
+									3, 
+									QUANTERNARY_TEST_TERMS
+								>, 
+							5, 
+							SENERY_TEST_TERMS
+						>
+				>, 
+			MakeTerms<TEST_TERMS>
+					::AddOnePriority<TERCIARY_TEST_TERMS>
+					::AddOnePriority<SECONDARY_TEST_TERMS>
+					::AddOnePriority<QUANTERNARY_TEST_TERMS>
+					::AddOnePriority<QUINARY_TEST_TERMS>
+					::AddOnePriority<SENERY_TEST_TERMS>
+		>);
+	// </Interleaving case> //
 };
 
