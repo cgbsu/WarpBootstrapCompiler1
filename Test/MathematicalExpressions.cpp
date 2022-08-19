@@ -11,8 +11,6 @@ using namespace Warp::Testing;
 using namespace Warp::Parsing;
 using namespace Warp::Utilities;
 
-TEST_GROUP(MathematicalExpressions) {};
-
 template<auto ResultTagParameterConstant, auto InputTagParameterConstant>
 using ParserTestTemplate = MathematicalExpressionParser<
 		MathematicalExpressionTermsType, 
@@ -27,4 +25,6 @@ using IntegerType = NumericTypeResolver<NumericTypeTag::Integer>::Type;
 using FixedType = NumericTypeResolver<NumericTypeTag::FixedPoint>::Type;
 using CharType = NumericTypeResolver<NumericTypeTag::Character>::Type;
 using BoolType = NumericTypeResolver<NumericTypeTag::Bool>::Type;
+
+TEST_GROUP(MathematicalExpressions) {};
 
