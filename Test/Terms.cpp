@@ -158,76 +158,77 @@ using RightCurleyBracketTestTermType = TreeTerm<MyTerms::RightCurleyBracket, Cha
 using RightSquareBracketTestTermType = TreeTerm<MyTerms::RightSquareBracket, CharTerm, ']', no_associativity>;
 using RightAngleBracketTestTermType = TreeTerm<MyTerms::RightAngleBracket, CharTerm, '>', no_associativity>;
 
-#define TEST_TERMS DigitsTestTermType, DotTestTermType, HelloTestTermType
+#define TEST_TERMS DigitsTestTermType 
+// DotTestTermType, HelloTestTermType
 
 #define SECONDARY_TEST_TERMS \
-		PlusTestTermType, \
-		GoodbyeTestTermType, \
-		MinusTestTermType, \
-		LowercaseLettersTermType
+		PlusTestTermType 
+		//GoodbyeTestTermType, \
+		//MinusTestTermType, \
+		//LowercaseLettersTermType
 
 #define TERCIARY_TEST_TERMS \
-		MultiplyTestTermType, \
-		CiaoTestTermType, \
-		DivideTestTermType, \
-		UppercaseLettersTermType
+		MultiplyTestTermType 
+		//CiaoTestTermType, \
+		//DivideTestTermType, \
+		//UppercaseLettersTermType
 
 #define QUANTERNARY_TEST_TERMS \
-		RaiseTestTermType, \
-		OddTokenTermType, \
-		LowerTestTermType, \
-		HolaTestTermType 
+		RaiseTestTermType 
+		//OddTokenTermType, \
+		//LowerTestTermType, \
+		//HolaTestTermType 
 
 #define QUINARY_TEST_TERMS \
-	MumbleTestTermType, \
-	GrumbleTestTermType, \
-	FumbleTestTermType
+	MumbleTestTermType 
+	//GrumbleTestTermType, \
+	//FumbleTestTermType
 
 #define SENERY_TEST_TERMS \
-	LeftAngleBracketTestTermType, \
-	LeftSquareBracketTestTermType, \
-	LeftCurleyBracketTestTermType, \
-	LeftParenthesisTestTermType, \
-	RightAngleBracketTestTermType, \
-	RightSquareBracketTestTermType, \
-	RightCurleyBracketTestTermType, \
-	RightParenthesisTestTermType
+	LeftAngleBracketTestTermType 
+	//LeftSquareBracketTestTermType, \
+	//LeftCurleyBracketTestTermType, \
+	//LeftParenthesisTestTermType, \
+	//RightAngleBracketTestTermType, \
+	//RightSquareBracketTestTermType, \
+	//RightCurleyBracketTestTermType, \
+	//RightParenthesisTestTermType
 
 
-template<MyTerms TermParameterConstant>
-consteval auto find_term_with_tag_test()
-{
-	return find_term_with_tag_index<
-			0, 
-			TermParameterConstant, 
-			TEST_TERMS
-	>();
-}
+//template<MyTerms TermParameterConstant>
+//consteval auto find_term_with_tag_test()
+//{
+//	return find_term_with_tag_index<
+//			0, 
+//			TermParameterConstant, 
+//			TEST_TERMS
+//	>();
+//}
 
-template<MyTerms TermParameterConstant>
-consteval auto get_term_with_tag_concrete()
-{
-	return TreeTermWithTag<
-			true, 
-			TermParameterConstant, 
-			TEST_TERMS
-	>();
-}
+//template<MyTerms TermParameterConstant>
+//consteval auto get_term_with_tag_concrete()
+//{
+//	return TreeTermWithTag<
+//			true, 
+//			TermParameterConstant, 
+//			TEST_TERMS
+//	>();
+//}
 
-TEST(Terms, TermIndexWithTag)
-{
-	CHECK_EQUAL(0, find_term_with_tag_test<MyTerms::Digits>().value());
-	CHECK_EQUAL(1, find_term_with_tag_test<MyTerms::Dot>().value());
-	CHECK_EQUAL(2, find_term_with_tag_test<MyTerms::Hello>().value());
-};
-
-TEST(Terms, GetTreeTermWithTag)
-{
-	CHECK(MyTerms::Digits == get_term_with_tag_concrete<MyTerms::Digits>().tag);
-	CHECK(MyTerms::Dot == get_term_with_tag_concrete<MyTerms::Dot>().tag);
-	CHECK(MyTerms::Hello == get_term_with_tag_concrete<MyTerms::Hello>().tag);
-};
-
+//TEST(Terms, TermIndexWithTag)
+//{
+//	CHECK_EQUAL(0, find_term_with_tag_test<MyTerms::Digits>().value());
+//	CHECK_EQUAL(1, find_term_with_tag_test<MyTerms::Dot>().value());
+//	CHECK_EQUAL(2, find_term_with_tag_test<MyTerms::Hello>().value());
+//};
+//
+//TEST(Terms, GetTreeTermWithTag)
+//{
+//	CHECK(MyTerms::Digits == get_term_with_tag_concrete<MyTerms::Digits>().tag);
+//	CHECK(MyTerms::Dot == get_term_with_tag_concrete<MyTerms::Dot>().tag);
+//	CHECK(MyTerms::Hello == get_term_with_tag_concrete<MyTerms::Hello>().tag);
+//};
+//
 std::string_view get_term_pattern(const auto& term) {
 	return std::string_view(term.get_data().pattern);
 }
@@ -244,76 +245,76 @@ bool compare_string_terms(const auto& first, const auto& second) {
 	return get_term_string(first) == get_term_string(second);
 }
 
-TEST(Terms, TermsObject)
-{
-	using TermsType = Terms<void, 0, TEST_TERMS>;
-	CHECK(compare_regex_terms(
-			DigitsTestTermType::term<0>, 
-			TermsType::term<MyTerms::Digits>
-		));
-	CHECK(DotTestTermType::term<0>.get_data() 
-			== TermsType::term<MyTerms::Dot>.get_data());
-	CHECK(compare_string_terms(
-			HelloTestTermType::term<0>, 
-			TermsType::term<MyTerms::Hello>
-		));
-};
-
-TEST(Terms, MultiLevelTerms)
-{
-	using TermsType = Terms<Terms<void, 1, SECONDARY_TEST_TERMS>, 0, TEST_TERMS>;
-	CHECK(compare_regex_terms(
-			DigitsTestTermType::term<0>, 
-			TermsType::term<MyTerms::Digits>
-		));
-	CHECK(DotTestTermType::term<0>.get_data() 
-			== TermsType::term<MyTerms::Dot>.get_data());
-	CHECK(compare_string_terms(
-			HelloTestTermType::term<0>, 
-			TermsType::term<MyTerms::Hello>
-		));
-	CHECK(PlusTestTermType::term<1>.get_data() 
-			== TermsType::term<MyTerms::Plus>.get_data());
-	CHECK(compare_string_terms(
-			GoodbyeTestTermType::term<1>, 
-			TermsType::term<MyTerms::Goodbye>
-		));
-	CHECK(MinusTestTermType::term<1>.get_data() 
-			== TermsType::term<MyTerms::Minus>.get_data());
-	CHECK(compare_regex_terms(
-			LowercaseLettersTermType::term<1>, 
-			TermsType::term<MyTerms::LowercaseLetters>
-		));
-};
-
-//Pretty much the same as last test, may want to "shake it up a little" later on.//
-TEST(Terms, AddOnePriority) 
-{
-	using TermsType = MakeTerms<TEST_TERMS>
-			::AddOnePriority<SECONDARY_TEST_TERMS>;
-	CHECK(compare_regex_terms(
-			DigitsTestTermType::term<0>, 
-			TermsType::term<MyTerms::Digits>
-		));
-	CHECK(DotTestTermType::term<0>.get_data() 
-			== TermsType::term<MyTerms::Dot>.get_data());
-	CHECK(compare_string_terms(
-			HelloTestTermType::term<0>, 
-			TermsType::term<MyTerms::Hello>
-		));
-	CHECK(PlusTestTermType::term<1>.get_data() 
-			== TermsType::term<MyTerms::Plus>.get_data());
-	CHECK(compare_string_terms(
-			GoodbyeTestTermType::term<1>, 
-			TermsType::term<MyTerms::Goodbye>
-		));
-	CHECK(MinusTestTermType::term<1>.get_data() 
-			== TermsType::term<MyTerms::Minus>.get_data());
-	CHECK(compare_regex_terms(
-			LowercaseLettersTermType::term<1>, 
-			TermsType::term<MyTerms::LowercaseLetters>
-		));
-};
+//TEST(Terms, TermsObject)
+//{
+//	using TermsType = Terms<void, 0, TEST_TERMS>;
+//	CHECK(compare_regex_terms(
+//			DigitsTestTermType::term<0>, 
+//			TermsType::term<MyTerms::Digits>
+//		));
+//	CHECK(DotTestTermType::term<0>.get_data() 
+//			== TermsType::term<MyTerms::Dot>.get_data());
+//	CHECK(compare_string_terms(
+//			HelloTestTermType::term<0>, 
+//			TermsType::term<MyTerms::Hello>
+//		));
+//};
+//
+//TEST(Terms, MultiLevelTerms)
+//{
+//	using TermsType = Terms<Terms<void, 1, SECONDARY_TEST_TERMS>, 0, TEST_TERMS>;
+//	CHECK(compare_regex_terms(
+//			DigitsTestTermType::term<0>, 
+//			TermsType::term<MyTerms::Digits>
+//		));
+//	CHECK(DotTestTermType::term<0>.get_data() 
+//			== TermsType::term<MyTerms::Dot>.get_data());
+//	CHECK(compare_string_terms(
+//			HelloTestTermType::term<0>, 
+//			TermsType::term<MyTerms::Hello>
+//		));
+//	CHECK(PlusTestTermType::term<1>.get_data() 
+//			== TermsType::term<MyTerms::Plus>.get_data());
+//	CHECK(compare_string_terms(
+//			GoodbyeTestTermType::term<1>, 
+//			TermsType::term<MyTerms::Goodbye>
+//		));
+//	CHECK(MinusTestTermType::term<1>.get_data() 
+//			== TermsType::term<MyTerms::Minus>.get_data());
+//	CHECK(compare_regex_terms(
+//			LowercaseLettersTermType::term<1>, 
+//			TermsType::term<MyTerms::LowercaseLetters>
+//		));
+//};
+//
+////Pretty much the same as last test, may want to "shake it up a little" later on.//
+//TEST(Terms, AddOnePriority) 
+//{
+//	using TermsType = MakeTerms<TEST_TERMS>
+//			::AddOnePriority<SECONDARY_TEST_TERMS>;
+//	CHECK(compare_regex_terms(
+//			DigitsTestTermType::term<0>, 
+//			TermsType::term<MyTerms::Digits>
+//		));
+//	CHECK(DotTestTermType::term<0>.get_data() 
+//			== TermsType::term<MyTerms::Dot>.get_data());
+//	CHECK(compare_string_terms(
+//			HelloTestTermType::term<0>, 
+//			TermsType::term<MyTerms::Hello>
+//		));
+//	CHECK(PlusTestTermType::term<1>.get_data() 
+//			== TermsType::term<MyTerms::Plus>.get_data());
+//	CHECK(compare_string_terms(
+//			GoodbyeTestTermType::term<1>, 
+//			TermsType::term<MyTerms::Goodbye>
+//		));
+//	CHECK(MinusTestTermType::term<1>.get_data() 
+//			== TermsType::term<MyTerms::Minus>.get_data());
+//	CHECK(compare_regex_terms(
+//			LowercaseLettersTermType::term<1>, 
+//			TermsType::term<MyTerms::LowercaseLetters>
+//		));
+//};
 
 TEST(Terms, FlatMerge)
 {
@@ -390,7 +391,7 @@ TEST(Terms, Merge)
 					::AddOnePriority<QUANTERNARY_TEST_TERMS>
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 		>);
-	using T = 
+	static_assert(std::is_same_v<
 			MergeTerms<
 					Terms<
 							TermsNoPreviousType, 
@@ -402,33 +403,33 @@ TEST(Terms, Merge)
 							2, 
 							QUANTERNARY_TEST_TERMS
 						>::AddOnePriority<SENERY_TEST_TERMS>
-				>;
-	static_assert(std::is_same_v<
-			T, 
+				>, 
 			Terms<TermsNoPreviousType, 2, QUANTERNARY_TEST_TERMS>
 					::AddOnePriority<SENERY_TEST_TERMS>
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 					::AddOnePriority<QUINARY_TEST_TERMS>
-	>);
-	//static_assert(std::is_same_v<
-	//		MergeTerms<
-	//				Terms<
-	//						Terms<TermsNoPreviousType, 1, TEST_TERMS>, 
-	//						4, 
-	//						SECONDARY_TEST_TERMS
-	//					>::AddOnePriority<QUINARY_TEST_TERMS>, 
-	//				Terms<
-	//						Terms<TermsNoPreviousType, 0, TERCIARY_TEST_TERMS>, 
-	//						2, 
-	//						QUANTERNARY_TEST_TERMS
-	//					>::AddOnePriority<SENERY_TEST_TERMS>
-	//			>,
-	//		MakeTerms<TERCIARY_TEST_TERMS>
-	//				::AddOnePriority<TEST_TERMS>
-	//				::AddOnePriority<QUANTERNARY_TEST_TERMS>
-	//				::AddOnePriority<SENERY_TEST_TERMS>
-	//				::AddOnePriority<SECONDARY_TEST_TERMS>
-	//				::AddOnePriority<QUINARY_TEST_TERMS>
-	//>);
+		>);
+	using T =
+			MergeTerms<
+					Terms<
+							Terms<TermsNoPreviousType, 1, TEST_TERMS>, 
+							4, 
+							SECONDARY_TEST_TERMS
+						>::AddOnePriority<QUINARY_TEST_TERMS>, 
+					Terms<
+							//Terms<TermsNoPreviousType, 0, TERCIARY_TEST_TERMS>, 
+							TermsNoPreviousType, 
+							2, 
+							QUANTERNARY_TEST_TERMS
+						>::AddOnePriority<SENERY_TEST_TERMS>
+				>;
+	static_assert(std::is_same_v<
+			T, 
+			Terms<TermsNoPreviousType, 1, TEST_TERMS>
+					::AddOnePriority<QUANTERNARY_TEST_TERMS>
+					::AddOnePriority<SENERY_TEST_TERMS>
+					::AddOnePriority<SECONDARY_TEST_TERMS>
+					::AddOnePriority<QUINARY_TEST_TERMS>
+		>);
 };
 
