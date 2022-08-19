@@ -343,7 +343,7 @@ TEST(Terms, FlatMerge)
 		>);
 };
 
-TEST(Terms, Merge)
+TEST(Terms, MergeTermsFlatMerge)
 {
 	//<Basically test forwarding to flat_merge>//
 	static_assert(std::is_same_v<
@@ -373,6 +373,10 @@ TEST(Terms, Merge)
 					::AddOnePriority<TEST_TERMS, TERCIARY_TEST_TERMS>
 		>);
 	//</Basically test forwarding to flat_merge>//
+};
+
+TEST(Terms, MergeTermsInBetweenCase)
+{
 	static_assert(std::is_same_v<
 			MergeTerms<
 					Terms<
@@ -409,6 +413,10 @@ TEST(Terms, Merge)
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 					::AddOnePriority<QUINARY_TEST_TERMS>
 		>);
+};
+
+TEST(Terms, MergeTermsLessThanAndpartiallyOrderedCases)
+{
 	// <Less than and partial ordered cases> //
 	static_assert(std::is_same_v<
 			MergeTerms<
@@ -450,6 +458,9 @@ TEST(Terms, Merge)
 					::AddOnePriority<QUINARY_TEST_TERMS>
 		>);
 	// </Less than, and partial ordered cases> //
+};
+TEST(Terms, MergeTermsInterleaving)
+{
 	// <Interleaving case> //
 	static_assert(std::is_same_v<
 			MergeTerms<
@@ -480,6 +491,10 @@ TEST(Terms, Merge)
 					::AddOnePriority<SENERY_TEST_TERMS>
 		>);
 	// </Interleaving case> //
+};
+
+TEST(Terms, MergeTermsUnevenInterleavingCase)
+{
 	// <Uneven Interleaving> //
 	static_assert(std::is_same_v<
 			MergeTerms<
