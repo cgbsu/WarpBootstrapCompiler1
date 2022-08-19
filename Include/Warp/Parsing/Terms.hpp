@@ -402,7 +402,7 @@ namespace Warp::Parsing
 		using RightTermsType = decltype(right);
 		using LeftPreviousType = LeftPreviousParameterType;
 		using RightPreviousType = RightPreviousParameterType;
-		if constexpr(RightTermsType::is_root)
+		if constexpr(RightTermsType::is_root == true)
 		{
 			return TypeHolder<Terms<
 					LeftTermsType, 
@@ -416,13 +416,14 @@ namespace Warp::Parsing
 					std::declval<LeftTermsType>(), 
 					std::declval<RightPreviousType>()
 				))::Type;
-			using NewRightType = Terms<
-					MergedPreviousType, 
-					LeftPrecedentParameterConstant, 
-					LeftTermParameterTypes...
-				>;
+			//MergedPreviousType::error;
+			//using NewRightType = Terms<
+			//		MergedPreviousType, 
+			//		LeftPrecedentParameterConstant, 
+			//		LeftTermParameterTypes...
+			//	>;
 			return TypeHolder<Terms<
-					NewRightType, 
+					MergedPreviousType, 
 					RightPrecedentParameterConstant, 
 					RightTermParameterTypes...
 				>>{};
