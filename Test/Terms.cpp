@@ -11,8 +11,8 @@ enum class MyTerms
 	Digits, 
 	Dot, 
 	Hello, 
-	Plus, 
 	// Secondary Test Terms //
+	Plus, 
 	Goodbye, 
 	Minus, 
 	LowercaseLetters, 
@@ -390,25 +390,45 @@ TEST(Terms, Merge)
 					::AddOnePriority<QUANTERNARY_TEST_TERMS>
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 		>);
-	static_assert(std::is_same_v<
+	using T = 
 			MergeTerms<
 					Terms<
-							Terms<TermsNoPreviousType, 1, TEST_TERMS>, 
+							TermsNoPreviousType, 
 							4, 
 							SECONDARY_TEST_TERMS
 						>::AddOnePriority<QUINARY_TEST_TERMS>, 
 					Terms<
-							Terms<TermsNoPreviousType, 0, TERCIARY_TEST_TERMS>, 
+							TermsNoPreviousType, 
 							2, 
 							QUANTERNARY_TEST_TERMS
 						>::AddOnePriority<SENERY_TEST_TERMS>
-				>,
-			MakeTerms<TERCIARY_TEST_TERMS>
-					::AddOnePriority<TEST_TERMS>
-					::AddOnePriority<QUANTERNARY_TEST_TERMS>
+				>;
+	static_assert(std::is_same_v<
+			T, 
+			Terms<TermsNoPreviousType, 2, QUANTERNARY_TEST_TERMS>
 					::AddOnePriority<SENERY_TEST_TERMS>
 					::AddOnePriority<SECONDARY_TEST_TERMS>
 					::AddOnePriority<QUINARY_TEST_TERMS>
 	>);
+	//static_assert(std::is_same_v<
+	//		MergeTerms<
+	//				Terms<
+	//						Terms<TermsNoPreviousType, 1, TEST_TERMS>, 
+	//						4, 
+	//						SECONDARY_TEST_TERMS
+	//					>::AddOnePriority<QUINARY_TEST_TERMS>, 
+	//				Terms<
+	//						Terms<TermsNoPreviousType, 0, TERCIARY_TEST_TERMS>, 
+	//						2, 
+	//						QUANTERNARY_TEST_TERMS
+	//					>::AddOnePriority<SENERY_TEST_TERMS>
+	//			>,
+	//		MakeTerms<TERCIARY_TEST_TERMS>
+	//				::AddOnePriority<TEST_TERMS>
+	//				::AddOnePriority<QUANTERNARY_TEST_TERMS>
+	//				::AddOnePriority<SENERY_TEST_TERMS>
+	//				::AddOnePriority<SECONDARY_TEST_TERMS>
+	//				::AddOnePriority<QUINARY_TEST_TERMS>
+	//>);
 };
 

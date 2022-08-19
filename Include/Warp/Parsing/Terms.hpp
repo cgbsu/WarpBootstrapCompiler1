@@ -405,15 +405,20 @@ namespace Warp::Parsing
 		using RightPreviousType = RightPreviousParameterType;
 		using MergedPreviousType = decltype(merge_terms(
 				std::declval<LeftPreviousType>(), 
-				std::declval<RightPreviousType>())
-			)::Type;
-		using NewRightType = Terms<
-				MergedPreviousType, 
-				RightPrecedentParameterConstant, 
-				RightTermParameterTypes...
-			>;
+				std::declval<RightTermsType>()
+			))::Type;
+	//	using MergedPreviousType = decltype(merge_terms(
+	//			std::declval<LeftPreviousType>(), 
+	//			std::declval<RightPreviousType>()
+	//		))::Type;
+		//using NewRightType = Terms<
+		//		MergedPreviousType, 
+		//		RightPrecedentParameterConstant, 
+		//		RightTermParameterTypes...
+		//	>;
 		return TypeHolder<Terms<
-				NewRightType, 
+				//NewRightType, 
+				MergedPreviousType, 
 				LeftPrecedentParameterConstant, 
 				LeftTermParameterTypes...
 			>>{};
