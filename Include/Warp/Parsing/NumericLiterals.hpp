@@ -155,28 +155,20 @@ namespace Warp::Parsing
 				>
 			>>;
 
-	template<
-			typename TermsParameterType = NumericLiteralTermsType, 
-			template<auto> typename TypeResolverParameterTemplate = NumericTypeResolver
-		>
-	struct NumericLiteralParser
+	template<typename TermsParameterType = NumericLiteralTermsType, 
+			template<auto> typename TypeResolverParameterTemplate = NumericTypeResolver>
+	struct DigitParser
 	{
 		using TermsType = TermsParameterType;
 
 		template<auto NonTerminalTypeTagParameterConstant>
-		using TypeResolverTemplate = TypeResolverParameterTemplate<NonTerminalTypeTagParameterConstant>::Type;
-
-		using WholeType = TypeResolverTemplate<NumericTypeTag::Whole>;
-		using IntegerType = TypeResolverTemplate<NumericTypeTag::Integer>;
-		using FixedPointType = TypeResolverTemplate<NumericTypeTag::FixedPoint>;
-		using CharacterType = TypeResolverTemplate<NumericTypeTag::Character>;
-		using BoolType = TypeResolverTemplate<NumericTypeTag::Bool>;
+		using TypeResolverTemplate = typename TypeResolverParameterTemplate<NonTerminalTypeTagParameterConstant>::Type;
 
 		template<auto TermTagParameterConstant>
 		constexpr static const auto term = TermsType::template term<TermTagParameterConstant>;
 
-		constexpr const static auto character_literal = term<NumericLiteral::CharacterLiteral>;
-		constexpr const static auto escape_character_literal = term<NumericLiteral::EscapeCharacterLiteral>;
+		using WholeType = TypeResolverTemplate<NumericTypeTag::Whole>;
+		
 		constexpr const static auto base_10_digits = term<NumericLiteral::Base10Digits>;
 		constexpr const static auto base_16_digits = term<NumericLiteral::Base16Digits>;
 		constexpr const static auto base_8_digits = term<NumericLiteral::Base8Digits>;
@@ -184,12 +176,127 @@ namespace Warp::Parsing
 		constexpr const static auto any_decimal_digits = term<NumericLiteral::AnyDecimalDigits>;
 		constexpr const static auto any_decimal_digits_reduction = term<NumericLiteral::AnyDecimalDigitsReduction>;
 		constexpr const static auto digits = term<NumericLiteral::Digits>;
+		constexpr const static auto fixed_point_mark = term<NumericLiteral::FixedMark>;
+
+		constexpr static const auto terms = ctpg::terms(
+				base_10_digits, 
+				base_16_digits, 
+				base_8_digits, 
+				base_2_digits, 
+				any_decimal_digits, 
+				fixed_point_mark
+			);
+		constexpr static const auto non_terminal_terms = ctpg::nterms(
+				digits, 
+				any_decimal_digits_reduction
+			);
+
+		constexpr const static auto parse_base_10_digits
+				= digits(base_10_digits) >= [](auto digit_string)
+				{
+					const std::string_view digit_string_view = digit_string;
+					if(digit_string_view.size() > 2) {
+						if(digit_string_view.substr(0, 2) == "0d") // TODO: Derive offsets and string constants "0d" from terms //
+							return digit_string_view.substr(2);
+					}
+					return std::string_view{digit_string};
+				};
+		constexpr const static auto parse_base_2_digits
+				= digits(base_2_digits) >= [](auto digit_string)
+				{
+					const std::string_view digit_string_view = digit_string;
+					return integral_to_string(
+							to_integral<typename WholeType::UnderylingType, 2>(digit_string_view.substr(2))
+						);
+				};
+		constexpr const static auto parse_base_8_digits
+				= digits(base_8_digits) >= [](auto digit_string)
+				{
+					const std::string_view digit_string_view = digit_string;
+					return integral_to_string(
+							to_integral<typename WholeType::UnderylingType, 8>(digit_string_view.substr(2))
+						);
+				};
+		constexpr const static auto parse_base_16_digits
+				= digits(base_16_digits) >= [](auto digit_string)
+				{
+					const std::string_view digit_string_view = digit_string;
+					return integral_to_string(
+							base_16_to_integral<typename WholeType::UnderylingType>(digit_string_view.substr(2))
+						);
+				};
+		constexpr const static auto parse_any_decimal_digits_reduction
+				= any_decimal_digits_reduction(any_decimal_digits)
+				>= [](auto any_decimal_digits_string) {
+					return std::string{any_decimal_digits_string};
+				};
+		constexpr const static auto parse_explicit_any_decimal_digits_reduction
+				= any_decimal_digits_reduction(any_decimal_digits, fixed_point_mark)
+				>= [](auto any_decimal_digits_string, auto fixed_point_mark_string) {
+					return std::string{any_decimal_digits_string};
+				};
+
+		static consteval const auto rules()
+		{
+			return ctpg::rules(
+					parse_base_10_digits, 
+					parse_base_2_digits, 
+					parse_base_8_digits, 
+					parse_base_16_digits, 
+					parse_any_decimal_digits_reduction, 
+					parse_explicit_any_decimal_digits_reduction
+				);
+		}
+	};
+
+	//template<size_t LeftIndexParameterConstant, size_t... RightIndexParameterConstants>
+	//constexpr static const auto merge_tuples_detect_duplicate_helper(
+	//		const auto left_canidate, 
+	//		const auto right_tuple, 
+	//		std::index_sequence<RightIndexParameterConstants...>
+	//	)
+	//{
+	//	LeftIndexParameterConstant
+	//}
+
+	template<
+			typename TermsParameterType = NumericLiteralTermsType, 
+			template<auto> typename TypeResolverParameterTemplate = NumericTypeResolver
+		>
+	struct NumericLiteralParser 
+			: public DigitParser<TermsParameterType, TypeResolverParameterTemplate>
+	{
+		using TermsType = TermsParameterType;
+
+		//template<auto NonTerminalTypeTagParameterConstant>
+		//using TypeResolverTemplate = TypeResolverParameterTemplate<NonTerminalTypeTagParameterConstant>;
+
+		using BaseType = DigitParser<TermsType, TypeResolverParameterTemplate>;
+
+		using WholeType = TypeResolverParameterTemplate<NumericTypeTag::Whole>::Type; //TypeResolverTemplate<NumericTypeTag::Whole>;
+		using IntegerType = TypeResolverParameterTemplate<NumericTypeTag::Integer>::Type;
+		using FixedPointType = TypeResolverParameterTemplate<NumericTypeTag::FixedPoint>::Type;
+		using CharacterType = TypeResolverParameterTemplate<NumericTypeTag::Character>::Type;
+		using BoolType = TypeResolverParameterTemplate<NumericTypeTag::Bool>::Type;
+
+		template<auto TermTagParameterConstant>
+		constexpr static const auto term = TermsType::template term<TermTagParameterConstant>;
+
+		constexpr const static auto base_10_digits = term<NumericLiteral::Base10Digits>;
+		constexpr const static auto base_16_digits = term<NumericLiteral::Base16Digits>;
+		constexpr const static auto base_8_digits = term<NumericLiteral::Base8Digits>;
+		constexpr const static auto base_2_digits = term<NumericLiteral::Base2Digits>;
+		constexpr const static auto any_decimal_digits = term<NumericLiteral::AnyDecimalDigits>;
+		constexpr const static auto any_decimal_digits_reduction = term<NumericLiteral::AnyDecimalDigitsReduction>;
+		constexpr const static auto digits = term<NumericLiteral::Digits>;
+		constexpr const static auto fixed_point_mark = term<NumericLiteral::FixedMark>;
+		constexpr const static auto character_literal = term<NumericLiteral::CharacterLiteral>;
+		constexpr const static auto escape_character_literal = term<NumericLiteral::EscapeCharacterLiteral>;
 		constexpr const static auto boolean_literal = term<NumericLiteral::BooleanLiteral>;
 		constexpr const static auto radix = term<NumericLiteral::Dot>;
 		constexpr const static auto minus = term<NumericLiteral::Minus>;
 		constexpr const static auto unsigned_mark = term<NumericLiteral::UnsignedMark>;
 		constexpr const static auto integer_mark = term<NumericLiteral::IntegerMark>;
-		constexpr const static auto fixed_point_mark = term<NumericLiteral::FixedMark>;
 		constexpr const static auto bool_mark = term<NumericLiteral::BoolMark>;
 		constexpr const static auto numerical_delinator = term<NumericLiteral::NumericalDelinator>;
 		constexpr const static auto character_mark = term<NumericLiteral::CharacterMark>;
@@ -199,34 +306,32 @@ namespace Warp::Parsing
 		constexpr const static auto character = term<NumericTypeTag::Character>;
 		constexpr const static auto boolean = term<NumericTypeTag::Bool>;
 
-		constexpr static const auto terms = ctpg::terms(
-				character_literal, 
-				escape_character_literal, 
-				base_10_digits, 
-				base_16_digits, 
-				base_8_digits, 
-				base_2_digits, 
-				any_decimal_digits, 
-				boolean_literal, 
-				radix, 
-				minus, 
-				unsigned_mark, 
-				integer_mark, 
-				fixed_point_mark, 
-				character_mark, 
-				numerical_delinator, 
-				bool_mark
-			);
+		//constexpr static const auto terms = TermsType::template create_terms<false>();
+		constexpr static const auto terms //= TermsType::template create_terms<false>();
+				= std::tuple_cat(BaseType::terms, ctpg::terms(
+						character_literal, 
+						escape_character_literal, 
+						boolean_literal, 
+						radix, 
+						minus, 
+						unsigned_mark, 
+						integer_mark, 
+						fixed_point_mark, 
+						character_mark, 
+						numerical_delinator, 
+						bool_mark
+					));
 
-		constexpr static const auto non_terminal_terms = ctpg::nterms(
-				digits, 
-				whole, 
-				integer, 
-				fixed_point, 
-				character, 
-				any_decimal_digits_reduction, 
-				boolean
-			);
+		//constexpr static const auto non_terminal_terms = TermsType::template create_terms<true>();
+		constexpr static const auto non_terminal_terms 
+				= std::tuple_cat(BaseType::non_terminal_terms, ctpg::nterms(
+						whole, 
+						integer, 
+						fixed_point, 
+						character, 
+						any_decimal_digits_reduction, 
+						boolean
+					));
 
 		template<std::unsigned_integral auto BaseParameterConstant>
 		constexpr static const FixedPointType make_fixed_point_from_base(
@@ -266,40 +371,6 @@ namespace Warp::Parsing
 			}
 		}
 		
-		constexpr const static auto parse_base_10_digits
-				= digits(base_10_digits) >= [](auto digit_string)
-				{
-					const std::string_view digit_string_view = digit_string;
-					if(digit_string_view.size() > 2) {
-						if(digit_string_view.substr(0, 2) == "0d") // TODO: Derive offsets and string constants "0d" from terms //
-							return digit_string_view.substr(2);
-					}
-					return std::string_view{digit_string};
-				};
-		constexpr const static auto parse_base_2_digits
-				= digits(base_2_digits) >= [](auto digit_string)
-				{
-					const std::string_view digit_string_view = digit_string;
-					return integral_to_string(
-							to_integral<typename WholeType::UnderylingType, 2>(digit_string_view.substr(2))
-						);
-				};
-		constexpr const static auto parse_base_8_digits
-				= digits(base_8_digits) >= [](auto digit_string)
-				{
-					const std::string_view digit_string_view = digit_string;
-					return integral_to_string(
-							to_integral<typename WholeType::UnderylingType, 8>(digit_string_view.substr(2))
-						);
-				};
-		constexpr const static auto parse_base_16_digits
-				= digits(base_16_digits) >= [](auto digit_string)
-				{
-					const std::string_view digit_string_view = digit_string;
-					return integral_to_string(
-							base_16_to_integral<typename WholeType::UnderylingType>(digit_string_view.substr(2))
-						);
-				};
 		constexpr const static auto parse_whole 
 				= whole(digits) >= [](auto digit_string) {
 					return WholeType{digit_string};
@@ -346,16 +417,6 @@ namespace Warp::Parsing
 				= fixed_point(digits, radix, digits) 
 				>= [](auto major, auto radix, auto minor) {
 					return FixedPointType{major, minor};
-				};
-		constexpr const static auto parse_any_decimal_digits_reduction
-				= any_decimal_digits_reduction(any_decimal_digits)
-				>= [](auto any_decimal_digits_string) {
-					return std::string{any_decimal_digits_string};
-				};
-		constexpr const static auto parse_explicit_any_decimal_digits_reduction
-				= any_decimal_digits_reduction(any_decimal_digits, fixed_point_mark)
-				>= [](auto any_decimal_digits_string, auto fixed_point_mark_string) {
-					return std::string{any_decimal_digits_string};
 				};
 		// TODO: Possible representation change 
 		// BASIS_MARK DIGITS RADIX DIGITS
@@ -495,42 +556,39 @@ namespace Warp::Parsing
 
 		consteval static const auto rules()
 		{
-			return ctpg::rules(
-					parse_base_10_digits, 
-					parse_base_2_digits, 
-					parse_base_8_digits, 
-					parse_base_16_digits, 
-					parse_whole, 
-					parse_explicit_whole, 
-					parse_whole_with_bit_precision, 
-					parse_integer, 
-					parse_integer_with_bit_precision, 
-					parse_negative_whole, 
-					parse_negate_integer, 
-					parse_fixed_point, 
-					parse_any_decimal_digits_reduction, 
-					parse_explicit_any_decimal_digits_reduction, 
-					parse_fixed_point_explicit, 
-					parse_fixed_point_radix_explicit, 
-					parse_base_16_fixed_point, 
-					parse_base_10_fixed_point, 
-					parse_base_8_fixed_point, 
-					parse_base_2_fixed_point, 
-					parse_redundent_fixed_point, 
-					parse_negate_fixed_point, 
-					parse_character, 
-					parse_marked_character, 
-					parse_character_with_bit_precision, 
-					parse_escape_character, 
-					parse_marked_escape_character, 
-					parse_escape_character_with_bit_precision, 
-					parse_marked_character_number, 
-					parse_marked_character_number_with_deliniator, 
-					parse_marked_character_number_with_bit_precision, 
-					parse_marked_character_number_with_bit_precision_with_delinator, 
-					parse_boolean_value, 
-					parse_explicit_boolean_value, 
-					parse_integral_boolean_value
+			return std::tuple_cat(
+					BaseType::rules(), 
+					ctpg::rules(
+							parse_whole, 
+							parse_explicit_whole, 
+							parse_whole_with_bit_precision, 
+							parse_integer, 
+							parse_integer_with_bit_precision, 
+							parse_negative_whole, 
+							parse_negate_integer, 
+							parse_base_16_fixed_point, 
+							parse_base_10_fixed_point, 
+							parse_base_8_fixed_point, 
+							parse_base_2_fixed_point, 
+							parse_fixed_point, 
+							parse_fixed_point_explicit, 
+							parse_fixed_point_radix_explicit, 
+							parse_redundent_fixed_point, 
+							parse_negate_fixed_point, 
+							parse_character, 
+							parse_marked_character, 
+							parse_character_with_bit_precision, 
+							parse_escape_character, 
+							parse_marked_escape_character, 
+							parse_escape_character_with_bit_precision, 
+							parse_marked_character_number, 
+							parse_marked_character_number_with_deliniator, 
+							parse_marked_character_number_with_bit_precision, 
+							parse_marked_character_number_with_bit_precision_with_delinator, 
+							parse_boolean_value, 
+							parse_explicit_boolean_value, 
+							parse_integral_boolean_value
+						)
 				);
 		}
 	};

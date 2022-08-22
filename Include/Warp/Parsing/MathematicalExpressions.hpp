@@ -1,6 +1,7 @@
 #include <Warp/Parsing/TermWrappers.hpp>
 #include <Warp/Parsing/Terms.hpp>
 #include <Warp/Utilities.hpp>
+#include <Warp/Parsing/TypeTerms.hpp>
 
 #ifndef WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
 #define WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
@@ -22,7 +23,7 @@ namespace Warp::Parsing
 		ClosePrioritization
 	};
 
-	using MathematicalExpressionTermsType = MakeTerms<
+	using MathematicalExpressionTermsType = TypeTerms::FlatMerge<MakeTerms<
 			TreeTerm<
 					MathematicalExpression::Add, 
 					CharTerm, 
@@ -35,7 +36,7 @@ namespace Warp::Parsing
 					'-', 
 					ctpg::associativity::no_assoc
 				>
-		>;
+		>>;
 
 	template<
 			typename TermsParameterType, 
@@ -43,12 +44,13 @@ namespace Warp::Parsing
 			auto ReductionTagParameterConstant, 
 			auto InputTermTagParameterConstant
 		>
-	requires TypeResolverParameterTemplate<ReductionTagParameterConstant>::Type
-			&& TypeResolverParameterTemplate<InputTermTagParameterConstant>::Type
-			&& std::is_convertible_v<
-					TypeResolverParameterTemplate<InputTermTagParameterConstant>::Type, 
-					TypeResolverParameterTemplate<ReductionTagParameterConstant>::Type
-				>
+	requires
+			HasTypeConcept<TypeResolverParameterTemplate<ReductionTagParameterConstant>> 
+			&& HasTypeConcept<TypeResolverParameterTemplate<InputTermTagParameterConstant>>
+			//&& std::is_convertible_v<
+			//		typename TypeResolverParameterTemplate<InputTermTagParameterConstant>::Type, 
+			//		typename TypeResolverParameterTemplate<ReductionTagParameterConstant>::Type
+			//	>
 	struct MathematicalExpressionParser
 	{
 		using TermsType = TermsParameterType;
@@ -74,11 +76,14 @@ namespace Warp::Parsing
 		constexpr static const auto terms = ctpg::terms(add, subtract);
 		constexpr static const auto non_terminal_terms = ctpg::nterms(reduce_to);
 
-		//constexpr static const auto reduce_to_term 
-		//= reduce_to_term(input, add, input) >= [](auto left, auto plus, auto right) {
-		//	input + right;
+		constexpr static const auto add_inputs
+		= reduce_to(input, add, input) >= [](auto left, auto plus, auto right) {
+			return left + right;
+		};
 
-		//constexpr static const auto rules = ctpg::rules();
+		consteval static const auto rules() {
+			return ctpg::rules(add_inputs);
+		}
 
 	};
 

@@ -46,9 +46,10 @@ namespace Warp::Parsing
 		constexpr static const auto tag = TagParameterConstant;
 	};
 
+
 	namespace Detail
 	{
-		struct AssociatedTemplateConstructable
+		struct AssociatedTemplateConstructable0
 		{
 			template<
 					template<auto, template<auto...> typename, auto...> 
@@ -57,12 +58,15 @@ namespace Warp::Parsing
 					template<auto...> typename AssociatedTemplateParameterTemplate, 
 					auto... ParameterConstants 
 				>
-			AssociatedTemplateConstructable(TypeHolder<AssociationParameterType<
+			AssociatedTemplateConstructable0(TypeHolder<AssociationParameterType<
 					TagParameterConstant, 
 					AssociatedTemplateParameterTemplate, 
 					ParameterConstants...>>
 				) {}
+		};
 
+		struct AssociatedTemplateConstructable1
+		{
 			template<
 					template<auto, template<typename, auto...> typename, typename, auto...> 
 							typename AssociationParameterType, 
@@ -71,7 +75,7 @@ namespace Warp::Parsing
 					typename ParameterType, 
 					auto... ParameterConstants 
 				>
-			AssociatedTemplateConstructable(TypeHolder<AssociationParameterType<
+			AssociatedTemplateConstructable1(TypeHolder<AssociationParameterType<
 					TagParameterConstant, 
 					AssociatedTemplateParameterTemplate, 
 					ParameterType, 
@@ -80,12 +84,48 @@ namespace Warp::Parsing
 		};
 	}
 
-	// TODO: Would like to avoid the need to call a constructor. //
+	template<typename TreeTermParameterType>
+	concept AssociatedTreeTermTemplateConcept = requires(TreeTermParameterType canidate) {
+		Detail::AssociatedTemplateConstructable0(TypeHolder<decltype(canidate)>{});
+	}; 
+
+	template<typename TypeTreeTermParameterType>
+	concept AssociatedTypeTreeTermTemplateConcept = requires(TypeTreeTermParameterType canidate) {
+		Detail::AssociatedTemplateConstructable1(TypeHolder<decltype(canidate)>{});
+	}; 
+	
 	template<typename AssociatedTemplateParameterType>
-	concept AssociatedTemplateConcept = requires(
-			AssociatedTemplateParameterType canidate) {
-		Detail::AssociatedTemplateConstructable(TypeHolder<decltype(canidate)>{});
+	concept AssociatedTemplateConcept 
+		= AssociatedTreeTermTemplateConcept<AssociatedTemplateParameterType>
+				|| AssociatedTypeTreeTermTemplateConcept<AssociatedTemplateParameterType>;
+
+	template<typename>
+	struct IsTermHelper {
+		constexpr static const bool value = false;
 	};
+
+	template<AssociatedTreeTermTemplateConcept TermParameterType>
+	struct IsTermHelper<TermParameterType> {
+		using Type = TermParameterType;
+		constexpr static const bool value = true;
+	};
+
+	template<typename CanidateParameterType>
+	constexpr static const bool is_term = IsTermHelper<CanidateParameterType>::value;
+
+	template<typename>
+	struct IsTypeTermHelper {
+		constexpr static const bool value = false;
+	};
+
+	template<AssociatedTypeTreeTermTemplateConcept TermParameterType>
+	struct IsTypeTermHelper<TermParameterType> {
+		using Type = TermParameterType;
+		constexpr static const bool value = true;
+	};
+
+	template<typename CanidateParameterType>
+	constexpr static const bool is_type_term = IsTypeTermHelper<CanidateParameterType>::value;
 
 	// This does not work... Im not sure why...
 	template<typename CanidateParameterType>
@@ -273,10 +313,110 @@ namespace Warp::Parsing
 		template<typename OtherTermParameterType>
 		using FlatMerge = decltype(flat_merge(std::declval<OtherTermParameterType>()))::Type;
 
+		template<
+				bool ReduceToNonTerminalTermsParameterConstant, 
+				typename CurrentParameterType, 
+				AssociatedTemplateConcept... CanidateTermParameterTypes, 
+				typename... CurrentTermsParameterTypes
+			>
+		consteval static const auto filter_terms_implementation(
+				const std::tuple<PlaceHolder, CurrentTermsParameterTypes...> terms
+			)
+		{
+			if constexpr(
+					(ReduceToNonTerminalTermsParameterConstant == false 
+							&& is_term<CurrentParameterType> == true)
+					|| (ReduceToNonTerminalTermsParameterConstant == true 
+							&& is_type_term<CurrentParameterType> == true)
+				)
+			{
+				using NextTermsType = decltype(std::tuple_cat(
+						terms, 
+						std::tuple{std::declval<CurrentParameterType>()}
+					));
+				if constexpr(sizeof...(CanidateTermParameterTypes) > 0)
+				{
+					return filter_terms_implementation<
+							ReduceToNonTerminalTermsParameterConstant, 
+							CanidateTermParameterTypes...
+						>(std::declval<NextTermsType>());
+				}
+				else
+					return std::declval<NextTermsType>();
+			}
+		}
+
+		template<bool ReduceToNonTerminalTermsParameterConstant>
+		consteval static const auto filter_terms()
+		{
+			return filter_terms_implementation<
+					ReduceToNonTerminalTermsParameterConstant, 
+					TermParameterTypes...
+				>(std::tuple{PlaceHolder{}});
+		}
+
+		template<bool ReduceToNonTerminalTermsParameterConstant>
+		using FilteredTermsType = decltype(filter_terms<
+				ReduceToNonTerminalTermsParameterConstant
+			>());
+
+		template<bool ReduceToNonTerminalTermsParameterConstant>
+		consteval static const auto recursive_filter_to_terms()
+		{
+			using CurrentType = FilteredTermsType<ReduceToNonTerminalTermsParameterConstant>;
+			if constexpr(is_root == false)
+			{
+				constinit static auto next = PreviousType
+						::template recursive_filter_to_terms<
+								ReduceToNonTerminalTermsParameterConstant
+							>();
+				if constexpr(std::tuple_size_v<decltype(next)> > 1)
+					return std::tuple_cat(next, std::declval<TupleAfterFirstType<CurrentType>>());
+				else
+					return std::declval<CurrentType>();
+			}
+			else 
+				return std::declval<CurrentType>();
+		}
+
+		template<bool ReduceToNonTerminalTermsParameterConstant>
+		using RecursivleyFilteredTermsType = decltype(
+				recursive_filter_to_terms<ReduceToNonTerminalTermsParameterConstant>()
+			);
+
+		template<bool ReduceToNonTerminalTermsParameterConstant, 
+				size_t... TermIndexParameterConstants>
+		consteval static const auto create_terms_implementation(
+				std::index_sequence<TermIndexParameterConstants...> 
+			)
+		{
+			constinit static const auto tree_terms = recursive_filter_to_terms<
+					ReduceToNonTerminalTermsParameterConstant
+				>();
+			return std::tuple{std::get<TermIndexParameterConstants>(tree_terms)...};
+		}
+		template<bool ReduceToNonTerminalTermsParameterConstant, 
+				size_t... TermIndexParameterConstants>
+		consteval static const auto create_terms()
+		{
+			using RecursivleyFilteredType
+					= RecursivleyFilteredTermsType<
+							ReduceToNonTerminalTermsParameterConstant
+						>;
+			if constexpr(std::is_same_v<RecursivleyFilteredType, std::nullopt_t> == true 
+					|| std::is_same_v<RecursivleyFilteredType, void>)
+				return std::nullopt;
+			else
+			{
+				return create_terms_implementation(
+						std::make_index_sequence<std::tuple_size_v<RecursivleyFilteredType
+					>>());
+			}
+		}
 	};
 
-	template<AssociatedTemplateConcept... TermParameterTypes>
-	using MakeTerms = Terms<void, 0, TermParameterTypes...>;
+	template<AssociatedTemplateConcept... MakeTermParameterTypes>
+	using MakeTerms = Terms<void, 0, MakeTermParameterTypes...>;
 
 	template<
 			typename LeftPreviousParameterType, 
@@ -434,7 +574,7 @@ namespace Warp::Parsing
 		>
 	requires(RightPrecedentParameterConstant < LeftPrecedentParameterConstant 
 			&& RightPrecedentParameterConstant < LeftPreviousParameterType::precedence)
-	constexpr const static auto merge_terms( // Merginer Right INTO Left "in-between" case
+	constexpr const static auto merge_terms( // Merginer Right INTO Left "less than" case
 			Terms<
 				LeftPreviousParameterType, 
 				LeftPrecedentParameterConstant, 
@@ -455,17 +595,7 @@ namespace Warp::Parsing
 				std::declval<LeftPreviousType>(), 
 				std::declval<RightTermsType>()
 			))::Type;
-	//	using MergedPreviousType = decltype(merge_terms(
-	//			std::declval<LeftPreviousType>(), 
-	//			std::declval<RightPreviousType>()
-	//		))::Type;
-		//using NewRightType = Terms<
-		//		MergedPreviousType, 
-		//		RightPrecedentParameterConstant, 
-		//		RightTermParameterTypes...
-		//	>;
 		return TypeHolder<Terms<
-				//NewRightType, 
 				MergedPreviousType, 
 				LeftPrecedentParameterConstant, 
 				LeftTermParameterTypes...
