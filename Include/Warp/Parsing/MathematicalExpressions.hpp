@@ -76,7 +76,7 @@ namespace Warp::Parsing
 		constexpr static const auto input = term<input_term_tag>;
 
 		constexpr static const auto add = term<MathematicalExpression::Add>;
-		constexpr static const auto subtract = term<MathematicalExpression::Add>;
+		constexpr static const auto subtract = term<MathematicalExpression::Subtract>;
 
 		constexpr static const auto terms = std::tuple_cat(
 				BaseType::terms, 
@@ -87,13 +87,24 @@ namespace Warp::Parsing
 				ctpg::nterms(reduce_to)
 			);
 
-		constexpr static const auto add_inputs
-		= reduce_to(input, add, input) >= [](auto left, auto plus, auto right) {
-			return left + right;
-		};
+		constexpr static const auto add_inputs 
+				= reduce_to(input, add, input) 
+				>= [](auto left, auto plus, auto right) {
+					return left + right;
+				};
 
-		consteval static const auto rules() {
-			return std::tuple_cat(BaseType::rules(), ctpg::rules(add_inputs));
+		constexpr static const auto subtract_inputs 
+				= reduce_to(input, subtract, input) 
+				>= [](auto left, auto minus, auto right) {
+					return left - right;
+				};
+
+		consteval static const auto rules()
+		{
+			return std::tuple_cat(BaseType::rules(), ctpg::rules(
+					add_inputs, 
+					subtract_inputs
+				));
 		}
 
 	};
