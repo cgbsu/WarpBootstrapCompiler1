@@ -268,16 +268,16 @@ namespace Warp::Parsing
 	{
 		using TermsType = TermsParameterType;
 
-		//template<auto NonTerminalTypeTagParameterConstant>
-		//using TypeResolverTemplate = TypeResolverParameterTemplate<NonTerminalTypeTagParameterConstant>;
+		template<auto NonTerminalTypeTagParameterConstant>
+		using TypeResolverTemplate = TypeResolverParameterTemplate<NonTerminalTypeTagParameterConstant>::Type;
 
 		using BaseType = DigitParser<TermsType, TypeResolverParameterTemplate>;
 
-		using WholeType = TypeResolverParameterTemplate<NumericTypeTag::Whole>::Type; //TypeResolverTemplate<NumericTypeTag::Whole>;
-		using IntegerType = TypeResolverParameterTemplate<NumericTypeTag::Integer>::Type;
-		using FixedPointType = TypeResolverParameterTemplate<NumericTypeTag::FixedPoint>::Type;
-		using CharacterType = TypeResolverParameterTemplate<NumericTypeTag::Character>::Type;
-		using BoolType = TypeResolverParameterTemplate<NumericTypeTag::Bool>::Type;
+		using WholeType = TypeResolverTemplate<NumericTypeTag::Whole>;
+		using IntegerType = TypeResolverTemplate<NumericTypeTag::Integer>;
+		using FixedPointType = TypeResolverTemplate<NumericTypeTag::FixedPoint>;
+		using CharacterType = TypeResolverTemplate<NumericTypeTag::Character>;
+		using BoolType = TypeResolverTemplate<NumericTypeTag::Bool>;
 
 		template<auto TermTagParameterConstant>
 		constexpr static const auto term = TermsType::template term<TermTagParameterConstant>;

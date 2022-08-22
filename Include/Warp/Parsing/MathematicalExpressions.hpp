@@ -1,7 +1,7 @@
 #include <Warp/Parsing/TermWrappers.hpp>
 #include <Warp/Parsing/Terms.hpp>
 #include <Warp/Utilities.hpp>
-#include <Warp/Parsing/TypeTerms.hpp>
+#include <Warp/Parsing/NumericLiterals.hpp>
 
 #ifndef WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
 #define WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
@@ -23,7 +23,7 @@ namespace Warp::Parsing
 		ClosePrioritization
 	};
 
-	using MathematicalExpressionTermsType = TypeTerms::FlatMerge<MakeTerms<
+	using MathematicalExpressionTermsType = NumericLiteralTermsType::FlatMerge<MakeTerms<
 			TreeTerm<
 					MathematicalExpression::Add, 
 					CharTerm, 
@@ -51,12 +51,17 @@ namespace Warp::Parsing
 			//		typename TypeResolverParameterTemplate<InputTermTagParameterConstant>::Type, 
 			//		typename TypeResolverParameterTemplate<ReductionTagParameterConstant>::Type
 			//	>
-	struct MathematicalExpressionParser
+	struct MathematicalExpressionParser : NumericLiteralParser<
+			TermsParameterType, 
+			TypeResolverParameterTemplate
+		>
 	{
 		using TermsType = TermsParameterType;
 
 		template<auto NonTerminalTypeTagParameterConstant>
 		using TypeResolverTemplate = TypeResolverParameterTemplate<NonTerminalTypeTagParameterConstant>::Type;
+
+		using BaseType = NumericLiteralParser<TermsType, TypeResolverParameterTemplate>;
 
 		constexpr static const auto reduce_to_term_tag = ReductionTagParameterConstant;
 		constexpr static const auto input_term_tag = ReductionTagParameterConstant;
@@ -73,8 +78,14 @@ namespace Warp::Parsing
 		constexpr static const auto add = term<MathematicalExpression::Add>;
 		constexpr static const auto subtract = term<MathematicalExpression::Add>;
 
-		constexpr static const auto terms = ctpg::terms(add, subtract);
-		constexpr static const auto non_terminal_terms = ctpg::nterms(reduce_to);
+		constexpr static const auto terms = std::tuple_cat(
+				BaseType::terms, 
+				ctpg::terms(add, subtract)
+			);
+		constexpr static const auto non_terminal_terms = std::tuple_cat(
+				BaseType::non_terminal_terms, 
+				ctpg::nterms(reduce_to)
+			);
 
 		constexpr static const auto add_inputs
 		= reduce_to(input, add, input) >= [](auto left, auto plus, auto right) {
@@ -82,7 +93,7 @@ namespace Warp::Parsing
 		};
 
 		consteval static const auto rules() {
-			return ctpg::rules(add_inputs);
+			return std::tuple_cat(BaseType::rules(), ctpg::rules(add_inputs));
 		}
 
 	};

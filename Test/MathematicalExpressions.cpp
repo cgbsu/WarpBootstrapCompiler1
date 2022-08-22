@@ -28,12 +28,15 @@ using BoolType = NumericTypeResolver<NumericTypeTag::Bool>::Type;
 
 TEST_GROUP(MathematicalExpressions) {};
 
-//TEST(MathematicalExpressions, Addition)
-//{
-//	check_parse(runtime_parse<
-//			 ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>, 
-//			 FixedString{"1u + 1u"}, 
-//			 NumericTypeTag::Whole
-//		>() /*Actual*/, WholeType{2u} /*Expected*/);
-//};
+TEST(MathematicalExpressions, Addition)
+{
+	bool debug = false;
+	check_parse(runtime_parse<
+				 ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>, 
+				 FixedString{"1u + 1u"}, 
+				 NumericTypeTag::Whole
+			>(debug) /*Actual*/, 
+			WholeType{2u} /*Expected*/
+		);
+};
 

@@ -58,9 +58,10 @@ namespace Warp::Testing
 			FixedString StringParameterConstant, 
 			auto ReduceToTagParameterConstant
 		>
-	constexpr auto runtime_parse()
+	constexpr auto runtime_parse(bool debug = false)
 	{
 		return parser<ParserParameterType, ReduceToTagParameterConstant>.parse(
+				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
 				ctpg::buffers::string_buffer(StringParameterConstant.string), 
 				std::cerr
 			);
