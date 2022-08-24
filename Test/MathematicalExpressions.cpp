@@ -113,5 +113,12 @@ TEST(MathematicalExpressions, InputSums)
 {
 	bool debug = false;
 	integer_test<FixedString{"5i - 10i + 14i - 1i"}>(8, debug);
+	integer_test<FixedString{"5i - 10i + 14i - 1i - 23i"}>(-15, debug);
+};
+
+TEST(MathematicalExpressions, InputMultiplication)
+{
+	bool debug = true;
+	whole_test<FixedString{"5u * 3u"}>(15, debug);
 };
 

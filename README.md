@@ -24,12 +24,15 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
  - [ ] Parsing
 	- [x] Literals
 	- [ ] Mathematical Expressions
-		- [ ] Addition/Subtraction
-		- [ ] Multiplication/Division
+		- [x] Addition/Subtraction (No Calls/Constants)
+		- [ ] Addition/Subtraction (Calls/Constants)
+		- [ ] Multiplication/Division (No Calls/Constants)
+		- [ ] Multiplication/Division (Calls/Constants)
 		- [ ] Parenthesis Prioritization
 		- [ ] Bitwise?
 	- [ ] Boolean expressions
 	- [ ] Functions
+		- [ ] Function calls
  - [ ] Compile Time evaluation
  - [ ] Compilation
  - [ ] Interopability C/"C ABI"

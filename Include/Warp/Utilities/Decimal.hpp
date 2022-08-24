@@ -6,9 +6,7 @@
 
 namespace Warp::Utilities
 {
-
-	/* I now know why there is a dichotomy between fixed and floating point *
-	 * if you do not have unlimted precision. ******************************/
+/* I now know why there is a dichotomy between fixed and floating point * if you do not have unlimted precision. ******************************/
 	template<std::integral NumberParameterType = unsigned long int, 
 			std::integral PowerOffsetParameterType = int>
 	requires(std::is_unsigned<NumberParameterType>::value == true 

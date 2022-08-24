@@ -247,6 +247,7 @@ namespace Warp::Parsing
 				NewTermParameterTypes...
 			>;
 
+
 		template<typename NewPreviousParameterType, auto NewPreviousParameterConstant>
 		using ReplacePrevious = Terms<
 				NewPreviousParameterType, 
@@ -260,11 +261,33 @@ namespace Warp::Parsing
 				NewPreviousParameterType::precedence + 1
 			>;
 
+		template<AssociatedTemplateConcept... NewPreviousTermParameterTypes>
+		using InjectPreviousAddOnePriority 
+				= ReplacePreviousAddOnePriority<Terms<PreviousType, precedence, NewPreviousTermParameterTypes...>>;
+
 		template<AssociatedTemplateConcept... NewTermParameterTypes>
 		using ReplaceTerms = Terms<PreviousType, precedence, NewTermParameterTypes...>;
 
 		template<AssociatedTemplateConcept... NewTermParameterTypes>
 		using AppendTerms = Terms<PreviousType, precedence, TermParameterTypes..., NewTermParameterTypes...>;
+
+		template<typename ToPrependParameterType>
+		constexpr static const auto prepend()
+		{
+			if constexpr(is_root == true)
+				return TypeHolder<Terms<ToPrependParameterType, 1, TermParameterTypes...>>{};
+			else
+			{
+				return TypeHolder<Terms<
+						typename decltype(PreviousType::template prepend<ToPrependParameterType>())::Type, 
+						precedence + 1, 
+						TermParameterTypes...
+					>>{};
+			}
+		}
+
+		template<AssociatedTemplateConcept... NewTermParameterTypes>
+		using Prepend = decltype(prepend<Terms<NoPreviousType, 0, NewTermParameterTypes...>>())::Type;
 
 		template<
 				typename OtherPreviousParameterType, 

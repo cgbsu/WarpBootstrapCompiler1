@@ -77,6 +77,15 @@ namespace Warp::Utilities
 
 	template<typename TupleParameterType>
 	using TupleAfterFirstType = TupleAfterType<TupleParameterType, 1>;
+
+	constexpr const auto concatinate_tuples(auto current_tuple, auto last_tuple) {
+		return std::tuple_cat(current_tuple, last_tuple);
+	}
+
+	constexpr const auto concatinate_tuples(auto current_tuple, auto... tuples)
+			requires(sizeof...(tuples) > 0) {
+		return std::tuple_cat(current_tuple, concatinate_tuples(tuples...));
+	}
 }
 
 #endif // WARP__UTILITIES__HEADER__UTILITIES__TEMPLATES__HPP

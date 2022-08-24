@@ -28,7 +28,8 @@ namespace Warp::Parsing
 
 	
 
-	using MathematicalExpressionTermsType = NumericLiteralTermsType::AddOnePriority<
+	using MathematicalExpressionTermsType = NumericLiteralTermsType
+		::Prepend<
 			TreeTerm<
 					MathematicalExpression::Add, 
 					CharTerm, 
@@ -41,7 +42,7 @@ namespace Warp::Parsing
 					'-', 
 					ctpg::associativity::no_assoc
 				>
-		>::AddOnePriority<
+		>::Prepend<
 				TreeTerm<
 						MathematicalExpression::Multiply, 
 						CharTerm, 
@@ -87,14 +88,6 @@ namespace Warp::Parsing
 
 		using BaseType = NumericLiteralParser<BaseTermsType, TypeResolverParameterTemplate>;
 		
-		//template<auto TermTagParameterConstant>
-		//using BaseTermType = BaseTermsType::template TermType<TermTagParameterConstant>;
-
-		//template<auto TagParameterConstant>
-		//constexpr static const auto base_term_name = BaseTermType<TagParameterConstant>
-		//		::template InjectedTermType<0>::name;
-
-		//constexpr static const auto reduce_string = base_term_name<reduce_to_term_tag>; 
 		struct Expression {
 			ReduceToType value;
 		};
@@ -110,8 +103,20 @@ namespace Warp::Parsing
 			}
 		};
 
+		struct Product
+		{
+			ReduceToType value;
+			constexpr Product operator*(const InputType& other) {
+				return Product{value * other};
+			}
+			constexpr Product operator/(const InputType& other) {
+				return Product{value / other};
+			}
+		};
+
 		enum class TypeSpecificMathematicalExpressionTermTags {
 			Sum, 
+			Product, 
 			Expression
 		};
 
@@ -127,6 +132,12 @@ namespace Warp::Parsing
 						NonTerminalTerm, 
 						Expression, 
 						FixedString{"Expression"}
+					>, 
+				TypeTreeTerm<
+						TypeSpecificMathematicalExpressionTermTags::Product, 
+						NonTerminalTerm, 
+						Product, 
+						FixedString{"Product"}
 					>
 			>;
 
@@ -139,45 +150,53 @@ namespace Warp::Parsing
 		constexpr static const auto add = term<MathematicalExpression::Add>;
 		constexpr static const auto subtract = term<MathematicalExpression::Subtract>;
 
+		constexpr static const auto multiply = term<MathematicalExpression::Multiply>;
+		constexpr static const auto divide = term<MathematicalExpression::Divide>;
+
 		constexpr static const auto sum 
 				= term<TypeSpecificMathematicalExpressionTermTags::Sum>;
+		constexpr static const auto product
+				= term<TypeSpecificMathematicalExpressionTermTags::Product>;
 		constexpr static const auto expression 
 				= term<TypeSpecificMathematicalExpressionTermTags::Expression>;
 
 		constexpr static const auto terms = std::tuple_cat(
 				BaseType::terms, 
-				ctpg::terms(add, subtract)
+				ctpg::terms(
+						add, 
+						subtract, 
+						multiply, 
+						divide
+					)
 			);
 		constexpr static const auto non_terminal_terms = std::tuple_cat(
 				BaseType::non_terminal_terms, 
 				ctpg::nterms(
 						reduce_to, 
 						sum, 
+						product, 
 						expression
 					)
 			);
 
-		constexpr static const auto add_inputs 
-				= sum(input, add, input) 
-				>= [](auto left, auto plus, auto right) {
-					return left + right;
-				};
-		constexpr static const auto subtract_inputs 
-				= sum(input, subtract, input) 
-				>= [](auto left, auto minus, auto right) {
-					return left - right;
-				};
-		constexpr static const auto add_input
-				= sum(sum, add, input) 
-				>= [](auto left, auto plus, auto right) {
-					return left + right;
-				};
-		constexpr static const auto subtract_input
-				= sum(sum, subtract, input) 
-				>= [](auto left, auto minus, auto right) {
-					//std::cout << left.numeric << " : " << right.numeric << "\n";
-					return left - right;
-				};
+		template<auto OperateParameterConstant>
+		consteval static const auto basic_operation_rules(
+				auto operation_term, 
+				auto operator_term
+			)
+		{
+			return ctpg::rules(
+					operation_term(input, operator_term, input) 
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left, right);
+					}, 
+					operation_term(operation_term, operator_term, input) 
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left, right);
+					}
+				);
+		}
+
 		constexpr static const auto sum_to_expression
 				= expression(sum)
 				>= [](auto sum_) {
@@ -186,13 +205,21 @@ namespace Warp::Parsing
 
 		consteval static const auto rules()
 		{
-			return std::tuple_cat(
+			return concatinate_tuples(
 					BaseType::rules(), 
+					basic_operation_rules<
+							[](auto left, auto right) { return left + right; }
+						>(sum, add), 
+					basic_operation_rules<
+							[](auto left, auto right) { return left - right; }
+						>(sum, subtract), 
+					basic_operation_rules<
+							[](auto left, auto right) { return left * right; }
+						>(product, multiply), 
+					basic_operation_rules<
+							[](auto left, auto right) { return left / right; }
+						>(product, divide), 
 					ctpg::rules(
-							add_inputs, 
-							subtract_inputs, 
-							add_input, 
-							subtract_input, 
 							sum_to_expression
 						)
 				);
