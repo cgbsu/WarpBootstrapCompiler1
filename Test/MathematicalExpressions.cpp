@@ -47,95 +47,71 @@ void math_check(bool value) {
 
 TEST_GROUP(MathematicalExpressions) {};
 
-bool compare_fixed(FixedExpressionType left, FixedExpressionType right)
-{
+bool compare_fixed(FixedExpressionType left, FixedExpressionType right) {
 	return left.value == right.value;
+}
+
+template<auto TestParameterConstant>
+void whole_test(auto expected, bool debug = false)
+{
+	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
+				WholeParserType, 
+				TestParameterConstant, 	
+				WholeEnumType::Expression
+			>(debug) /*Actual*/, 
+			WholeExpressionType{expected} /*Expected*/
+		);
+}
+
+template<auto TestParameterConstant>
+void integer_test(auto expected, bool debug = false)
+{
+	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
+				IntegerParserType, 
+				TestParameterConstant, 	
+				IntegerEnumType::Expression
+			>(debug) /*Actual*/, 
+			IntegerExpressionType{expected} /*Expected*/
+		);
+}
+
+template<auto TestParameterConstant>
+void fixed_test(auto expected, bool debug = false)
+{
+	strict_check_parse<FixedExpressionType, compare_value>(runtime_parse<
+				FixedParserType, 
+				TestParameterConstant, 	
+				FixedEnumType::Expression
+			>(debug) /*Actual*/, 
+			FixedExpressionType{expected} /*Expected*/
+		);
 }
 
 TEST(MathematicalExpressions, InputAddition)
 {
 	bool debug = false;
-	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
-				WholeParserType, 
-				FixedString{"1u + 1u"}, 
-				WholeEnumType::Expression
-			>(debug) /*Actual*/, 
-			WholeExpressionType{WholeType{2u}} /*Expected*/
-		);
-	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
-				WholeParserType, 
-				FixedString{"1 + 1"}, 
-				WholeEnumType::Expression
-			>(debug) /*Actual*/, 
-			WholeExpressionType{WholeType{2u}} /*Expected*/
-		);
-	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
-				WholeParserType, 
-				FixedString{"5 + 3"}, 
-				WholeEnumType::Expression
-			>(debug) /*Actual*/, 
-			WholeExpressionType{WholeType{8u}} /*Expected*/
-		);
-	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
-				WholeParserType, 
-				FixedString{"5u8 + 3u8"}, 
-				WholeEnumType::Expression
-			>(debug) /*Actual*/, 
-			WholeExpressionType{WholeType{8u}} /*Expected*/
-		);
-	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
-				IntegerParserType, 
-				FixedString{"9i8 + 3i5"}, 
-				IntegerEnumType::Expression
-			>(debug) /*Actual*/, 
-			IntegerExpressionType{IntegerType{12u}} /*Expected*/
-		);
-	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
-				IntegerParserType, 
-				FixedString{"9i8 + 3i8 + 10i"}, 
-				IntegerEnumType::Expression
-			>(debug) /*Actual*/, 
-			IntegerExpressionType{IntegerType{22}} /*Expected*/
-		);
-	strict_check_parse<FixedExpressionType, compare_value>(runtime_parse<
-				FixedParserType, 
-				FixedString{"16.16xp + 16.16xp"}, 
-				FixedEnumType::Expression
-			>(debug) /*Actual*/, 
-			FixedExpressionType{FixedType{32, 32}} /*Expected*/
-		);
+	whole_test<FixedString{"1u + 1u"}>(2u, debug);
+	whole_test<FixedString{"1 + 1"}>(2u, debug);
+	whole_test<FixedString{"5 + 3"}>(8u, debug);
+	whole_test<FixedString{"5u8 + 3u8"}>(8u, debug);
+	integer_test<FixedString{"9i8 + 3i5"}>(12u, debug);
+	integer_test<FixedString{"9i8 + 3i8 + 10i"}>(22, debug);
+	fixed_test<FixedString{"16.16xp + 16.16xp"}>(FixedType{32, 32}, debug);
 };
 
 TEST(MathematicalExpressions, InputSubraction)
 {
 	bool debug = false;
-	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
-				WholeParserType, 
-				FixedString{"5 - 3"}, 
-				WholeEnumType::Expression
-			>(debug) /*Actual*/, 
-			WholeExpressionType{WholeType{2}} /*Expected*/
-		);
-	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
-				IntegerParserType, 
-				FixedString{"5i - 10i"}, 
-				IntegerEnumType::Expression
-			>(debug) /*Actual*/, 
-			IntegerExpressionType{IntegerType{-5}} /*Expected*/
-		);
-	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
-				IntegerParserType, 
-				FixedString{"5i - 10i - 8i"}, 
-				IntegerEnumType::Expression
-			>(debug) /*Actual*/, 
-			IntegerExpressionType{IntegerType{-13}} /*Expected*/
-		);
-	strict_check_parse<FixedExpressionType, compare_value>(runtime_parse<
-				FixedParserType, 
-				FixedString{"16.16xp - 8.8xp"}, 
-				FixedEnumType::Expression
-			>(debug).value() /*Actual*/, 
-			FixedExpressionType{FixedType{7, 36}} /*Expected*/
-		);
+	whole_test<FixedString{"5 - 3"}>(2, debug);
+	integer_test<FixedString{"5i - 10i"}>(-5, debug);
+	integer_test<FixedString{"5i - 10i - 8i"}>(-13, debug);
+	fixed_test<FixedString{"16.16xp - 8.8xp"}>(FixedType{7, 36}, debug);
+	fixed_test<FixedString{"16.16xp - 8.8xp - 1.xp - 2.2xp"}>(FixedType{4, 16}, debug);
+};
+
+TEST(MathematicalExpressions, InputSums)
+{
+	bool debug = false;
+	integer_test<FixedString{"5i - 10i + 14i - 1i"}>(8, debug);
 };
 
