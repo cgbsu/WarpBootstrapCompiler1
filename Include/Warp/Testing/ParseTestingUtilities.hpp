@@ -114,10 +114,11 @@ namespace Warp::Testing
 	constexpr void check_parse(auto parse_result, auto expected_result)
 	{
 		CheckParameterConstant(parse_result.has_value() == true);
-		CheckParameterConstant((parse_result.has_value() == true)
+		WARP_CHECK((parse_result.has_value()));
+		WARP_CHECK(((parse_result.has_value() == true)
 				? CompareParameterConstant(parse_result.value(), expected_result)
 				: false
-			);
+			));
 	}
 	
 	template<

@@ -28,11 +28,15 @@ using BoolType = NumericTypeResolver<NumericTypeTag::Bool>::Type;
 
 using WholeParserType = ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>;
 using IntegerParserType = ParserTestTemplate<NumericTypeTag::Integer, NumericTypeTag::Integer>;
+using FixedParserType = ParserTestTemplate<NumericTypeTag::FixedPoint, NumericTypeTag::FixedPoint>;
 
 using WholeEnumType = WholeParserType::TypeSpecificMathematicalExpressionTermTags;
 using IntegerEnumType = IntegerParserType::TypeSpecificMathematicalExpressionTermTags;
+using FixedEnumType = FixedParserType::TypeSpecificMathematicalExpressionTermTags;
+
 using WholeExpressionType = WholeParserType::Expression;
 using IntegerExpressionType = IntegerParserType::Expression;
+using FixedExpressionType = FixedParserType::Expression;
 
 constexpr const auto compare_value = [](auto left, auto right) 
 		{ return left.value == right.value; };
@@ -43,45 +47,53 @@ void math_check(bool value) {
 
 TEST_GROUP(MathematicalExpressions) {};
 
+bool compare_fixed(FixedExpressionType left, FixedExpressionType right)
+{
+	std::cout << "left: " << left.value.number << "\n" 
+			<< "right: " << right.value.number << "\n" 
+			<< "equal: " << (left.value == right.value) << "\n";
+	return left.value == right.value;
+}
+
 TEST(MathematicalExpressions, InputAddition)
 {
 	bool debug = false;
-	strict_check_parse<WholeExpressionType, compare_value, math_check>(runtime_parse<
+	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
 				WholeParserType, 
 				FixedString{"1u + 1u"}, 
 				WholeEnumType::Expression
 			>(debug) /*Actual*/, 
 			WholeExpressionType{WholeType{2u}} /*Expected*/
 		);
-	strict_check_parse<WholeExpressionType, compare_value, math_check>(runtime_parse<
+	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
 				WholeParserType, 
 				FixedString{"1 + 1"}, 
 				WholeEnumType::Expression
 			>(debug) /*Actual*/, 
 			WholeExpressionType{WholeType{2u}} /*Expected*/
 		);
-	strict_check_parse<WholeExpressionType, compare_value, math_check>(runtime_parse<
+	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
 				WholeParserType, 
 				FixedString{"5 + 3"}, 
 				WholeEnumType::Expression
 			>(debug) /*Actual*/, 
 			WholeExpressionType{WholeType{8u}} /*Expected*/
 		);
-	strict_check_parse<WholeExpressionType, compare_value, math_check>(runtime_parse<
+	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
 				WholeParserType, 
 				FixedString{"5u8 + 3u8"}, 
 				WholeEnumType::Expression
 			>(debug) /*Actual*/, 
 			WholeExpressionType{WholeType{8u}} /*Expected*/
 		);
-	strict_check_parse<IntegerExpressionType, compare_value, math_check>(runtime_parse<
+	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
 				IntegerParserType, 
 				FixedString{"9i8 + 3i5"}, 
 				IntegerEnumType::Expression
 			>(debug) /*Actual*/, 
 			IntegerExpressionType{IntegerType{12u}} /*Expected*/
 		);
-	strict_check_parse<IntegerExpressionType, compare_value, math_check>(runtime_parse<
+	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
 				IntegerParserType, 
 				FixedString{"9i8 + 3i8 + 10i"}, 
 				IntegerEnumType::Expression
@@ -89,52 +101,56 @@ TEST(MathematicalExpressions, InputAddition)
 			IntegerExpressionType{IntegerType{22}} /*Expected*/
 		);
 	//TODO: The following runs fine
-	//std::cout << "VALUE?: " << runtime_parse<
-	//			 ParserTestTemplate<NumericTypeTag::FixedPoint, NumericTypeTag::FixedPoint>, 
-	//			 FixedString{"16.16xp + 16.16xp"}, 
-	//			 NumericTypeTag::FixedPoint
-	//		>(debug).value().number << "\n";
+	std::cout << "\n\n-------------------\n\n";
+	std::cout << "VALUE?: " << runtime_parse<
+				FixedParserType, 
+				FixedString{"16.16xp + 16.16xp"}, 
+				FixedEnumType::Expression
+			>(debug).value().value.number << "\n";
+	std::cout << "COMPARE TO: " << FixedType{32, 32}.number << "\n";
+	std::cout << "EQUAL: " << (FixedType{32, 32} == FixedType{32, 32}) << "\n";
+	std::cout << "\n\n-------------------\n\n";
 	//However this runs failes CHECK()
-	//strict_check_parse<FixedType>(
-	//		runtime_parse<
-	//			 ParserTestTemplate<NumericTypeTag::FixedPoint, NumericTypeTag::FixedPoint>, 
-	//			 FixedString{"16.16xp + 16.16xp"}, 
-	//			 NumericTypeTag::FixedPoint
-	//		>(true) /*Actual*/, 
-	//		FixedType{32, 32} /*Expected*/
+	strict_check_parse<FixedExpressionType, compare_fixed>(runtime_parse<
+				FixedParserType, 
+				FixedString{"16.16xp + 16.16xp"}, 
+				FixedEnumType::Expression
+			>(debug) /*Actual*/, 
+			FixedExpressionType{FixedType{32, 32}} /*Expected*/
+		);
+	//			FixedParserType, 
+	//			FixedString{"16.16xp + 16.16xp"}, 
+	//			FixedEnumType::Expression
+	//		>(debug) /*Actual*/, 
+	//		FixedExpressionType{FixedType{32, 32}} /*Expected*/
 	//	);
-	// I will assume for the moment it is somethign to do with the test code or FixedPoint type 
+	 //I will assume for the moment it is somethign to do with the test code or FixedPoint type 
 	// and not the parser, and I will resume (TODO) this later.
 };
 
 TEST(MathematicalExpressions, InputSubraction)
 {
 	bool debug = false;
-	//strict_check_parse<WholeExpressionType>(parse<
-	//			WholeParserType, 
-	//			FixedString{"5 - 3"}, 
-	//			WholeEnumType::Expression
-	//		>() /*Actual*/, 
-	//		WholeExpressionType{WholeType{2}} /*Expected*/
-	//	);
-	//strict_check_parse<IntegerType>(parse<
-	//			IntegerParserType, 
-	//			FixedString{"5i - 10i"}, 
-	//			NumericTypeTag::Integer
-	//		>() /*Actual*/, 
-	//		IntegerType{-5}} /*Expected*/
-	//	);
-	std::cout << "RESULT: " << runtime_parse<
+	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
+				WholeParserType, 
+				FixedString{"5 - 3"}, 
+				WholeEnumType::Expression
+			>(debug) /*Actual*/, 
+			WholeExpressionType{WholeType{2}} /*Expected*/
+		);
+	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
+				IntegerParserType, 
+				FixedString{"5i - 10i"}, 
+				IntegerEnumType::Expression
+			>(debug) /*Actual*/, 
+			IntegerExpressionType{IntegerType{-5}} /*Expected*/
+		);
+	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
 				IntegerParserType, 
 				FixedString{"5i - 10i - 8i"}, 
 				IntegerEnumType::Expression
-			>(true).value().value << "\n";
-	//strict_check_parse<IntegerType, compare_value, math_check>(runtime_parse<
-	//			ParserTestTemplate<NumericTypeTag::Integer, NumericTypeTag::Integer>, 
-	//			FixedString{"5i - 10i - 8i"}, 
-	//			NumericTypeTag::Integer
-	//		>(true) /*Actual*/, 
-	//		IntegerType{-13} /*Expected*/
-	//	);
+			>(debug) /*Actual*/, 
+			IntegerExpressionType{IntegerType{-13}} /*Expected*/
+		);
 };
 
