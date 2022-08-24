@@ -186,6 +186,8 @@ namespace Warp::Utilities
         >
     constexpr std::string integral_to_string(const std::integral auto to_stringify)
     {
+		if(to_stringify < BaseParameterConstant)
+			return to_string(Characters{static_cast<char>(to_stringify + BaseStringParameterConstant), '\0'});
         const auto number_of_digits = log<
 				BaseParameterConstant, 
 				0u, 
@@ -241,7 +243,9 @@ namespace Warp::Utilities
 		using FixedPointType = FixedPointParameterType;
 		using WholeType = WholeParameterType;
 		FixedPointType major_fixed{major_value};
-		FixedPointType denomonator{raise(BaseParameterConstant, integral_to_string(minor_value).size())};
+		const auto minor_string = integral_to_string(minor_value);
+		const size_t minor_value_length = minor_string.size();
+		FixedPointType denomonator{raise(BaseParameterConstant, minor_value_length)};
 		return FixedPointType{major_fixed + (FixedPointType{minor_value} / denomonator)};
 	}
 

@@ -1,5 +1,6 @@
 #include <Warp/Parsing/NumericLiterals.hpp>
 #include <Warp/Parsing/MathematicalExpressions.hpp>
+#include <Warp/Utilities.hpp>
 #include <ThirdParty/fpm/ios.hpp>
 #include <Warp/Parsing/Terms.hpp>
 #include <CppUTest/TestHarness.h>
@@ -129,12 +130,12 @@ TEST(MathematicalExpressions, InputSubraction)
 			>(debug) /*Actual*/, 
 			IntegerExpressionType{IntegerType{-13}} /*Expected*/
 		);
-	//strict_check_parse<FixedExpressionType, compare_value>(runtime_parse<
-	//			FixedParserType, 
-	//			FixedString{"16.16xp - 8.8xp"}, 
-	//			FixedEnumType::Expression
-	//		>(debug) /*Actual*/, 
-	//		FixedExpressionType{FixedType{8, 8}} /*Expected*/
-	//	);
+	strict_check_parse<FixedExpressionType, compare_value>(runtime_parse<
+				FixedParserType, 
+				FixedString{"16.16xp - 8.8xp"}, 
+				FixedEnumType::Expression
+			>(debug).value() /*Actual*/, 
+			FixedExpressionType{FixedType{7, 36}} /*Expected*/
+		);
 };
 

@@ -43,14 +43,6 @@ enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
 		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
 
-		//constexpr std::strong_ordering operator<=>(const ConvertableToExceptConcept<UnderylingType, ThisType> auto& other) const noexcept {
-		//	return number <=> other.number;
-		//}
-		//constexpr std::strong_ordering operator<=>(const ConvertableToExceptConcept<ThisType, UnderylingType> auto& other) const noexcept {
-		//	return number <=> other.number;
-		//}
-		//
-		//constexpr std::strong_ordering operator<=>(const NumericType& other) const noexcept = default;
 		constexpr std::strong_ordering operator<=>(const UnderylingType& other) const noexcept {
 			return number <=> other;
 		}
@@ -71,7 +63,7 @@ enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 			return number / other.number;
 		}
 		constexpr NumericType operator-() const noexcept {
-			//static_assert(std::is_unsigned_v<UnderylingType> == true);
+			static_assert(std::is_unsigned_v<UnderylingType> == true);
 			return -number;
 		}
 	};
