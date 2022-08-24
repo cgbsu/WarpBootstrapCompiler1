@@ -52,26 +52,27 @@ TEST(NumericLiterals, ParseWholeAnyBase)
 
 TEST(NumericLiterals, ParseIntegers)
 {
-	strict_check_parse<ParserTestType::IntegerType>(
-			parse<ParserTestType, FixedString{"-0b1111011"}, NumericTypeTag::Integer>(), // Actual
-			-123 // Expected
-		);
-	strict_check_parse<ParserTestType::IntegerType>(
-			parse<ParserTestType, FixedString{"-0b1111011"}, NumericTypeTag::Integer>(), // Actual
-			-123 // Expected
-		);
-	strict_check_parse<ParserTestType::IntegerType>(
-			parse<ParserTestType, FixedString{"-0o173"}, NumericTypeTag::Integer>(), // Actual
-			-123 // Expected
-		);
-	strict_check_parse<ParserTestType::IntegerType>(
-			parse<ParserTestType, FixedString{"-123"}, NumericTypeTag::Integer>(), // Actual
-			-123 // Expected
-		);
-	strict_check_parse<ParserTestType::IntegerType>(
-			parse<ParserTestType, FixedString{"-123i"}, NumericTypeTag::Integer>(), // Actual
-			-123 // Expected
-		);
+	// Functionality moved. //
+	//strict_check_parse<ParserTestType::IntegerType>(
+	//		parse<ParserTestType, FixedString{"-0b1111011"}, NumericTypeTag::Integer>(), // Actual
+	//		-123 // Expected
+	//	);
+	//strict_check_parse<ParserTestType::IntegerType>(
+	//		parse<ParserTestType, FixedString{"-0b1111011"}, NumericTypeTag::Integer>(), // Actual
+	//		-123 // Expected
+	//	);
+	//strict_check_parse<ParserTestType::IntegerType>(
+	//		parse<ParserTestType, FixedString{"-0o173"}, NumericTypeTag::Integer>(), // Actual
+	//		-123 // Expected
+	//	);
+	//strict_check_parse<ParserTestType::IntegerType>(
+	//		parse<ParserTestType, FixedString{"-123"}, NumericTypeTag::Integer>(), // Actual
+	//		-123 // Expected
+	//	);
+	//strict_check_parse<ParserTestType::IntegerType>(
+	//		parse<ParserTestType, FixedString{"-123i"}, NumericTypeTag::Integer>(), // Actual
+	//		-123 // Expected
+	//	);
 	strict_check_parse<ParserTestType::IntegerType>(
 			parse<ParserTestType, FixedString{"123i"}, NumericTypeTag::Integer>(), // Actual
 			123 // Expected
@@ -100,26 +101,26 @@ TEST(NumericLiterals, ParseFixedPoints)
 			runtime_parse<ParserTestType, FixedString{"0x7B.7B"}, NumericTypeTag::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
-	strict_check_parse<ParserTestType::FixedPointType>(
-			runtime_parse<ParserTestType, FixedString{"-0x7B.7B"}, NumericTypeTag::FixedPoint>(), // Actual
-			static_cast<FixedType>(-123.123) // Expected
-		);
+	//strict_check_parse<ParserTestType::FixedPointType>(
+	//		runtime_parse<ParserTestType, FixedString{"-0x7B.7B"}, NumericTypeTag::FixedPoint>(), // Actual
+	//		static_cast<FixedType>(-123.123) // Expected
+	//	);
 	strict_check_parse<ParserTestType::FixedPointType>(
 			runtime_parse<ParserTestType, FixedString{"0b1111011.1111011"}, NumericTypeTag::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
-	strict_check_parse<ParserTestType::FixedPointType>(
-			runtime_parse<ParserTestType, FixedString{"-0b1111011.1111011"}, NumericTypeTag::FixedPoint>(), // Actual
-			static_cast<FixedType>(-123.123) // Expected
-		);
+	//strict_check_parse<ParserTestType::FixedPointType>(
+	//		runtime_parse<ParserTestType, FixedString{"-0b1111011.1111011"}, NumericTypeTag::FixedPoint>(), // Actual
+	//		static_cast<FixedType>(-123.123) // Expected
+	//	);
 	strict_check_parse<ParserTestType::FixedPointType>(
 			runtime_parse<ParserTestType, FixedString{"0o173.173"}, NumericTypeTag::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
-	strict_check_parse<ParserTestType::FixedPointType>(
-			runtime_parse<ParserTestType, FixedString{"-0o173.173"}, NumericTypeTag::FixedPoint>(), // Actual
-			static_cast<FixedType>(-123.123) // Expected
-		);
+	//strict_check_parse<ParserTestType::FixedPointType>(
+	//		runtime_parse<ParserTestType, FixedString{"-0o173.173"}, NumericTypeTag::FixedPoint>(), // Actual
+	//		static_cast<FixedType>(-123.123) // Expected
+	//	);
 	// Feature... not a bug... suuuuuuuuure... //
 	// TODO: FIX THIS!!!
 	//strict_check_parse<ParserTestType::FixedPointType>(
@@ -140,10 +141,10 @@ TEST(NumericLiterals, ParseFixedPoints)
 			runtime_parse<ParserTestType, FixedString{"123.123xp"}, NumericTypeTag::FixedPoint>(), // Actual
 			static_cast<FixedType>(123.123) // Expected
 		);
-	strict_check_parse<ParserTestType::FixedPointType>(
-			runtime_parse<ParserTestType, FixedString{"-123.123"}, NumericTypeTag::FixedPoint>(), // Actual
-			static_cast<FixedType>(-123.123) // Expected
-		);
+	//strict_check_parse<ParserTestType::FixedPointType>(
+	//		runtime_parse<ParserTestType, FixedString{"-123.123"}, NumericTypeTag::FixedPoint>(), // Actual
+	//		static_cast<FixedType>(-123.123) // Expected
+	//	);
 };
 
 TEST(NumericLiterals, ParseCharacters)
@@ -234,7 +235,7 @@ template<typename ResultParameterType, auto ValueParameterConstant>
 constexpr void check_varible_bit_against_value(const auto& to_check, const auto& bitness_values)
 {
 	for(size_t ii = 0; ii < to_check.size(); ++ii) {
-		strict_check_parse<ResultParameterType, ValueParameterConstant>(to_check[ii], ValueParameterConstant);
+		strict_check_parse<ResultParameterType>(to_check[ii], ValueParameterConstant);
 		CHECK((to_check[ii].value().bits == bitness_values[ii % bitness_values.size()]));
 	}
 }

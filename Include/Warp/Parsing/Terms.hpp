@@ -233,10 +233,12 @@ namespace Warp::Parsing
 		}
 
 		template<auto TagParameterConstant>
-		constexpr static const auto term 
-				= decltype(get_term<TagParameterConstant>())
-					::Type
-					::template term<static_cast<int>(precedence)>;
+		using TermType = decltype(get_term<TagParameterConstant>())::Type;
+
+		template<auto TagParameterConstant>
+		constexpr static const auto term  = TermType<TagParameterConstant>
+				::template term<static_cast<int>(precedence)>;
+
 
 		template<AssociatedTemplateConcept... NewTermParameterTypes>
 		using AddOnePriority = Terms<
@@ -262,7 +264,7 @@ namespace Warp::Parsing
 		using ReplaceTerms = Terms<PreviousType, precedence, NewTermParameterTypes...>;
 
 		template<AssociatedTemplateConcept... NewTermParameterTypes>
-		using MergeTerms = Terms<PreviousType, precedence, TermParameterTypes..., NewTermParameterTypes...>;
+		using AppendTerms = Terms<PreviousType, precedence, TermParameterTypes..., NewTermParameterTypes...>;
 
 		template<
 				typename OtherPreviousParameterType, 

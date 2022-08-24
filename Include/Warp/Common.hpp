@@ -13,6 +13,7 @@
 #include <initializer_list>
 #include <limits>
 #include <compare>
+#include <memory>
 #include <cmath>
 #include <climits>
 

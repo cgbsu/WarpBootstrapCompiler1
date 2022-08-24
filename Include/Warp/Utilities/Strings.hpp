@@ -56,6 +56,15 @@ namespace Warp::Utilities
 		return to;
 	}
 
+	template<size_t FromLengthParameterConstant, size_t ToLengthParameterConstant>
+	requires(ToLengthParameterConstant > FromLengthParameterConstant)
+	constexpr const auto& copy_array(const auto (&from)[FromLengthParameterConstant], auto (&to)[ToLengthParameterConstant])
+	{
+		for(size_t ii = 0; ii < FromLengthParameterConstant; ++ii)
+			to[ii] = from[ii];
+		return to;
+	}
+
 	template<size_t LengthParameterConstant>
 	struct FixedString
 	{
@@ -65,6 +74,15 @@ namespace Warp::Utilities
 		operator std::string_view() {
 			return std::string_view{string};
 		}
+		//template<size_t ToAppendLengthParameterConstant>
+		//constexpr const auto append(const auto (&to_append)[ToAppendLengthParameterConstant]) const noexcept 
+		//{
+		//	char appended[LengthParameterConstant + ToAppendLengthParameterConstant];
+		//	return FixedString{copy_array<ToAppendLengthParameterConstant>(
+		//			copy_array(string, appended)
+		//			appended[LengthParameterConstant], 
+		//		)};
+		//}
 	};
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__STRINGS__HPP

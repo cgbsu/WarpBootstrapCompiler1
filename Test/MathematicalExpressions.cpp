@@ -26,45 +26,67 @@ using FixedType = NumericTypeResolver<NumericTypeTag::FixedPoint>::Type;
 using CharType = NumericTypeResolver<NumericTypeTag::Character>::Type;
 using BoolType = NumericTypeResolver<NumericTypeTag::Bool>::Type;
 
+using WholeParserType = ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>;
+using IntegerParserType = ParserTestTemplate<NumericTypeTag::Integer, NumericTypeTag::Integer>;
+
+using WholeEnumType = WholeParserType::TypeSpecificMathematicalExpressionTermTags;
+using IntegerEnumType = IntegerParserType::TypeSpecificMathematicalExpressionTermTags;
+using WholeExpressionType = WholeParserType::Expression;
+using IntegerExpressionType = IntegerParserType::Expression;
+
+constexpr const auto compare_value = [](auto left, auto right) 
+		{ return left.value == right.value; };
+
+void math_check(bool value) {
+	CHECK(value);
+}
+
 TEST_GROUP(MathematicalExpressions) {};
 
 TEST(MathematicalExpressions, InputAddition)
 {
 	bool debug = false;
-	strict_check_parse<WholeType>(runtime_parse<
-				 ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>, 
-				 FixedString{"1u + 1u"}, 
-				 NumericTypeTag::Whole
+	strict_check_parse<WholeExpressionType, compare_value, math_check>(runtime_parse<
+				WholeParserType, 
+				FixedString{"1u + 1u"}, 
+				WholeEnumType::Expression
 			>(debug) /*Actual*/, 
-			WholeType{2u} /*Expected*/
+			WholeExpressionType{WholeType{2u}} /*Expected*/
 		);
-	strict_check_parse<WholeType>(runtime_parse<
-				 ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>, 
-				 FixedString{"1 + 1"}, 
-				 NumericTypeTag::Whole
+	strict_check_parse<WholeExpressionType, compare_value, math_check>(runtime_parse<
+				WholeParserType, 
+				FixedString{"1 + 1"}, 
+				WholeEnumType::Expression
 			>(debug) /*Actual*/, 
-			WholeType{2u} /*Expected*/
+			WholeExpressionType{WholeType{2u}} /*Expected*/
 		);
-	strict_check_parse<WholeType>(runtime_parse<
-				 ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>, 
-				 FixedString{"5 + 3"}, 
-				 NumericTypeTag::Whole
+	strict_check_parse<WholeExpressionType, compare_value, math_check>(runtime_parse<
+				WholeParserType, 
+				FixedString{"5 + 3"}, 
+				WholeEnumType::Expression
 			>(debug) /*Actual*/, 
-			WholeType{8u} /*Expected*/
+			WholeExpressionType{WholeType{8u}} /*Expected*/
 		);
-	strict_check_parse<WholeType>(runtime_parse<
-				 ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>, 
-				 FixedString{"5u8 + 3u8"}, 
-				 NumericTypeTag::Whole
+	strict_check_parse<WholeExpressionType, compare_value, math_check>(runtime_parse<
+				WholeParserType, 
+				FixedString{"5u8 + 3u8"}, 
+				WholeEnumType::Expression
 			>(debug) /*Actual*/, 
-			WholeType{8u} /*Expected*/
+			WholeExpressionType{WholeType{8u}} /*Expected*/
 		);
-	strict_check_parse<IntegerType>(runtime_parse<
-				 ParserTestTemplate<NumericTypeTag::Integer, NumericTypeTag::Integer>, 
-				 FixedString{"9i8 + 3i5"}, 
-				 NumericTypeTag::Integer
+	strict_check_parse<IntegerExpressionType, compare_value, math_check>(runtime_parse<
+				IntegerParserType, 
+				FixedString{"9i8 + 3i5"}, 
+				IntegerEnumType::Expression
 			>(debug) /*Actual*/, 
-			IntegerType{12u} /*Expected*/
+			IntegerExpressionType{IntegerType{12u}} /*Expected*/
+		);
+	strict_check_parse<IntegerExpressionType, compare_value, math_check>(runtime_parse<
+				IntegerParserType, 
+				FixedString{"9i8 + 3i8 + 10i"}, 
+				IntegerEnumType::Expression
+			>(debug) /*Actual*/, 
+			IntegerExpressionType{IntegerType{22}} /*Expected*/
 		);
 	//TODO: The following runs fine
 	//std::cout << "VALUE?: " << runtime_parse<
@@ -88,19 +110,31 @@ TEST(MathematicalExpressions, InputAddition)
 TEST(MathematicalExpressions, InputSubraction)
 {
 	bool debug = false;
-	strict_check_parse<WholeType>(parse<
-				 ParserTestTemplate<NumericTypeTag::Whole, NumericTypeTag::Whole>, 
-				 FixedString{"5 - 3"}, 
-				 NumericTypeTag::Whole
-			>() /*Actual*/, 
-			WholeType{2} /*Expected*/
-		);
-	strict_check_parse<IntegerType>(parse<
-				 ParserTestTemplate<NumericTypeTag::Integer, NumericTypeTag::Integer>, 
-				 FixedString{"5i - 10i"}, 
-				 NumericTypeTag::Integer
-			>() /*Actual*/, 
-			IntegerType{-5} /*Expected*/
-		);
+	//strict_check_parse<WholeExpressionType>(parse<
+	//			WholeParserType, 
+	//			FixedString{"5 - 3"}, 
+	//			WholeEnumType::Expression
+	//		>() /*Actual*/, 
+	//		WholeExpressionType{WholeType{2}} /*Expected*/
+	//	);
+	//strict_check_parse<IntegerType>(parse<
+	//			IntegerParserType, 
+	//			FixedString{"5i - 10i"}, 
+	//			NumericTypeTag::Integer
+	//		>() /*Actual*/, 
+	//		IntegerType{-5}} /*Expected*/
+	//	);
+	std::cout << "RESULT: " << runtime_parse<
+				IntegerParserType, 
+				FixedString{"5i - 10i - 8i"}, 
+				IntegerEnumType::Expression
+			>(true).value().value << "\n";
+	//strict_check_parse<IntegerType, compare_value, math_check>(runtime_parse<
+	//			ParserTestTemplate<NumericTypeTag::Integer, NumericTypeTag::Integer>, 
+	//			FixedString{"5i - 10i - 8i"}, 
+	//			NumericTypeTag::Integer
+	//		>(true) /*Actual*/, 
+	//		IntegerType{-13} /*Expected*/
+	//	);
 };
 

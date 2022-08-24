@@ -1,0 +1,11 @@
+#include <Warp/Common.hpp>
+
+#ifndef WARP__PARSING__HEADER__SYNTAX__ANALYSIS__EXPRESSIONS__HPP
+#define WARP__PARSING__HEADER__SYNTAX__ANALYSIS__EXPRESSIONS__HPP
+
+namespace Warp::SyntaxAnalysis::SyntaxTree
+{
+}
+
+#endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__EXPRESSIONS__HPP
+
