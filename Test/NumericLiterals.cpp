@@ -24,29 +24,29 @@ using BoolType = ParserTestType::BoolType;
 
 TEST(NumericLiterals, ParseWholeAnyBase)
 {
-	strict_check_parse<ParserTestType::WholeType>(
+	check_parse(
 			parse<ParserTestType, FixedString{"0d123"}, NumericTypeTag::Whole>(), // Actual
-			123 // Expected
+			123u // Expected
 		);
-	strict_check_parse<ParserTestType::WholeType>(
+	check_parse(
 			parse<ParserTestType, FixedString{"123"}, NumericTypeTag::Whole>(), // Actual
-			123 // Expected
+			123u // Expected
 		);
-	strict_check_parse<ParserTestType::WholeType>(
+	check_parse(
 			parse<ParserTestType, FixedString{"123u"}, NumericTypeTag::Whole>(), // Actual
-			123 // Expected
+			123u // Expected
 		);
-	strict_check_parse<ParserTestType::WholeType>(
+	check_parse(
 			parse<ParserTestType, FixedString{"0b1111011"}, NumericTypeTag::Whole>(), // Actual
-			123 // Expected
+			123u // Expected
 		);
-	strict_check_parse<ParserTestType::WholeType>(
+	check_parse(
 			parse<ParserTestType, FixedString{"0o173"}, NumericTypeTag::Whole>(), // Actual
-			123 // Expected
+			123u // Expected
 		);
-	strict_check_parse<ParserTestType::WholeType>(
+	check_parse(
 			parse<ParserTestType, FixedString{"0x7B"}, NumericTypeTag::Whole>(), // Actual
-			123 // Expected
+			123u // Expected
 		);
 };
 

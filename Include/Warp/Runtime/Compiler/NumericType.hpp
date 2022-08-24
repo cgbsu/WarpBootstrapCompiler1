@@ -7,9 +7,7 @@
 namespace Warp::Runtime::Compiler
 {
 	using namespace Warp::Utilities;
-
-	enum class NumericTypeTag {
-		Whole, Integer, FixedPoint, Character, Bool
+enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 	};
 
 	enum class WarpBool : unsigned char {
@@ -45,12 +43,16 @@ namespace Warp::Runtime::Compiler
 		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
 		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
 
-		constexpr std::strong_ordering operator<=>(const ConvertableToExceptConcept<UnderylingType, ThisType> auto& other) const noexcept {
-			return number <=> other.number;
-		}
-
-		constexpr std::strong_ordering operator<=>(const ConvertableToExceptConcept<ThisType, UnderylingType> auto& other) const noexcept {
-			return number <=> other.number;
+		//constexpr std::strong_ordering operator<=>(const ConvertableToExceptConcept<UnderylingType, ThisType> auto& other) const noexcept {
+		//	return number <=> other.number;
+		//}
+		//constexpr std::strong_ordering operator<=>(const ConvertableToExceptConcept<ThisType, UnderylingType> auto& other) const noexcept {
+		//	return number <=> other.number;
+		//}
+		//
+		//constexpr std::strong_ordering operator<=>(const NumericType& other) const noexcept = default;
+		constexpr std::strong_ordering operator<=>(const UnderylingType& other) const noexcept {
+			return number <=> other;
 		}
 
 		constexpr operator UnderylingType() const noexcept {
@@ -115,33 +117,60 @@ namespace Warp::Runtime::Compiler
 		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
 		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
 
-
-		constexpr std::strong_ordering operator<=>(const NumericType& other) const noexcept = default;
-		constexpr std::strong_ordering operator<=>(const UnderylingType& other) const noexcept
+		constexpr std::strong_ordering spaceship_underlying(const UnderylingType& other) const noexcept
 		{
-			return (other < number) 
-					? std::strong_ordering::less
-					: ((other > number) 
-							? std::strong_ordering::greater 
-							: std::strong_ordering::equivalent);
+			return ((number == other)
+					? std::strong_ordering::equal 
+					: (number < other) ? std::strong_ordering::less : std::strong_ordering::greater);
+		}
+		constexpr bool operator==(const NumericType& other) const noexcept {
+			return number.to_uint() == other.number.to_uint();
+		}
+		constexpr bool operator<(const NumericType& other) const noexcept {
+			return number.to_uint() < other.number.to_uint();
+		}
+		constexpr bool operator>(const NumericType& other) const noexcept {
+			return number.to_uint() > other.number.to_uint();
+		}
+		constexpr bool operator<=(const NumericType& other) const noexcept {
+			return number.to_uint() <= other.number.to_uint();
+		}
+		constexpr bool operator>=(const NumericType& other) const noexcept {
+			return number.to_uint() >= other.number.to_uint();
+		}
+		//////////////////////////////////////////////////////////////////////
+		constexpr bool operator==(const UnderylingType& other) const noexcept {
+			return number.to_uint() == other.to_uint();
+		}
+		constexpr bool operator<(const UnderylingType& other) const noexcept {
+			return number.to_uint() < other.to_uint();
+		}
+		constexpr bool operator>(const UnderylingType& other) const noexcept {
+			return number.to_uint() > other.to_uint();
+		}
+		constexpr bool operator>=(const UnderylingType& other) const noexcept {
+			return number.to_uint() >= other.to_uint();
+		}
+		constexpr bool operator<=(const UnderylingType& other) const noexcept {
+			return number.to_uint() <= other.to_uint();
 		}
 		constexpr operator UnderylingType() const noexcept {
 			return number;
 		}
 		constexpr NumericType operator+(const NumericType& other) const noexcept {
-			return number + other.number;
+			return ThisType{number + other.number};
 		}
 		constexpr NumericType operator*(const NumericType& other) const noexcept {
-			return number * other.number;
+			return ThisType{number * other.number};
 		}
 		constexpr NumericType operator-(const NumericType& other) const noexcept {
-			return number - other.number;
+			return ThisType{number - other.number};
 		}
 		constexpr NumericType operator/(const NumericType& other) const noexcept {
-			return number / other.number;
+			return ThisType{number / other.number};
 		}
 		constexpr NumericType operator-() const noexcept {
-			return -number;
+			return ThisType{-number};
 		}
 	};
 

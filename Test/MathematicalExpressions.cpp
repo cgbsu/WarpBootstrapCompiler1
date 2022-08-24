@@ -3,7 +3,6 @@
 #include <ThirdParty/fpm/ios.hpp>
 #include <Warp/Parsing/Terms.hpp>
 #include <CppUTest/TestHarness.h>
-
 #define WARP__TESTING__HEADER__TESTING__PARSE__TESTING__UTILITIES__HPP__CHECK__MACRO__REQUIRED CHECK
 #include <Warp/Testing/ParseTestingUtilities.hpp>
 
@@ -49,9 +48,6 @@ TEST_GROUP(MathematicalExpressions) {};
 
 bool compare_fixed(FixedExpressionType left, FixedExpressionType right)
 {
-	std::cout << "left: " << left.value.number << "\n" 
-			<< "right: " << right.value.number << "\n" 
-			<< "equal: " << (left.value == right.value) << "\n";
 	return left.value == right.value;
 }
 
@@ -100,32 +96,13 @@ TEST(MathematicalExpressions, InputAddition)
 			>(debug) /*Actual*/, 
 			IntegerExpressionType{IntegerType{22}} /*Expected*/
 		);
-	//TODO: The following runs fine
-	std::cout << "\n\n-------------------\n\n";
-	std::cout << "VALUE?: " << runtime_parse<
-				FixedParserType, 
-				FixedString{"16.16xp + 16.16xp"}, 
-				FixedEnumType::Expression
-			>(debug).value().value.number << "\n";
-	std::cout << "COMPARE TO: " << FixedType{32, 32}.number << "\n";
-	std::cout << "EQUAL: " << (FixedType{32, 32} == FixedType{32, 32}) << "\n";
-	std::cout << "\n\n-------------------\n\n";
-	//However this runs failes CHECK()
-	strict_check_parse<FixedExpressionType, compare_fixed>(runtime_parse<
+	strict_check_parse<FixedExpressionType, compare_value>(runtime_parse<
 				FixedParserType, 
 				FixedString{"16.16xp + 16.16xp"}, 
 				FixedEnumType::Expression
 			>(debug) /*Actual*/, 
 			FixedExpressionType{FixedType{32, 32}} /*Expected*/
 		);
-	//			FixedParserType, 
-	//			FixedString{"16.16xp + 16.16xp"}, 
-	//			FixedEnumType::Expression
-	//		>(debug) /*Actual*/, 
-	//		FixedExpressionType{FixedType{32, 32}} /*Expected*/
-	//	);
-	 //I will assume for the moment it is somethign to do with the test code or FixedPoint type 
-	// and not the parser, and I will resume (TODO) this later.
 };
 
 TEST(MathematicalExpressions, InputSubraction)
@@ -152,5 +129,12 @@ TEST(MathematicalExpressions, InputSubraction)
 			>(debug) /*Actual*/, 
 			IntegerExpressionType{IntegerType{-13}} /*Expected*/
 		);
+	//strict_check_parse<FixedExpressionType, compare_value>(runtime_parse<
+	//			FixedParserType, 
+	//			FixedString{"16.16xp - 8.8xp"}, 
+	//			FixedEnumType::Expression
+	//		>(debug) /*Actual*/, 
+	//		FixedExpressionType{FixedType{8, 8}} /*Expected*/
+	//	);
 };
 
