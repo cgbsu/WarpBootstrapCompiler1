@@ -124,3 +124,10 @@ TEST(MathematicalExpressions, InputMultiplication)
 	whole_test<FixedString{"5u * 3u * 20u * 44u"}>(13200, debug);
 };
 
+TEST(MathematicalExpressions, InputDivision)
+{
+	bool debug = false;
+	whole_test<FixedString{"15u / 3u"}>(5, debug);
+	whole_test<FixedString{"60u / 3u / 20u"}>(1, debug);
+	whole_test<FixedString{"126 / 7 / 3 / 2"}>(3, debug);
+};
