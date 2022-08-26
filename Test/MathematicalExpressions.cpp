@@ -118,7 +118,9 @@ TEST(MathematicalExpressions, InputSums)
 
 TEST(MathematicalExpressions, InputMultiplication)
 {
-	bool debug = true;
+	bool debug = false;
 	whole_test<FixedString{"5u * 3u"}>(15, debug);
+	whole_test<FixedString{"5u * 3u * 20u"}>(300, debug);
+	whole_test<FixedString{"5u * 3u * 20u * 44u"}>(13200, debug);
 };
 

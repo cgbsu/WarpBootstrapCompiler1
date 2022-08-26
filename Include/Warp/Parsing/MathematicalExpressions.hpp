@@ -202,6 +202,11 @@ namespace Warp::Parsing
 				>= [](auto sum_) {
 					return Expression{sum_.value};
 				}; 
+		constexpr static const auto product_to_expression
+				= expression(product)
+				>= [](auto product_) {
+					return Expression{product_.value};
+				}; 
 
 		consteval static const auto rules()
 		{
@@ -220,7 +225,8 @@ namespace Warp::Parsing
 							[](auto left, auto right) { return left / right; }
 						>(product, divide), 
 					ctpg::rules(
-							sum_to_expression
+							sum_to_expression, 
+							product_to_expression
 						)
 				);
 		}
