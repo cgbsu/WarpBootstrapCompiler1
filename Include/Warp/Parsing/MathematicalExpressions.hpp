@@ -117,6 +117,7 @@ namespace Warp::Parsing
 		enum class TypeSpecificMathematicalExpressionTermTags {
 			Sum, 
 			Product, 
+			NegatedProduct, 
 			Expression
 		};
 
@@ -138,6 +139,12 @@ namespace Warp::Parsing
 						NonTerminalTerm, 
 						Product, 
 						FixedString{"Product"}
+					>, 
+				TypeTreeTerm<
+						TypeSpecificMathematicalExpressionTermTags::NegatedProduct, 
+						NonTerminalTerm, 
+						Product, 
+						FixedString{"NegatedProduct"}
 					>
 			>;
 
@@ -157,6 +164,8 @@ namespace Warp::Parsing
 				= term<TypeSpecificMathematicalExpressionTermTags::Sum>;
 		constexpr static const auto product
 				= term<TypeSpecificMathematicalExpressionTermTags::Product>;
+		constexpr static const auto negated_product
+				= term<TypeSpecificMathematicalExpressionTermTags::Product>;
 		constexpr static const auto expression 
 				= term<TypeSpecificMathematicalExpressionTermTags::Expression>;
 
@@ -169,12 +178,14 @@ namespace Warp::Parsing
 						divide
 					)
 			);
+
 		constexpr static const auto non_terminal_terms = std::tuple_cat(
 				BaseType::non_terminal_terms, 
 				ctpg::nterms(
 						reduce_to, 
 						sum, 
 						product, 
+						negated_product, 
 						expression
 					)
 			);
@@ -197,20 +208,137 @@ namespace Warp::Parsing
 				);
 		}
 
+		template<auto OperateParameterConstant>
+		consteval static const auto sum_product_operation_rules(auto operator_term)
+		{
+			return ctpg::rules(
+					sum(sum, operator_term, product) 
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left, right.value);
+					}, 
+					sum(product, operator_term, sum) 
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left.value, right.value);
+					}, 
+					sum(input, operator_term, product)
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left, right.value);
+					}, 
+					sum(product, operator_term, input)
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left.value, right);
+					}
+				);
+		}
+
+		template<auto OperateParameterConstant>
+		consteval static const auto sum_negative_product_operation_rules(auto operator_term)
+		{
+			return ctpg::rules(
+					sum(negated_product, operator_term, sum) 
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left.value, right.value);
+					}, 
+					sum(input, operator_term, negated_product)
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left, right.value);
+					}, 
+					sum(negated_product, operator_term, input)
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left.value, right);
+					}
+				);
+		}
+
+		consteval static const auto product_sum_operation_rules()
+		{
+			return ctpg::rules(
+					sum(sum, negated_product) 
+					>= [](auto left, auto right) {
+						return left - right.value;
+					}, 
+					sum(product, negated_product)
+					>= [](auto left, auto right) {
+						return left.value - right.value;
+					}
+				);
+		}
+
+		consteval static const auto signed_rules()
+		{
+			return ctpg::rules(
+					sum(negated_product, negated_product)
+					>= [](auto left, auto right) {
+						return -left.value - right.value;
+					}, 
+					expression(negated_product) 
+					>= [](auto product) {
+						return product;
+					}
+				);
+		}
+
+
+		template<auto OperateParameterConstant>
+		consteval static const auto sum_product_basic_rule(
+				auto product_term, 
+				auto operator_term
+			)
+		{
+			return ctpg::rules(
+					sum(product_term, operator_term, product_term) 
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left.value, right.value);
+					}
+				);
+		}
+
+		constexpr static const auto negate_product
+				= negated_product(subtract, product)
+				>= [](auto negative, auto operhand) {
+					return Product{operhand.value};
+				};
+
+		constexpr static const auto negate_input
+				= negated_product(subtract, input)
+				>= [](auto negative, auto operhand) {
+					return Product{operhand.value};
+				};
+
+		consteval const static auto product_negated_product_rules(auto operator_term)
+		{
+			return ctpg::rules(
+					negated_product(product, operator_term, negated_product)
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left, right);
+					}, 
+					product(negated_product, operator_term, negated_product)
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left, right);
+					}, 
+					negated_product(negated_product, operator_term, product)
+					>= [](auto left, auto, auto right) {
+						return OperateParameterConstant(left, right);
+					}
+				);
+		}
+
 		constexpr static const auto sum_to_expression
 				= expression(sum)
 				>= [](auto sum_) {
 					return Expression{sum_.value};
 				}; 
+
 		constexpr static const auto product_to_expression
 				= expression(product)
 				>= [](auto product_) {
 					return Expression{product_.value};
 				}; 
 
+
 		consteval static const auto rules()
 		{
-			return concatinate_tuples(
+			constexpr auto base_rules = concatinate_tuples(
 					BaseType::rules(), 
 					basic_operation_rules<
 							[](auto left, auto right) { return left + right; }
@@ -224,11 +352,34 @@ namespace Warp::Parsing
 					basic_operation_rules<
 							[](auto left, auto right) { return left / right; }
 						>(product, divide), 
+					sum_product_operation_rules<
+							[](auto left, auto right) { return left + right; }
+						>(add), 
+					sum_product_basic_rule<
+							[](auto left, auto right) { return left + right; }
+						>(product, add), 
+					sum_product_basic_rule<
+							[](auto left, auto right) { return left + right; }
+						>(negated_product, add), 
+					product_sum_operation_rules(), 
+					sum_negative_product_operation_rules<
+							[](auto left, auto right) { return left + right; }
+						>(add),
+					//sum_negative_product_operation_rules<
+					//		[](auto left, auto right) { return left / right; }
+					//	>(divide), 
+					//
 					ctpg::rules(
+							negate_product, 
+							//negate_input, 
 							sum_to_expression, 
 							product_to_expression
 						)
 				);
+			//if constexpr(std::is_unsigned_v<typename ReduceToType::UnderylingType> == false)
+			//	return std::tuple_cat(base_rules, signed_rules());
+			//else
+				return base_rules;
 		}
 
 	};

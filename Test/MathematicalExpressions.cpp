@@ -122,6 +122,7 @@ TEST(MathematicalExpressions, InputMultiplication)
 	whole_test<FixedString{"5u * 3u"}>(15, debug);
 	whole_test<FixedString{"5u * 3u * 20u"}>(300, debug);
 	whole_test<FixedString{"5u * 3u * 20u * 44u"}>(13200, debug);
+	//integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, true);
 };
 
 TEST(MathematicalExpressions, InputDivision)
@@ -131,3 +132,18 @@ TEST(MathematicalExpressions, InputDivision)
 	whole_test<FixedString{"60u / 3u / 20u"}>(1, debug);
 	whole_test<FixedString{"126 / 7 / 3 / 2"}>(3, debug);
 };
+
+TEST(MathematicalExpressions, MixingBasicSumsAndProducts)
+{
+	bool debug = false;
+	whole_test<FixedString{"5u * 3u + 8u * 7u"}>(71, debug);
+	whole_test<FixedString{"4u + 5u * 3u - 21u / 7u"}>(16, debug);
+	whole_test<FixedString{"5u * 3u - 21u / 7u"}>(12, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u + 8u"}>(57, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u * 8u"}>(77, debug);
+	whole_test<FixedString{"6u + 5u * 3u - 21u / 7u + 4u"}>(22, debug);
+	whole_test<FixedString{"5u * 3u - 21u / 7u + 4u"}>(16, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+};
+
