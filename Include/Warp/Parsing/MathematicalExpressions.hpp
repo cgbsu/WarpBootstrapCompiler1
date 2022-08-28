@@ -264,9 +264,19 @@ namespace Warp::Parsing
 				);
 		}
 
-		//consteval static const auto signed_rules()
-		//{
-		//}
+		consteval static const auto signed_rules()
+		{
+			return ctpg::rules(
+					sum(negated_product, negated_product)
+					>= [](auto left, auto right) {
+						return Sum{-left.value - right.value};
+					}, 
+					expression(negated_product) 
+					>= [](auto product) {
+						return Expression{product.value};
+					}
+				);
+		}
 
 
 		template<auto OperateParameterConstant>
@@ -383,10 +393,6 @@ namespace Warp::Parsing
 					negated_product_input_rules<
 							[](auto left, auto right) { return left / right; }
 						>(divide), 
-					//sum_negative_product_operation_rules<
-					//		[](auto left, auto right) { return left / right; }
-					//	>(divide), 
-					//
 					ctpg::rules(
 							negate_product, 
 							negate_negated_product, 
@@ -394,26 +400,11 @@ namespace Warp::Parsing
 							product_to_expression
 						)
 				);
-			return base_rules;
-			//if constexpr(std::is_unsigned_v<typename ReduceToType::UnderylingType> 
-			//		== false)
-			//{
-			//	return concatinate_tuples(
-			//		base_rules, 
-			//		ctpg::rules(
-			//				sum(negated_product, negated_product)
-			//				>= [](auto left, auto right) {
-			//					return -left.value - right.value;
-			//				}, 
-			//				expression(negated_product) 
-			//				>= [](auto product) {
-			//					return product;
-			//				}
-			//			)
-			//		);
-			//}
-			//else
-			//	return base_rules;
+			if constexpr(std::is_unsigned_v<typename ReduceToType::UnderylingType> 
+					== false)
+				return concatinate_tuples(base_rules, signed_rules());
+			else
+				return base_rules;
 		}
 
 	};
