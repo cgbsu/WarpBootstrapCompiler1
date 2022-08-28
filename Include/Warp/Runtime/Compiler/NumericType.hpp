@@ -63,7 +63,7 @@ enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 			return number / other.number;
 		}
 		constexpr NumericType operator-() const noexcept {
-			static_assert(std::is_unsigned_v<UnderylingType> == true);
+			//static_assert(std::is_unsigned_v<UnderylingType> == true);
 			return -number;
 		}
 	};
