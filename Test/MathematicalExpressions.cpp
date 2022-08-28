@@ -1,15 +1,9 @@
-#include <Warp/Parsing/NumericLiterals.hpp>
-#include <Warp/Parsing/MathematicalExpressions.hpp>
-#include <Warp/Utilities.hpp>
-#include <ThirdParty/fpm/ios.hpp>
-#include <Warp/Parsing/Terms.hpp>
+#include "MathematicalExpressions.hpp"
 #include <CppUTest/TestHarness.h>
 #define WARP__TESTING__HEADER__TESTING__PARSE__TESTING__UTILITIES__HPP__CHECK__MACRO__REQUIRED CHECK
 #include <Warp/Testing/ParseTestingUtilities.hpp>
 
 using namespace Warp::Testing;
-using namespace Warp::Parsing;
-using namespace Warp::Utilities;
 
 template<auto ResultTagParameterConstant, auto InputTagParameterConstant>
 using ParserTestTemplate = MathematicalExpressionParser<
@@ -18,7 +12,6 @@ using ParserTestTemplate = MathematicalExpressionParser<
 		ResultTagParameterConstant, 
 		InputTagParameterConstant
 	>;
-
 
 using WholeType = NumericTypeResolver<NumericTypeTag::Whole>::Type;
 using IntegerType = NumericTypeResolver<NumericTypeTag::Integer>::Type;
@@ -38,8 +31,9 @@ using WholeExpressionType = WholeParserType::Expression;
 using IntegerExpressionType = IntegerParserType::Expression;
 using FixedExpressionType = FixedParserType::Expression;
 
-constexpr const auto compare_value = [](auto left, auto right) 
-		{ return left.value == right.value; };
+constexpr const auto compare_value = [](auto left, auto right) {
+	return left.value == right.value;
+};
 
 void math_check(bool value) {
 	CHECK(value);
@@ -52,13 +46,40 @@ bool compare_fixed(FixedExpressionType left, FixedExpressionType right) {
 }
 
 template<auto TestParameterConstant>
-void whole_test(auto expected, bool debug = false)
+auto parse_whole(bool debug = false)
 {
-	strict_check_parse<WholeExpressionType, compare_value>(runtime_parse<
+	return runtime_parse<
 				WholeParserType, 
 				TestParameterConstant, 	
 				WholeEnumType::Expression
-			>(debug) /*Actual*/, 
+			>(debug);
+}
+
+template<auto TestParameterConstant>
+auto parse_integer(bool debug = false)
+{
+	return runtime_parse<
+				IntegerParserType, 
+				TestParameterConstant, 	
+				IntegerEnumType::Expression
+			>(debug);
+}
+
+template<auto TestParameterConstant>
+auto parse_fixed(bool debug = false)
+{
+	return runtime_parse<
+			FixedParserType, 
+			TestParameterConstant, 	
+			FixedEnumType::Expression
+		>(debug);
+}
+
+template<auto TestParameterConstant>
+void whole_test(auto expected, bool debug = false)
+{
+	strict_check_parse<WholeExpressionType, compare_value>(
+			parse_whole<TestParameterConstant>(debug) /*Actual*/, 
 			WholeExpressionType{expected} /*Expected*/
 		);
 }
@@ -66,26 +87,21 @@ void whole_test(auto expected, bool debug = false)
 template<auto TestParameterConstant>
 void integer_test(auto expected, bool debug = false)
 {
-	strict_check_parse<IntegerExpressionType, compare_value>(runtime_parse<
-				IntegerParserType, 
-				TestParameterConstant, 	
-				IntegerEnumType::Expression
-			>(debug) /*Actual*/, 
+	strict_check_parse<IntegerExpressionType, compare_value>(
+			parse_integer<TestParameterConstant>(debug) /*Actual*/, 
 			IntegerExpressionType{expected} /*Expected*/
 		);
 }
 
-template<auto TestParameterConstant>
+template<auto TestParameterConstant> 
 void fixed_test(auto expected, bool debug = false)
-{
-	strict_check_parse<FixedExpressionType, compare_value>(runtime_parse<
-				FixedParserType, 
-				TestParameterConstant, 	
-				FixedEnumType::Expression
-			>(debug) /*Actual*/, 
+{ 
+		strict_check_parse<FixedExpressionType, compare_value>(
+			parse_fixed<TestParameterConstant>(debug) /*Actual*/, 
 			FixedExpressionType{expected} /*Expected*/
 		);
 }
+
 
 TEST(MathematicalExpressions, InputAddition)
 {
@@ -122,7 +138,13 @@ TEST(MathematicalExpressions, InputMultiplication)
 	whole_test<FixedString{"5u * 3u"}>(15, debug);
 	whole_test<FixedString{"5u * 3u * 20u"}>(300, debug);
 	whole_test<FixedString{"5u * 3u * 20u * 44u"}>(13200, debug);
-	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
+	//integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
+	//integer_test<FixedString{"5i * -3i * -20i * -44i"}>(-13200, debug);
+	//std::cout << "RT: " << runtime_parse<
+	//			IntegerParserType, 
+	//			FixedString{"5i * -3i * -20i * 44i"}, 
+	//			IntegerEnumType::Expression
+	//		>(debug).value().value << "\n";
 };
 
 TEST(MathematicalExpressions, InputDivision)
@@ -136,14 +158,19 @@ TEST(MathematicalExpressions, InputDivision)
 TEST(MathematicalExpressions, MixingBasicSumsAndProducts)
 {
 	bool debug = false;
-	whole_test<FixedString{"5u * 3u + 8u * 7u"}>(71, debug);
-	whole_test<FixedString{"4u + 5u * 3u - 21u / 7u"}>(16, debug);
-	whole_test<FixedString{"5u * 3u - 21u / 7u"}>(12, debug);
-	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
-	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u + 8u"}>(57, debug);
-	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u * 8u"}>(77, debug);
-	whole_test<FixedString{"6u + 5u * 3u - 21u / 7u + 4u"}>(22, debug);
-	whole_test<FixedString{"5u * 3u - 21u / 7u + 4u"}>(16, debug);
-	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+	//whole_test<FixedString{"5u * 3u + 8u * 7u"}>(71, debug);
+	//whole_test<FixedString{"4u + 5u * 3u - 21u / 7u"}>(16, debug);
+	//whole_test<FixedString{"5u * 3u - 21u / 7u"}>(12, debug);
+	//whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+	//whole_test<FixedString{"5u * 3u * 21u / 7u + 4u + 8u"}>(57, debug);
+	//whole_test<FixedString{"5u * 3u * 21u / 7u + 4u * 8u"}>(77, debug);
+	//whole_test<FixedString{"6u + 5u * 3u - 21u / 7u + 4u"}>(22, debug);
+	//std::cout << "\n\nRT: " << runtime_parse<
+	//			WholeParserType, 
+	//			FixedString{"5u * 3u - 21u / 7u + 4u"}, 
+	//			WholeEnumType::Expression
+	//		>(true).value().value << "\n\n\n";
+	//whole_test<FixedString{"5u * 3u - 21u / 7u + 4u"}>(16, debug);
+	//whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
 };
 

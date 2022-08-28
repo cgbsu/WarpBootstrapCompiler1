@@ -34,26 +34,26 @@ namespace Warp::Parsing
 					MathematicalExpression::Add, 
 					CharTerm, 
 					'+', 
-					ctpg::associativity::no_assoc
+					ctpg::associativity::ltor
 				>, 
 			TreeTerm<
 					MathematicalExpression::Subtract, 
 					CharTerm, 
 					'-', 
-					ctpg::associativity::no_assoc
+					ctpg::associativity::ltor
 				>
 		>::Prepend<
 				TreeTerm<
 						MathematicalExpression::Multiply, 
 						CharTerm, 
 						'*', 
-						ctpg::associativity::no_assoc
+						ctpg::associativity::ltor
 					>, 
 				TreeTerm<
 						MathematicalExpression::Divide, 
 						CharTerm, 
 						'/', 
-						ctpg::associativity::no_assoc
+						ctpg::associativity::ltor
 					>
 			>;
 
@@ -92,17 +92,6 @@ namespace Warp::Parsing
 			ReduceToType value;
 		};
 
-		struct Sum
-		{
-			ReduceToType value;
-			constexpr Sum operator+(const InputType& other) {
-				return Sum{value + other};
-			}
-			constexpr Sum operator-(const InputType& other) {
-				return Sum{value - other};
-			}
-		};
-
 		struct Product
 		{
 			ReduceToType value;
@@ -112,7 +101,27 @@ namespace Warp::Parsing
 			constexpr Product operator/(const InputType& other) {
 				return Product{value / other};
 			}
+			constexpr Product operator*(const Product& other) {
+				//std::cout << "MUL: " << " val: " << value << " other: " << other.value << "\n";
+				return Product{value * other.value};
+			}
+			constexpr Product operator/(const Product& other) {
+				//std::cout << "DIV: " << " val: " << value.number << " other: " << other.value.number << "\n";
+				return Product{value / other.value};
+			}
 		};
+
+		struct Sum
+		{
+			ReduceToType value;
+			constexpr Sum operator+(const Product& other) {
+				return Sum{value + other.value};
+			}
+			constexpr Sum operator-(const Product& other) {
+				return Sum{value - other.value};
+			}
+		};
+
 
 		enum class TypeSpecificMathematicalExpressionTermTags {
 			Sum, 
@@ -139,13 +148,13 @@ namespace Warp::Parsing
 						NonTerminalTerm, 
 						Product, 
 						FixedString{"Product"}
-					>, 
-				TypeTreeTerm<
-						TypeSpecificMathematicalExpressionTermTags::NegatedProduct, 
-						NonTerminalTerm, 
-						Product, 
-						FixedString{"NegatedProduct"}
-					>
+					>//, 
+				//TypeTreeTerm<
+				//		TypeSpecificMathematicalExpressionTermTags::NegatedProduct, 
+				//		NonTerminalTerm, 
+				//		Product, 
+				//		FixedString{"NegatedProduct"}
+				//	>
 			>;
 
 		template<auto TermTagParameterConstant>
@@ -162,9 +171,7 @@ namespace Warp::Parsing
 
 		constexpr static const auto sum 
 				= term<TypeSpecificMathematicalExpressionTermTags::Sum>;
-		constexpr static const auto product
-				= term<TypeSpecificMathematicalExpressionTermTags::Product>;
-		constexpr static const auto negated_product
+		constexpr static const auto math_term
 				= term<TypeSpecificMathematicalExpressionTermTags::Product>;
 		constexpr static const auto expression 
 				= term<TypeSpecificMathematicalExpressionTermTags::Expression>;
@@ -184,8 +191,7 @@ namespace Warp::Parsing
 				ctpg::nterms(
 						reduce_to, 
 						sum, 
-						product, 
-						negated_product, 
+						math_term, 
 						expression
 					)
 			);
@@ -197,11 +203,7 @@ namespace Warp::Parsing
 			)
 		{
 			return ctpg::rules(
-					operation_term(input, operator_term, input) 
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left, right);
-					}, 
-					operation_term(operation_term, operator_term, input) 
+					operation_term(operation_term, operator_term, math_term) 
 					>= [](auto left, auto, auto right) {
 						return OperateParameterConstant(left, right);
 					}
@@ -209,153 +211,41 @@ namespace Warp::Parsing
 		}
 
 		template<auto OperateParameterConstant>
-		consteval static const auto sum_product_operation_rules(auto operator_term)
-		{
-			return ctpg::rules(
-					sum(sum, operator_term, product) 
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left, right.value);
-					}, 
-					sum(product, operator_term, sum) 
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left.value, right.value);
-					}, 
-					sum(input, operator_term, product)
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left, right.value);
-					}, 
-					sum(product, operator_term, input)
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left.value, right);
-					}
-				);
-		}
-
-		template<auto OperateParameterConstant>
-		consteval static const auto sum_negative_product_operation_rules(auto operator_term)
-		{
-			return ctpg::rules(
-					sum(negated_product, operator_term, sum) 
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left.value, right.value);
-					}, 
-					sum(input, operator_term, negated_product)
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left, right.value);
-					}, 
-					sum(negated_product, operator_term, input)
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left.value, right);
-					}
-				);
-		}
-
-		consteval static const auto product_sum_operation_rules()
-		{
-			return ctpg::rules(
-					sum(sum, negated_product) 
-					>= [](auto left, auto right) {
-						return left - right.value;
-					}, 
-					sum(product, negated_product)
-					>= [](auto left, auto right) {
-						return left.value - right.value;
-					}
-				);
-		}
-
-		consteval static const auto signed_rules()
-		{
-			return ctpg::rules(
-					sum(negated_product, negated_product)
-					>= [](auto left, auto right) {
-						return Sum{-left.value - right.value};
-					}, 
-					expression(negated_product) 
-					>= [](auto product) {
-						return Expression{product.value};
-					}
-				);
-		}
-
-
-		template<auto OperateParameterConstant>
-		consteval static const auto sum_product_basic_rule(
-				auto product_term, 
+		consteval static const auto input_operation_rules(
+				auto operation_term, 
 				auto operator_term
 			)
 		{
 			return ctpg::rules(
-					sum(product_term, operator_term, product_term) 
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left.value, right.value);
-					}
-				);
-		}
-
-		constexpr static const auto negate_product
-				= negated_product(subtract, product)
-				>= [](auto negative, auto operhand) {
-					return Product{operhand.value};
-				};
-
-		constexpr static const auto negate_negated_product
-				= product(subtract, negated_product)
-				>= [](auto negative, auto operhand) {
-					return Product{operhand.value};
-				};
-
-		template<auto OperateParameterConstant>
-		consteval static const auto negated_product_input_rules(auto operator_term)
-		{
-			return ctpg::rules(
-					negated_product(input, operator_term, subtract, input)
-					>= [](auto left, auto, auto, auto right) {
-						return OperateParameterConstant(left, right);
-					}, 
-					product(subtract, input, operator_term, subtract, input)
-					>= [](auto, auto left, auto, auto, auto right) {
-						return OperateParameterConstant(left, right);
-					}, 
-					negated_product(product, operator_term, subtract, input)
-					>= [](auto left, auto, auto, auto right) {
-						return OperateParameterConstant(left.value, right);
-					}, 
-					product(negated_product, operator_term, subtract, input)
-					>= [](auto left, auto, auto, auto right) {
-						return OperateParameterConstant(left.value, right);
-					}
-				);
-		}
-
-
-		consteval const static auto product_negated_product_rules(auto operator_term)
-		{
-			return ctpg::rules(
-					negated_product(product, operator_term, negated_product)
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left, right);
-					}, 
-					product(negated_product, operator_term, negated_product)
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left, right);
-					}, 
-					negated_product(negated_product, operator_term, product)
+					operation_term(input, operator_term, input) 
 					>= [](auto left, auto, auto right) {
 						return OperateParameterConstant(left, right);
 					}
 				);
 		}
+
+		constexpr static const auto input_to_math_term
+				= math_term(input)
+				>= [](auto input_) {
+					return Product{input_};
+				}; 
 
 		constexpr static const auto sum_to_expression
 				= expression(sum)
-				>= [](auto sum_) { return Expression{sum_.value};
+				>= [](auto sum_) {
+					return Expression{sum_.value};
+				}; 
+
+		constexpr static const auto sum_to_term
+				= math_term(sum)
+				>= [](auto sum_) {
+					return Product{sum_.value};
 				}; 
 		
-		constexpr static const auto product_to_expression
-				= expression(product)
-				>= [](auto product_) {
-					return Expression{product_.value};
+		constexpr static const auto math_term_to_expression
+				= expression(math_term)
+				>= [](auto math_term_) {
+					return Expression{math_term_.value};
 				}; 
 
 		consteval static const auto rules()
@@ -368,43 +258,32 @@ namespace Warp::Parsing
 					basic_operation_rules<
 							[](auto left, auto right) { return left - right; }
 						>(sum, subtract), 
+					input_operation_rules<
+							[](auto left, auto right) { return left + right; }
+						>(sum, add), 
+					input_operation_rules<
+							[](auto left, auto right) { return left - right; }
+						>(sum, subtract), 
 					basic_operation_rules<
 							[](auto left, auto right) { return left * right; }
-						>(product, multiply), 
+						>(math_term, multiply), 
 					basic_operation_rules<
 							[](auto left, auto right) { return left / right; }
-						>(product, divide), 
-					sum_product_operation_rules<
-							[](auto left, auto right) { return left + right; }
-						>(add), 
-					sum_product_basic_rule<
-							[](auto left, auto right) { return left + right; }
-						>(product, add), 
-					sum_product_basic_rule<
-							[](auto left, auto right) { return left + right; }
-						>(negated_product, add), 
-					product_sum_operation_rules(), 
-					sum_negative_product_operation_rules<
-							[](auto left, auto right) { return left + right; }
-						>(add),
-					negated_product_input_rules<
+						>(math_term, divide), 
+					input_operation_rules<
 							[](auto left, auto right) { return left * right; }
-						>(multiply), 
-					negated_product_input_rules<
+						>(math_term, multiply), 
+					input_operation_rules<
 							[](auto left, auto right) { return left / right; }
-						>(divide), 
+						>(math_term, divide), 
 					ctpg::rules(
-							negate_product, 
-							negate_negated_product, 
+							input_to_math_term, 
 							sum_to_expression, 
-							product_to_expression
+							sum_to_term, 
+							math_term_to_expression
 						)
 				);
-			if constexpr(std::is_unsigned_v<typename ReduceToType::UnderylingType> 
-					== false)
-				return concatinate_tuples(base_rules, signed_rules());
-			else
-				return base_rules;
+			return base_rules;
 		}
 
 	};
