@@ -30,19 +30,6 @@ namespace Warp::Parsing
 
 	using MathematicalExpressionTermsType = NumericLiteralTermsType
 		::Prepend<
-			TreeTerm<
-					MathematicalExpression::Add, 
-					CharTerm, 
-					'+', 
-					ctpg::associativity::ltor
-				>, 
-			TreeTerm<
-					MathematicalExpression::Subtract, 
-					CharTerm, 
-					'-', 
-					ctpg::associativity::ltor
-				>
-		>::Prepend<
 				TreeTerm<
 						MathematicalExpression::Multiply, 
 						CharTerm, 
@@ -55,6 +42,19 @@ namespace Warp::Parsing
 						'/', 
 						ctpg::associativity::ltor
 					>
+		>::Prepend<
+			TreeTerm<
+					MathematicalExpression::Add, 
+					CharTerm, 
+					'+', 
+					ctpg::associativity::ltor
+				>, 
+			TreeTerm<
+					MathematicalExpression::Subtract, 
+					CharTerm, 
+					'-', 
+					ctpg::associativity::ltor
+				>
 			>;
 
 	template<
@@ -88,45 +88,51 @@ namespace Warp::Parsing
 
 		using BaseType = NumericLiteralParser<BaseTermsType, TypeResolverParameterTemplate>;
 		
-		struct Expression {
-			ReduceToType value;
-		};
 
-		struct Product
+		struct Term
 		{
 			ReduceToType value;
-			constexpr Product operator*(const InputType& other) {
-				return Product{value * other};
+			constexpr Term operator*(const InputType& other) {
+				return Term{value * other};
 			}
-			constexpr Product operator/(const InputType& other) {
-				return Product{value / other};
+			constexpr Term operator/(const InputType& other) {
+				return Term{value / other};
 			}
-			constexpr Product operator*(const Product& other) {
-				//std::cout << "MUL: " << " val: " << value << " other: " << other.value << "\n";
-				return Product{value * other.value};
+			constexpr Term operator*(const Term& other) {
+				return Term{value * other.value};
 			}
-			constexpr Product operator/(const Product& other) {
-				//std::cout << "DIV: " << " val: " << value.number << " other: " << other.value.number << "\n";
-				return Product{value / other.value};
+			constexpr Term operator/(const Term& other) {
+				return Term{value / other.value};
 			}
 		};
 
 		struct Sum
 		{
 			ReduceToType value;
-			constexpr Sum operator+(const Product& other) {
+			constexpr Sum operator+(const InputType& other) {
+				return Sum{value + other};
+			}
+			constexpr Sum operator-(const InputType& other) {
+				return Sum{value - other};
+			}
+			constexpr Sum operator+(const Term& other) {
 				return Sum{value + other.value};
 			}
-			constexpr Sum operator-(const Product& other) {
+			constexpr Sum operator-(const Term& other) {
 				return Sum{value - other.value};
 			}
 		};
 
+		using ExpressionNodeType = std::variant<Sum, Term>;
+
+		struct Expression {
+			ReduceToType value;
+		};
 
 		enum class TypeSpecificMathematicalExpressionTermTags {
 			Sum, 
-			Product, 
-			NegatedProduct, 
+			Term, 
+			NegatedTerm, 
 			Expression
 		};
 
@@ -144,16 +150,16 @@ namespace Warp::Parsing
 						FixedString{"Expression"}
 					>, 
 				TypeTreeTerm<
-						TypeSpecificMathematicalExpressionTermTags::Product, 
+						TypeSpecificMathematicalExpressionTermTags::Term, 
 						NonTerminalTerm, 
-						Product, 
-						FixedString{"Product"}
+						Term, 
+						FixedString{"Term"}
 					>//, 
 				//TypeTreeTerm<
-				//		TypeSpecificMathematicalExpressionTermTags::NegatedProduct, 
+				//		TypeSpecificMathematicalExpressionTermTags::NegatedTerm, 
 				//		NonTerminalTerm, 
-				//		Product, 
-				//		FixedString{"NegatedProduct"}
+				//		Term, 
+				//		FixedString{"NegatedTerm"}
 				//	>
 			>;
 
@@ -172,7 +178,7 @@ namespace Warp::Parsing
 		constexpr static const auto sum 
 				= term<TypeSpecificMathematicalExpressionTermTags::Sum>;
 		constexpr static const auto math_term
-				= term<TypeSpecificMathematicalExpressionTermTags::Product>;
+				= term<TypeSpecificMathematicalExpressionTermTags::Term>;
 		constexpr static const auto expression 
 				= term<TypeSpecificMathematicalExpressionTermTags::Expression>;
 
@@ -196,16 +202,23 @@ namespace Warp::Parsing
 					)
 			);
 
-		template<auto OperateParameterConstant>
+		template<
+				auto TermOperateParameterConstant, 
+				auto ProductOperateParameterConstant
+			>
 		consteval static const auto basic_operation_rules(
 				auto operation_term, 
 				auto operator_term
 			)
 		{
 			return ctpg::rules(
+					operation_term(math_term, operator_term, math_term) 
+					>= [](auto left, auto, auto right) {
+						return TermOperateParameterConstant(left, right);
+					}, 
 					operation_term(operation_term, operator_term, math_term) 
 					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left, right);
+						return ProductOperateParameterConstant(left, right);
 					}
 				);
 		}
@@ -217,7 +230,7 @@ namespace Warp::Parsing
 			)
 		{
 			return ctpg::rules(
-					operation_term(input, operator_term, input) 
+					operation_term(operation_term, operator_term, input) 
 					>= [](auto left, auto, auto right) {
 						return OperateParameterConstant(left, right);
 					}
@@ -227,7 +240,7 @@ namespace Warp::Parsing
 		constexpr static const auto input_to_math_term
 				= math_term(input)
 				>= [](auto input_) {
-					return Product{input_};
+					return Term{input_};
 				}; 
 
 		constexpr static const auto sum_to_expression
@@ -239,7 +252,7 @@ namespace Warp::Parsing
 		constexpr static const auto sum_to_term
 				= math_term(sum)
 				>= [](auto sum_) {
-					return Product{sum_.value};
+					return Term{sum_.value};
 				}; 
 		
 		constexpr static const auto math_term_to_expression
@@ -253,21 +266,25 @@ namespace Warp::Parsing
 			constexpr auto base_rules = concatinate_tuples(
 					BaseType::rules(), 
 					basic_operation_rules<
+							[](auto left, auto right) { return Sum{left.value + right.value}; }, 
 							[](auto left, auto right) { return left + right; }
 						>(sum, add), 
 					basic_operation_rules<
+							[](auto left, auto right) { return Sum{left.value - right.value}; }, 
 							[](auto left, auto right) { return left - right; }
 						>(sum, subtract), 
-					input_operation_rules<
-							[](auto left, auto right) { return left + right; }
-						>(sum, add), 
-					input_operation_rules<
-							[](auto left, auto right) { return left - right; }
-						>(sum, subtract), 
+					//input_operation_rules<
+					//		[](auto left, auto right) { return left + right; }
+					//	>(sum, add), 
+					//input_operation_rules<
+					//		[](auto left, auto right) { return left - right; }
+					//	>(sum, subtract), 
 					basic_operation_rules<
+							[](auto left, auto right) { return left * right; }, 
 							[](auto left, auto right) { return left * right; }
 						>(math_term, multiply), 
 					basic_operation_rules<
+							[](auto left, auto right) { return left / right; }, 
 							[](auto left, auto right) { return left / right; }
 						>(math_term, divide), 
 					input_operation_rules<
