@@ -33,6 +33,8 @@ enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 		size_t bits = default_bits;
 
 
+		constexpr NumericType() noexcept 
+				: number(0), bits(default_bits) {}
 		constexpr NumericType(const UnderylingType number, size_t bits = default_bits) noexcept 
 				: number(number), bits(bits) {}
 		constexpr NumericType(const std::string_view numeric_string_representation, size_t bits = default_bits) noexcept 
@@ -92,7 +94,7 @@ enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 
 		UnderylingType number; // This would be const, but CTPG requires it this object be writable. //
 
-		constexpr NumericType(const UnderylingType number) noexcept 
+		constexpr NumericType(const UnderylingType number = UnderylingType{0}) noexcept 
 				: number(number) {}
 		constexpr NumericType(const std::string_view whole_part, const std::string_view decimal_part) noexcept
 				: number(to_fixed_point_integral<size_t, UnderylingType>(

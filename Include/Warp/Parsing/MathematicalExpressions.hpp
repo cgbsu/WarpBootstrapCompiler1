@@ -57,6 +57,39 @@ namespace Warp::Parsing
 				>
 			>;
 
+	template<typename ElementParameterType>
+	struct MovingVector
+	{
+		using ElementType = ElementParameterType;
+		std::vector<ElementType> data;
+
+		constexpr MovingVector& push_back(const ElementType& new_element) noexcept {
+			data.push_back(new_element);
+			return *this;
+		}
+
+		constexpr size_t size() const noexcept {
+			return data.size();
+		}
+
+		constexpr MovingVector& append(const MovingVector& other) {
+			data.insert(data.end(), other.data.begin(), other.data.end());
+			return *this;
+		}
+
+		constexpr ElementType& at(size_t index) noexcept {
+			return data.at(index);
+		}
+
+		constexpr ElementType& operator[](size_t index) noexcept {
+			return at(index);
+		}
+
+		constexpr const ElementType& operator[](size_t index) const noexcept {
+			return at(index);
+		}
+	};
+
 	template<
 			typename TermsParameterType, 
 			template<auto> typename TypeResolverParameterTemplate, 
@@ -92,34 +125,75 @@ namespace Warp::Parsing
 		struct Term
 		{
 			ReduceToType value;
-			constexpr Term operator*(const InputType& other) {
-				return Term{value * other};
+			bool negated = false;
+			constexpr Term operator*(const InputType& other) const noexcept {
+				return Term{value * other, negated};
 			}
-			constexpr Term operator/(const InputType& other) {
-				return Term{value / other};
+			constexpr Term operator/(const InputType& other) const noexcept {
+				return Term{value / other, negated};
 			}
-			constexpr Term operator*(const Term& other) {
-				return Term{value * other.value};
+			constexpr Term operator*(const Term& other) const noexcept {
+				return Term{value * other.value, is_negated(other)};
 			}
-			constexpr Term operator/(const Term& other) {
-				return Term{value / other.value};
+			constexpr Term operator/(const Term& other) const noexcept {
+				return Term{value / other.value, is_negated(other)};
+			}
+			constexpr Term operator-() const noexcept {
+				return Term{value, !negated};
+			}
+			constexpr Term as_negated() const noexcept {
+				return Term{value, !negated};
+			}
+			constexpr bool is_negated(const Term& other) const noexcept {
+				return ((other.negated == true) && (negated == true)) 
+						|| (other.negated == negated);
 			}
 		};
 
 		struct Sum
 		{
-			ReduceToType value;
-			constexpr Sum operator+(const InputType& other) {
-				return Sum{value + other};
+			//ConstantVectorType<Term> operands;
+			MovingVector<Term> operands;
+
+			constexpr Sum(std::initializer_list<Term> operands) noexcept 
+					: operands(MovingVector{std::vector<Term>{operands.begin(), operands.end()}}) {}
+					//: operands(make_constant_vector<Term>(operands)) {}
+			constexpr Sum(MovingVector<Term> operands) noexcept 
+					: operands(std::move(operands)) {}
+			constexpr Sum() noexcept = default;
+			constexpr Sum(const Sum& other) noexcept = default;
+			constexpr Sum(Sum&& other) noexcept = default;
+
+			constexpr Sum& operator=(const Sum& other) noexcept = default;
+			constexpr Sum& operator=(Sum&& other) noexcept = default;
+
+			constexpr Sum operator+(const Term& other) noexcept {
+				return operands.push_back(other);
 			}
-			constexpr Sum operator-(const InputType& other) {
-				return Sum{value - other};
+			constexpr Sum operator-(const Term& other) noexcept {
+				return operands.push_back(other.as_negated());
 			}
-			constexpr Sum operator+(const Term& other) {
-				return Sum{value + other.value};
+			constexpr Sum operator+(Sum&& other) noexcept {
+				return operands.append(other.operands);
 			}
-			constexpr Sum operator-(const Term& other) {
-				return Sum{value - other.value};
+			constexpr Sum operator-(Sum&& other) noexcept
+			{
+				//ConstantVectorType<Term> new_sum = operands->append(other.operands);
+				MovingVector<Term> new_sum = operands.append(other.operands);
+				new_sum.at(operands.size()) = new_sum.at(operands.size()).as_negated();
+				return new_sum;
+			}
+			constexpr ReduceToType to_value()
+			{
+				ReduceToType total{typename ReduceToType::UnderylingType{0}};
+				for(const auto& current_term : operands.data)
+				{
+					if(current_term.negated == false)
+						total = total + current_term.value;
+					else
+						total = total - current_term.value;
+				}
+				return total;
 			}
 		};
 
@@ -203,7 +277,7 @@ namespace Warp::Parsing
 			);
 
 		template<
-				auto TermOperateParameterConstant, 
+				auto OperateParameterConstant, 
 				auto ProductOperateParameterConstant
 			>
 		consteval static const auto basic_operation_rules(
@@ -214,7 +288,7 @@ namespace Warp::Parsing
 			return ctpg::rules(
 					operation_term(math_term, operator_term, math_term) 
 					>= [](auto left, auto, auto right) {
-						return TermOperateParameterConstant(left, right);
+						return OperateParameterConstant(left, right);
 					}, 
 					operation_term(operation_term, operator_term, math_term) 
 					>= [](auto left, auto, auto right) {
@@ -246,13 +320,13 @@ namespace Warp::Parsing
 		constexpr static const auto sum_to_expression
 				= expression(sum)
 				>= [](auto sum_) {
-					return Expression{sum_.value};
+					return Expression{sum_.to_value()};
 				}; 
 
 		constexpr static const auto sum_to_term
 				= math_term(sum)
 				>= [](auto sum_) {
-					return Term{sum_.value};
+					return Term{sum_.to_value()};
 				}; 
 		
 		constexpr static const auto math_term_to_expression
@@ -266,19 +340,13 @@ namespace Warp::Parsing
 			constexpr auto base_rules = concatinate_tuples(
 					BaseType::rules(), 
 					basic_operation_rules<
-							[](auto left, auto right) { return Sum{left.value + right.value}; }, 
+							[](auto left, auto right) { return Sum{left, right}; }, 
 							[](auto left, auto right) { return left + right; }
 						>(sum, add), 
 					basic_operation_rules<
-							[](auto left, auto right) { return Sum{left.value - right.value}; }, 
+							[](auto left, auto right) { return Sum{left, right.as_negated()}; }, 
 							[](auto left, auto right) { return left - right; }
 						>(sum, subtract), 
-					//input_operation_rules<
-					//		[](auto left, auto right) { return left + right; }
-					//	>(sum, add), 
-					//input_operation_rules<
-					//		[](auto left, auto right) { return left - right; }
-					//	>(sum, subtract), 
 					basic_operation_rules<
 							[](auto left, auto right) { return left * right; }, 
 							[](auto left, auto right) { return left * right; }
@@ -296,7 +364,7 @@ namespace Warp::Parsing
 					ctpg::rules(
 							input_to_math_term, 
 							sum_to_expression, 
-							sum_to_term, 
+							//sum_to_term, 
 							math_term_to_expression
 						)
 				);

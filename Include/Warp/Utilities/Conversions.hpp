@@ -268,6 +268,35 @@ namespace Warp::Utilities
 			return (LeftParamterConstant == RightParameterConstant);
 		return false;
 	}
+
+	template<size_t LengthParameterConstant, typename ElementParameterType, size_t... IndexParameterConstants>
+	std::array<ElementParameterType, LengthParameterConstant> to_array(
+			std::index_sequence<IndexParameterConstants...>, 
+			const std::initializer_list<ElementParameterType>& initializers
+		)
+	{
+		std::array<ElementParameterType, LengthParameterConstant> new_array{
+				((*(initializers.begin() + IndexParameterConstants)), ...)
+			};
+		return new_array;
+	}
+
+	template<size_t LengthParameterConstant, typename ElementParameterType>
+	std::array<ElementParameterType, LengthParameterConstant> to_array(
+			const std::initializer_list<ElementParameterType>& initializers)
+	{
+		return to_array<LengthParameterConstant, ElementParameterType>(std::make_index_sequence<LengthParameterConstant>(), initializers);
+		//struct Builder
+		//{
+		//	std::array<ElementParameterType, LengthParameterConstant> new_array;
+		//	constexpr Builder(const std::initializer_list<ElementParameterType>& initializers) noexcept
+		//			: new_array{} {
+		//		std::copy(initializers.begin(), initializers.end(), std::begin(new_array));
+		//	}
+		//};
+		////std::array<ElementParameterType, LengthParameterConstant> new_array{};
+		//return Builder{initializers}.new_array;
+	}
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
 
