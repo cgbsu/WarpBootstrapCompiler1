@@ -32,7 +32,7 @@ using IntegerExpressionType = IntegerParserType::Expression;
 using FixedExpressionType = FixedParserType::Expression;
 
 constexpr static const auto compare_value = [](auto left, auto right) {
-	return left.value == right.value;
+	return left.to_value() == right.to_value();
 };
 
 template<auto TestParameterConstant>
@@ -68,19 +68,19 @@ auto parse_fixed(bool debug = false)
 template<auto TestParameterConstant>
 void print_whole(bool debug = false) {
 	const auto result = parse_whole<TestParameterConstant>(debug);
-	std::cout << "\nWhole Result: " << TestParameterConstant.string << " = " << result.value().value << "\n\n";
+	std::cout << "\nWhole Result: " << TestParameterConstant.string << " = " << result.value().to_value() << "\n\n";
 }
 
 template<auto TestParameterConstant>
 void print_integer(bool debug = false) {
 	const auto result = parse_integer<TestParameterConstant>(debug);
-	std::cout << "\nInteger Result: " << TestParameterConstant.string << " = " << result.value().value << "\n\n";
+	std::cout << "\nInteger Result: " << TestParameterConstant.string << " = " << result.value().to_value() << "\n\n";
 }
 
 template<auto TestParameterConstant>
 void print_fixed(bool debug = false) {
 	const auto result = parse_fixed<TestParameterConstant>(debug);
-	std::cout << "\nFixed Result: " << TestParameterConstant.string << " = " << result.value().value.number << "\n\n";
+	std::cout << "\nFixed Result: " << TestParameterConstant.string << " = " << result.value().to_value().number << "\n\n";
 }
 
 
@@ -119,7 +119,7 @@ void math_check(bool value) {
 TEST_GROUP(MathematicalExpressions) {};
 
 bool compare_fixed(FixedExpressionType left, FixedExpressionType right) {
-	return left.value == right.value;
+	return left.to_value() == right.to_value();
 }
 
 TEST(MathematicalExpressions, InputAddition)

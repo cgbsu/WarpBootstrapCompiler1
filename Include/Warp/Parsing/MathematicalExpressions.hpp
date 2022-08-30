@@ -40,18 +40,18 @@ namespace Warp::Parsing
 
 	using MathematicalExpressionTermsType = NumericLiteralTermsType
 		::Prepend<
-				TreeTerm<
-						MathematicalExpression::Multiply, 
-						CharTerm, 
-						'*', 
-						ctpg::associativity::ltor
-					>, 
-				TreeTerm<
-						MathematicalExpression::Divide, 
-						CharTerm, 
-						'/', 
-						ctpg::associativity::ltor
-					>
+			TreeTerm<
+					MathematicalExpression::Multiply, 
+					CharTerm, 
+					'*', 
+					ctpg::associativity::ltor
+				>, 
+			TreeTerm<
+					MathematicalExpression::Divide, 
+					CharTerm, 
+					'/', 
+					ctpg::associativity::ltor
+				>
 		>::Prepend<
 			TreeTerm<
 					MathematicalExpression::Add, 
@@ -65,7 +65,21 @@ namespace Warp::Parsing
 					'-', 
 					ctpg::associativity::ltor
 				>
-			>;
+		>::AddOnePriority<
+			TreeTerm<
+					Brackets::OpenParenthesis, 
+					CharTerm, 
+					'(', 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					Brackets::CloseParenthesis, 
+					CharTerm, 
+					')', 
+					ctpg::associativity::no_assoc
+				>
+		>;
+		
 
 
 	template<
@@ -151,12 +165,10 @@ namespace Warp::Parsing
 
 		struct Sum
 		{
-			//ConstantVectorType<Term> operands;
 			MovingVector<Term> operands;
 
 			constexpr Sum(std::initializer_list<Term> operands) noexcept 
 					: operands(MovingVector{std::vector<Term>{operands.begin(), operands.end()}}) {}
-					//: operands(make_constant_vector<Term>(operands)) {}
 			constexpr Sum(MovingVector<Term> operands) noexcept 
 					: operands(std::move(operands)) {}
 			constexpr Sum() noexcept = default;
@@ -177,7 +189,6 @@ namespace Warp::Parsing
 			}
 			constexpr Sum operator-(Sum&& other) noexcept
 			{
-				//ConstantVectorType<Term> new_sum = operands->append(other.operands);
 				MovingVector<Term> new_sum = operands.append(other.operands);
 				new_sum.at(operands.size()) = new_sum.at(operands.size()).as_negated();
 				return new_sum;
@@ -196,10 +207,25 @@ namespace Warp::Parsing
 			}
 		};
 
-		using ExpressionNodeType = std::variant<Sum, Term>;
-
-		struct Expression {
-			ReduceToType value;
+		struct Expression
+		{
+			std::variant<Sum, Term, ReduceToType> node;
+			constexpr ReduceToType to_value()
+			{
+				ReduceToType value = ReduceToType::zero();
+				std::visit(
+						OverloadedVisit{
+								[&](auto node) {
+									value = node.to_value();
+								}, 
+								[&](ReduceToType node) {
+									value = node;
+								}
+						}, 
+						node
+					);
+				return value;
+			}
 		};
 
 		enum class TypeSpecificMathematicalExpressionTermTags {
@@ -332,13 +358,13 @@ namespace Warp::Parsing
 		constexpr static const auto sum_to_expression
 				= expression(sum)
 				>= [](auto sum_) {
-					return Expression{sum_.to_value()};
+					return Expression{sum_};
 				}; 
 		
 		constexpr static const auto math_term_to_expression
 				= expression(math_term)
 				>= [](auto math_term_) {
-					return Expression{math_term_.to_value()};
+					return Expression{math_term_};
 				}; 
 
 		consteval static const auto rules()

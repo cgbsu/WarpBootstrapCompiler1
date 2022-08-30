@@ -86,6 +86,9 @@ namespace Warp::Utilities
 			requires(sizeof...(tuples) > 0) {
 		return std::tuple_cat(current_tuple, concatinate_tuples(tuples...));
 	}
+	// Shameless yoink from cppreference.com/reference/en/cpp/utility/variant/visit.html
+	template<class... Ts> struct OverloadedVisit : Ts... { using Ts::operator()...; };
+	template<class... Ts> OverloadedVisit(Ts...) -> OverloadedVisit<Ts...>;
 }
 
 #endif // WARP__UTILITIES__HEADER__UTILITIES__TEMPLATES__HPP
