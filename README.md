@@ -24,9 +24,11 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
  - [ ] Parsing
 	- [x] Literals
 	- [ ] Mathematical Expressions
+		- [ ] Negation (No Calls/Constants)
+		- [ ] Negation (Calls/Constants)
 		- [x] Addition/Subtraction (No Calls/Constants)
 		- [ ] Addition/Subtraction (Calls/Constants)
-		- [ ] Multiplication/Division (No Calls/Constants)
+		- [x] Multiplication/Division (No Calls/Constants)
 		- [ ] Multiplication/Division (Calls/Constants)
 		- [ ] Parenthesis Prioritization
 		- [ ] Bitwise?

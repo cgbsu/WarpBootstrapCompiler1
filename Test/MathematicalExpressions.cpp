@@ -161,11 +161,6 @@ TEST(MathematicalExpressions, InputMultiplication)
 	whole_test<FixedString{"5u * 3u * 20u * 44u"}>(13200, debug);
 	//integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
 	//integer_test<FixedString{"5i * -3i * -20i * -44i"}>(-13200, debug);
-	//std::cout << "RT: " << runtime_parse<
-	//			IntegerParserType, 
-	//			FixedString{"5i * -3i * -20i * 44i"}, 
-	//			IntegerEnumType::Expression
-	//		>(debug).value().value << "\n";
 };
 
 TEST(MathematicalExpressions, InputDivision)
@@ -179,19 +174,15 @@ TEST(MathematicalExpressions, InputDivision)
 TEST(MathematicalExpressions, MixingBasicSumsAndProducts)
 {
 	bool debug = false;
-	//whole_test<FixedString{"5u * 3u + 8u * 7u"}>(71, debug);
-	//whole_test<FixedString{"4u + 5u * 3u - 21u / 7u"}>(16, debug);
-	//whole_test<FixedString{"5u * 3u - 21u / 7u"}>(12, debug);
-	//whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
-	//whole_test<FixedString{"5u * 3u * 21u / 7u + 4u + 8u"}>(57, debug);
-	//whole_test<FixedString{"5u * 3u * 21u / 7u + 4u * 8u"}>(77, debug);
-	//whole_test<FixedString{"6u + 5u * 3u - 21u / 7u + 4u"}>(22, debug);
-	//std::cout << "\n\nRT: " << runtime_parse<
-	//			WholeParserType, 
-	//			FixedString{"5u * 3u - 21u / 7u + 4u"}, 
-	//			WholeEnumType::Expression
-	//		>(true).value().value << "\n\n\n";
-	//whole_test<FixedString{"5u * 3u - 21u / 7u + 4u"}>(16, debug);
-	//whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+
+	whole_test<FixedString{"5u * 3u + 8u * 7u"}>(71, debug);
+	whole_test<FixedString{"4u + 5u * 3u - 21u / 7u"}>(16, debug);
+	whole_test<FixedString{"5u * 3u - 21u / 7u"}>(12, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u + 8u"}>(57, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u * 8u"}>(77, debug);
+	whole_test<FixedString{"6u + 5u * 3u - 21u / 7u + 4u"}>(22, debug);
+	whole_test<FixedString{"5u * 3u - 21u / 7u + 4u"}>(16, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
 };
 

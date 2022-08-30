@@ -20,7 +20,9 @@ namespace Warp::Testing
 				ParserType::rules()
 			);
 		template<typename ReduceToParameterType>
-		constexpr const static auto typed_parser = ctpg::parser( ParserType::template term<ReduceToParameterType>, ParserType::terms, 
+		constexpr const static auto typed_parser = ctpg::parser( 
+				ParserType::template term<ReduceToParameterType>, 
+				ParserType::terms, 
 				ParserType::non_terminal_terms, 
 				ParserType::rules()
 			);

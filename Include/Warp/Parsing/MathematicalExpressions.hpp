@@ -133,10 +133,10 @@ namespace Warp::Parsing
 				return Term{value / other, negated};
 			}
 			constexpr Term operator*(const Term& other) const noexcept {
-				return Term{value * other.value, is_negated(other)};
+				return Term{value * other.value, !is_negated(other)};
 			}
 			constexpr Term operator/(const Term& other) const noexcept {
-				return Term{value / other.value, is_negated(other)};
+				return Term{value / other.value, !is_negated(other)};
 			}
 			constexpr Term operator-() const noexcept {
 				return Term{value, !negated};
@@ -145,8 +145,7 @@ namespace Warp::Parsing
 				return Term{value, !negated};
 			}
 			constexpr bool is_negated(const Term& other) const noexcept {
-				return ((other.negated == true) && (negated == true)) 
-						|| (other.negated == negated);
+				return !((other.negated == true) && (negated == true));
 			}
 		};
 
@@ -276,11 +275,8 @@ namespace Warp::Parsing
 					)
 			);
 
-		template<
-				auto OperateParameterConstant, 
-				auto ProductOperateParameterConstant
-			>
-		consteval static const auto basic_operation_rules(
+		template<auto OperateParameterConstant>
+		consteval static const auto term_operation_reduction(
 				auto operation_term, 
 				auto operator_term
 			)
@@ -289,11 +285,27 @@ namespace Warp::Parsing
 					operation_term(math_term, operator_term, math_term) 
 					>= [](auto left, auto, auto right) {
 						return OperateParameterConstant(left, right);
-					}, 
-					operation_term(operation_term, operator_term, math_term) 
-					>= [](auto left, auto, auto right) {
-						return ProductOperateParameterConstant(left, right);
 					}
+				);
+		}
+
+		template<
+				auto OperateParameterConstant, 
+				auto ProductOperateParameterConstant
+			>
+		consteval static const auto basic_term_operation_rules(
+				auto operation_term, 
+				auto operator_term
+			)
+		{
+			return concatinate_tuples(
+					term_operation_reduction<OperateParameterConstant>(operation_term, operator_term), 
+					ctpg::rules(
+							operation_term(operation_term, operator_term, math_term) 
+							>= [](auto left, auto, auto right) {
+								return ProductOperateParameterConstant(left, right);
+							}
+						)
 				);
 		}
 
@@ -304,7 +316,7 @@ namespace Warp::Parsing
 			)
 		{
 			return ctpg::rules(
-					operation_term(operation_term, operator_term, input) 
+					operation_term(operation_term, operator_term, input)
 					>= [](auto left, auto, auto right) {
 						return OperateParameterConstant(left, right);
 					}
@@ -323,11 +335,11 @@ namespace Warp::Parsing
 					return Expression{sum_.to_value()};
 				}; 
 
-		constexpr static const auto sum_to_term
-				= math_term(sum)
-				>= [](auto sum_) {
-					return Term{sum_.to_value()};
-				}; 
+		//constexpr static const auto sum_to_term
+		//		= math_term(sum)
+		//		>= [](auto sum_) {
+		//			return Term{sum_.to_value()};
+		//		}; 
 		
 		constexpr static const auto math_term_to_expression
 				= expression(math_term)
@@ -339,20 +351,18 @@ namespace Warp::Parsing
 		{
 			constexpr auto base_rules = concatinate_tuples(
 					BaseType::rules(), 
-					basic_operation_rules<
+					basic_term_operation_rules<
 							[](auto left, auto right) { return Sum{left, right}; }, 
 							[](auto left, auto right) { return left + right; }
 						>(sum, add), 
-					basic_operation_rules<
+					basic_term_operation_rules<
 							[](auto left, auto right) { return Sum{left, right.as_negated()}; }, 
 							[](auto left, auto right) { return left - right; }
 						>(sum, subtract), 
-					basic_operation_rules<
-							[](auto left, auto right) { return left * right; }, 
+					term_operation_reduction<
 							[](auto left, auto right) { return left * right; }
 						>(math_term, multiply), 
-					basic_operation_rules<
-							[](auto left, auto right) { return left / right; }, 
+					term_operation_reduction<
 							[](auto left, auto right) { return left / right; }
 						>(math_term, divide), 
 					input_operation_rules<
@@ -371,6 +381,12 @@ namespace Warp::Parsing
 			return base_rules;
 		}
 
+		constexpr static const auto parser = ctpg::parser(
+				reduce_to, 
+				terms, 
+				non_terminal_terms, 
+				rules()
+			);
 	};
 
 }

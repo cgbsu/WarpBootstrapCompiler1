@@ -17,10 +17,17 @@ FILE(GLOB SourceFiles ${CMAKE_SOURCE_DIR}/Source/*.cpp)
 FILE(GLOB TestSourceFiles ${CMAKE_SOURCE_DIR}/Test/*.cpp)
 FILE(GLOB REPLSourceFiles ${CMAKE_SOURCE_DIR}/REPL/*.cpp)
 FILE(GLOB CompilerSourceFiles ${CMAKE_SOURCE_DIR}/Compiler/*.cpp)
+FILE(GLOB StackLoggerSourceFiles ${CMAKE_SOURCE_DIR}/Tools/StackLogger/*.cpp)
+
 add_library(libwarp STATIC) 
 target_sources(libwarp PUBLIC ${SourceFiles})
 target_link_libraries(libwarp ${CONAN_LIBS})
+
 add_executable(test ${TestSourceFiles})
 target_sources(test PUBLIC ${TestSourceFiles})
 target_link_libraries(test libwarp ${CONAN_LIBS})
+
+#add_executable(stack_logger ${StackLoggerSourceFiles})
+#target_sources(stack_logger PUBLIC ${StackLoggerSourceFiles})
+#target_link_libraries(stack_logger ${CONAN_LIBS})
 
