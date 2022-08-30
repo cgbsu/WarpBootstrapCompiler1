@@ -26,7 +26,17 @@ namespace Warp::Parsing
 		ClosePrioritization
 	};
 
-	
+	enum class Brackets
+	{
+		OpenParenthesis, 
+		CloseParenthesis, 
+		OpenCurleyBracket, 
+		ClosedCurleyBracket, 
+		OpenSquareBracket, 
+		ClosedSquareBracket, 
+		OpenAngleBracket, 
+		ClosedAngleBracket
+	};
 
 	using MathematicalExpressionTermsType = NumericLiteralTermsType
 		::Prepend<
@@ -57,38 +67,6 @@ namespace Warp::Parsing
 				>
 			>;
 
-	template<typename ElementParameterType>
-	struct MovingVector
-	{
-		using ElementType = ElementParameterType;
-		std::vector<ElementType> data;
-
-		constexpr MovingVector& push_back(const ElementType& new_element) noexcept {
-			data.push_back(new_element);
-			return *this;
-		}
-
-		constexpr size_t size() const noexcept {
-			return data.size();
-		}
-
-		constexpr MovingVector& append(const MovingVector& other) {
-			data.insert(data.end(), other.data.begin(), other.data.end());
-			return *this;
-		}
-
-		constexpr ElementType& at(size_t index) noexcept {
-			return data.at(index);
-		}
-
-		constexpr ElementType& operator[](size_t index) noexcept {
-			return at(index);
-		}
-
-		constexpr const ElementType& operator[](size_t index) const noexcept {
-			return at(index);
-		}
-	};
 
 	template<
 			typename TermsParameterType, 
@@ -249,13 +227,7 @@ namespace Warp::Parsing
 						NonTerminalTerm, 
 						Term, 
 						FixedString{"Term"}
-					>//, 
-				//TypeTreeTerm<
-				//		TypeSpecificMathematicalExpressionTermTags::NegatedTerm, 
-				//		NonTerminalTerm, 
-				//		Term, 
-				//		FixedString{"NegatedTerm"}
-				//	>
+					>
 			>;
 
 		template<auto TermTagParameterConstant>
@@ -362,12 +334,6 @@ namespace Warp::Parsing
 				>= [](auto sum_) {
 					return Expression{sum_.to_value()};
 				}; 
-
-		//constexpr static const auto sum_to_term
-		//		= math_term(sum)
-		//		>= [](auto sum_) {
-		//			return Term{sum_.to_value()};
-		//		}; 
 		
 		constexpr static const auto math_term_to_expression
 				= expression(math_term)
@@ -403,7 +369,6 @@ namespace Warp::Parsing
 							input_to_math_term, 
 							negated_input_to_math_term, 
 							sum_to_expression, 
-							//sum_to_term, 
 							math_term_to_expression
 						)
 				);

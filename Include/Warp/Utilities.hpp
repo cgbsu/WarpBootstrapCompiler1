@@ -6,6 +6,7 @@
 #include <Warp/Utilities/Conversions.hpp>
 #include <Warp/Utilities/Templates.hpp>
 #include <Warp/Utilities/ConstantVector.hpp>
+#include <Warp/Utilities/MovingVector.hpp>
 
 #ifndef WARP__UTILITIES__HEADER__HPP
 #define WARP__UTILITIES__HEADER__HPP

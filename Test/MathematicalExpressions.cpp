@@ -166,7 +166,6 @@ TEST(MathematicalExpressions, InputNegation)
 	bool debug = false;
 	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
 	integer_test<FixedString{"-44i"}>(-44, debug);
-	//print_integer<FixedString{"5i * -3i * -20i * -44i"}>(debug);
 	integer_test<FixedString{"5i * -3i * -20i * -44i"}>(-13200, debug);
 	integer_test<FixedString{"-5i * -3i * -20i * 44i"}>(-13200, debug);
 	integer_test<FixedString{"-5i * -3i * -20i * -44i"}>(13200, debug);
