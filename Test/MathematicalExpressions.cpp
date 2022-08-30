@@ -159,8 +159,17 @@ TEST(MathematicalExpressions, InputMultiplication)
 	whole_test<FixedString{"5u * 3u"}>(15, debug);
 	whole_test<FixedString{"5u * 3u * 20u"}>(300, debug);
 	whole_test<FixedString{"5u * 3u * 20u * 44u"}>(13200, debug);
-	//integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
-	//integer_test<FixedString{"5i * -3i * -20i * -44i"}>(-13200, debug);
+};
+
+TEST(MathematicalExpressions, InputNegation)
+{
+	bool debug = false;
+	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
+	integer_test<FixedString{"-44i"}>(-44, debug);
+	//print_integer<FixedString{"5i * -3i * -20i * -44i"}>(debug);
+	integer_test<FixedString{"5i * -3i * -20i * -44i"}>(-13200, debug);
+	integer_test<FixedString{"-5i * -3i * -20i * 44i"}>(-13200, debug);
+	integer_test<FixedString{"-5i * -3i * -20i * -44i"}>(13200, debug);
 };
 
 TEST(MathematicalExpressions, InputDivision)

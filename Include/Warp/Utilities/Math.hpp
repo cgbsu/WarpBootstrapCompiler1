@@ -126,6 +126,13 @@ namespace Warp::Utilities
 		return (value < 0) ? -value : value;
 	}
 
+	template<typename CanidateParameterType>
+	concept ZeroableConcept = requires(CanidateParameterType) { CanidateParameterType::zero(); };
+
+	constexpr const auto absolute_value(ZeroableConcept auto value) {
+		return (value < decltype(value)::zero()) ? -value : value;
+	}
+
 	constexpr const auto difference(auto first, auto second) {
 		return absolute_value(absolute_value(second) - absolute_value(first));
 	}

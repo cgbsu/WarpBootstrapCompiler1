@@ -127,16 +127,16 @@ namespace Warp::Parsing
 			ReduceToType value;
 			bool negated = false;
 			constexpr Term operator*(const InputType& other) const noexcept {
-				return Term{value * other, negated};
+				return Term{value * absolute_value(other), is_negated(other)};
 			}
 			constexpr Term operator/(const InputType& other) const noexcept {
-				return Term{value / other, negated};
+				return Term{value / absolute_value(other), is_negated(other)};
 			}
 			constexpr Term operator*(const Term& other) const noexcept {
-				return Term{value * other.value, !is_negated(other)};
+				return Term{value * other.value, is_negated(other)};
 			}
 			constexpr Term operator/(const Term& other) const noexcept {
-				return Term{value / other.value, !is_negated(other)};
+				return Term{value / other.value, is_negated(other)};
 			}
 			constexpr Term operator-() const noexcept {
 				return Term{value, !negated};
@@ -144,8 +144,30 @@ namespace Warp::Parsing
 			constexpr Term as_negated() const noexcept {
 				return Term{value, !negated};
 			}
-			constexpr bool is_negated(const Term& other) const noexcept {
-				return !((other.negated == true) && (negated == true));
+			constexpr bool is_negated(const InputType& other) const noexcept
+			{
+				if constexpr(std::is_unsigned_v<decltype(other.number)> == false) {
+					if(other < InputType::zero())
+						return !negated;
+				}
+				return negated;
+			}
+			constexpr bool is_negated(const Term& other) const noexcept
+			{
+				/********
+				**T|O|?**
+				**1|1|0**
+				**1|0|1**
+				**0|1|1**
+				**0|0|0**
+				********/
+				return !(negated == other.negated);
+			}
+			constexpr auto to_value()
+			{
+				if(negated == true)
+					return -value;
+				return value;
 			}
 		};
 
@@ -184,7 +206,7 @@ namespace Warp::Parsing
 			}
 			constexpr ReduceToType to_value()
 			{
-				ReduceToType total{typename ReduceToType::UnderylingType{0}};
+				ReduceToType total = ReduceToType::zero();
 				for(const auto& current_term : operands.data)
 				{
 					if(current_term.negated == false)
@@ -329,6 +351,12 @@ namespace Warp::Parsing
 					return Term{input_};
 				}; 
 
+		constexpr static const auto negated_input_to_math_term
+				= math_term(subtract, input)
+				>= [](auto, auto input_) {
+					return Term{input_, true};
+				}; 
+
 		constexpr static const auto sum_to_expression
 				= expression(sum)
 				>= [](auto sum_) {
@@ -344,7 +372,7 @@ namespace Warp::Parsing
 		constexpr static const auto math_term_to_expression
 				= expression(math_term)
 				>= [](auto math_term_) {
-					return Expression{math_term_.value};
+					return Expression{math_term_.to_value()};
 				}; 
 
 		consteval static const auto rules()
@@ -373,6 +401,7 @@ namespace Warp::Parsing
 						>(math_term, divide), 
 					ctpg::rules(
 							input_to_math_term, 
+							negated_input_to_math_term, 
 							sum_to_expression, 
 							//sum_to_term, 
 							math_term_to_expression

@@ -45,6 +45,10 @@ enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
 		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
 
+		constexpr static const auto zero() {
+			return ThisType{UnderylingType{0}};
+		}
+
 		constexpr std::strong_ordering operator<=>(const UnderylingType& other) const noexcept {
 			return number <=> other;
 		}
@@ -110,6 +114,10 @@ enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 		constexpr NumericType(NumericType&& other) noexcept = default;
 		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
 		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
+
+		constexpr static const auto zero() {
+			return ThisType{0, 0};
+		}
 
 		constexpr std::strong_ordering spaceship_underlying(const UnderylingType& other) const noexcept
 		{
