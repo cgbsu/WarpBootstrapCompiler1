@@ -136,23 +136,24 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 
 	struct SyntaxNode
 	{
-		std::unique_ptr<SyntaxNodeVariant> data;
+		SyntaxNodeVariant data;
 		template<NodeType NodeTypeParameterConstant>
 		constexpr SyntaxNode(Node<NodeTypeParameterConstant> data) noexcept 
-				: data(std::make_unique<SyntaxNodeVariant>(FindDeleter<NodeTypeParameterConstant>::deleter, data)) {}
-		SyntaxNode(std::unique_ptr<SyntaxNodeVariant> data) noexcept : data(std::move(data)) {}
+				: data(std::in_place_type_t<decltype(data)>{}, data) {}
+		SyntaxNode(SyntaxNodeVariant data) noexcept : data(data.clone()) {}
 		constexpr SyntaxNode() noexcept = default;
-		SyntaxNode(const SyntaxNode& other) noexcept : data(std::make_unique<SyntaxNodeVariant>(*other.data.get())) {}
+		SyntaxNode(const SyntaxNode& other) noexcept : data(other.data.clone()) {}
+		//= default;
 		SyntaxNode(SyntaxNode&& other) noexcept = default;
 
 		constexpr SyntaxNode& operator=(const SyntaxNode& other) noexcept = default;
 		SyntaxNode& operator=(SyntaxNode&& other) noexcept = default;
 
 		operator const SyntaxNodeVariant&() const {
-			return *data.get();
+			return data;
 		}
 		operator SyntaxNodeVariant&() {
-			return *data.get();
+			return data;
 		}
 	};
 }

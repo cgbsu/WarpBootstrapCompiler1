@@ -17,7 +17,7 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				Node(Node&& other) noexcept = default; \
 				constexpr Node& operator=(const Node& other) noexcept = default; \
 				Node& operator=(Node&& other) noexcept = default; \
-				Node(const SyntaxNode& left, const SyntaxNode& right) noexcept : left(std::move(left)), right(std::move(right)) {} \
+				Node(const SyntaxNode& left, const SyntaxNode& right) noexcept : left(left), right(right) {} \
 				constexpr virtual NodeType get_tag() const noexcept final { \
 					return tag; \
 				} \
