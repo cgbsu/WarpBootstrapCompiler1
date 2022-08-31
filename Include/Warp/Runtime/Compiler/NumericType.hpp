@@ -7,7 +7,14 @@
 namespace Warp::Runtime::Compiler
 {
 	using namespace Warp::Utilities;
-enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
+
+	enum class NumericTypeTag
+	{
+		Whole, 
+		Integer, 
+		FixedPoint, 
+		Character, 
+		Bool
 	};
 
 	enum class WarpBool : unsigned char {
@@ -203,6 +210,43 @@ enum class NumericTypeTag { Whole, Integer, FixedPoint, Character, Bool
 	struct NumericTypeResolver<NumericTypeTag::Bool> {
 		using Type = NumericType<NumericTypeTag::Bool, WarpBool>;
 	};
+
+	template<typename>
+	struct NumericTagResolver {};
+
+	#define TAG_RESOLVER(TAG) \
+			template<> \
+			struct NumericTagResolver<NumericTypeResolver<NumericTypeTag:: TAG >::Type::UnderylingType> \
+			{ \
+				using Type = NumericTypeResolver<NumericTypeTag:: TAG >::Type::UnderylingType; \
+				using NumericType = NumericTypeResolver<NumericTypeTag:: TAG >::Type; \
+				constexpr static const auto tag = NumericTypeTag:: TAG ; \
+				constexpr NumericTagResolver(Type) noexcept {} \
+			}
+
+	TAG_RESOLVER(Whole);
+	TAG_RESOLVER(Integer);
+	TAG_RESOLVER(FixedPoint);
+	TAG_RESOLVER(Character);
+	TAG_RESOLVER(Bool);
+
+	#undef TAG_RESOLVER
+
+}
+
+namespace Warp::Utilities
+{
+	using namespace Warp::Runtime::Compiler;
+
+
+	template<NumericTypeTag ParameterTypeConstant, typename NumericParameterType>
+	struct Zero<NumericType<ParameterTypeConstant, NumericParameterType>>
+	{
+		using Type = NumericType<ParameterTypeConstant, NumericParameterType>;
+		constexpr static const auto zero = Type::zero();
+		constexpr Zero(Type) noexcept {}
+	};
+
 }
 
 #endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__NUMERIC__TYPE__HPP

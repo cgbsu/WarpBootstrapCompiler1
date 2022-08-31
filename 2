@@ -2,7 +2,7 @@
 #include <Warp/Parsing/Terms.hpp>
 #include <Warp/Utilities.hpp>
 #include <Warp/Parsing/NumericLiterals.hpp>
-#include <Warp/SyntaxAnalysis.hpp>
+#include <Warp/SyntaxAnalysis/Expression.hpp>
 
 #ifndef WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
 #define WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
@@ -113,97 +113,66 @@ namespace Warp::Parsing
 
 		using BaseType = NumericLiteralParser<BaseTermsType, TypeResolverParameterTemplate>;
 
-		//enum class AlternativeTag
-		//{
-		//	Product, 
-		//	Sum, 
-		//	Term, 
-		//	ReduceTo, 
-		//	None
-		//};
+		struct Sum;
 
 		struct Term
 		{
-			SyntaxNode node;
-			constexpr Term(SyntaxNode node) noexcept : node(node) {}
-			constexpr Term(InputType value) noexcept : node(literal_node(value)) {}
-			constexpr Term() noexcept = default;
-			constexpr Term(const Term& other) noexcept = default;
-			constexpr Term(Term&& other) noexcept = default;
-
-			constexpr Term& operator=(const Term& other) noexcept = default;
-			constexpr Term& operator=(Term&& other) noexcept = default;
-
-			constexpr Term operator*(const InputType& other) const noexcept
-			{
-				return Term{Node<NodeType::Multiply>{
-						to_auto_variant<SyntaxNode>(node), 
-						literal_node(other)
-					}};
-				//return Term{value * absolute_value(other), is_negated(other)};
+			using VariantType = std::variant<ReduceToType, Term, Sum>;
+			ReduceToType value;
+			bool negated = false;
+			constexpr Term operator*(const InputType& other) const noexcept {
+				return Term{value * absolute_value(other), is_negated(other)};
 			}
-			constexpr Term operator/(const InputType& other) const noexcept
-			{
-				return Term{Node<NodeType::Divide>{
-						to_auto_variant<SyntaxNode>(node), 
-						literal_node(other)
-					}};
-				//return Term{value / absolute_value(other), is_negated(other)};
+			constexpr Term operator/(const InputType& other) const noexcept {
+				return Term{value / absolute_value(other), is_negated(other)};
 			}
-			constexpr Term operator*(const Term& other) const noexcept
-			{
-				return Term{Node<NodeType::Multiply>{
-						to_auto_variant<SyntaxNode>(node), 
-						other.node
-					}};
-				//return Term{value * other.value, is_negated(other)};
+			constexpr Term operator*(const Term& other) const noexcept {
+				return Term{value * other.value, is_negated(other)};
 			}
-			constexpr Term operator/(const Term& other) const noexcept
-			{
-				return Term{Node<NodeType::Divide>{
-						to_auto_variant<SyntaxNode>(node), 
-						other.node
-					}};
-				//return Term{value / other.value, is_negated(other)};
+			constexpr Term operator/(const Term& other) const noexcept {
+				return Term{value / other.value, is_negated(other)};
 			}
 			constexpr Term operator-() const noexcept {
-				return Term{Node<NodeType::Negation>{to_auto_variant<SyntaxNode>(node)}};
-				//return Term{value, !negated};
+				return Term{value, !negated};
 			}
 			constexpr Term as_negated() const noexcept {
-				return Term{Node<NodeType::Negation>{to_auto_variant<SyntaxNode>(node)}};
-				//return Term{value, !negated};
+				return Term{value, !negated};
+			}
+			constexpr bool is_negated(const InputType& other) const noexcept
+			{
+				if constexpr(std::is_unsigned_v<decltype(other.number)> == false) {
+					if(other < InputType::zero())
+						return !negated;
+				}
+				return negated;
+			}
+			constexpr bool is_negated(const Term& other) const noexcept
+			{
+				/********
+				**T|O|?**
+				**1|1|0**
+				**1|0|1**
+				**0|1|1**
+				**0|0|0**
+				********/
+				return !(negated == other.negated);
+			}
+			constexpr auto to_value()
+			{
+				if(negated == true)
+					return -value;
+				return value;
 			}
 		};
 
-		template<NodeType>
-		struct OperationHolder {};
-
 		struct Sum
 		{
-			SyntaxNode node;
-			constexpr Sum(SyntaxNode node) noexcept : node(node) {}
-			template<NodeType OperateParameterConstant>
-			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
-				: node(Node<OperateParameterConstant>{
-						literal_node(left), 
-						literal_node(right)
-					}) {}
-			template<NodeType OperateParameterConstant>
-			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, Term right) noexcept 
-				: node(Node<OperateParameterConstant>{
-						literal_node(left), 
-						right.node
-					}) {}
-			template<NodeType OperateParameterConstant>
-			constexpr Sum(Term left, OperationHolder<OperateParameterConstant>, Term right) noexcept 
-				: node(Node<OperateParameterConstant>{left.node, right.node}) {}
-			template<NodeType OperateParameterConstant>
-			constexpr Sum(Term left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
-				: node(Node<OperateParameterConstant>{
-						left.node, 
-						literal_node(right)
-					}) {}
+			MovingVector<Term> operands;
+
+			constexpr Sum(std::initializer_list<Term> operands) noexcept 
+					: operands(MovingVector{std::vector<Term>{operands.begin(), operands.end()}}) {}
+			constexpr Sum(MovingVector<Term> operands) noexcept 
+					: operands(std::move(operands)) {}
 			constexpr Sum() noexcept = default;
 			constexpr Sum(const Sum& other) noexcept = default;
 			constexpr Sum(Sum&& other) noexcept = default;
@@ -211,38 +180,67 @@ namespace Warp::Parsing
 			constexpr Sum& operator=(const Sum& other) noexcept = default;
 			constexpr Sum& operator=(Sum&& other) noexcept = default;
 
-			constexpr Sum operator+(const InputType& other) const noexcept
-			{
-				return Sum{Node<NodeType::Add>{
-						to_auto_variant<SyntaxNode>(node), 
-						literal_node(other)
-					}};
+			constexpr Sum operator+(const Term& other) noexcept {
+				return operands.push_back(other);
 			}
-			constexpr Sum operator-(const InputType& other) const noexcept
-			{
-				return Sum{Node<NodeType::Subtract>{
-						to_auto_variant<SyntaxNode>(node), 
-						literal_node(other)
-					}};
+			constexpr Sum operator-(const Term& other) noexcept {
+				return operands.push_back(other.as_negated());
 			}
-			constexpr Sum operator+(const Term& other) const noexcept
-			{
-				return Sum{Node<NodeType::Add>{
-						to_auto_variant<SyntaxNode>(node), 
-						other.node
-					}};
+			constexpr Sum operator+(Sum&& other) noexcept {
+				return operands.append(other.operands);
 			}
-			constexpr Sum operator-(const Term& other) const noexcept
+			constexpr Sum operator-(Sum&& other) noexcept
 			{
-				return Sum{Node<NodeType::Subtract>{
-						to_auto_variant<SyntaxNode>(node), 
-						other.node
-					}};
+				MovingVector<Term> new_sum = operands.append(other.operands);
+				new_sum.at(operands.size()) = new_sum.at(operands.size()).as_negated();
+				return new_sum;
+			}
+			constexpr ReduceToType to_value()
+			{
+				ReduceToType total = ReduceToType::zero();
+				for(const auto& current_term : operands.data)
+				{
+					if(current_term.negated == false)
+						total = total + current_term.value;
+					else
+						total = total - current_term.value;
+				}
+				return total;
 			}
 		};
 
-		struct Expression {
-			SyntaxNode node;
+		struct Expression
+		{
+			enum class AlternativeTag {
+				Sum, Term, ReduceTo, None
+			};
+			std::variant<Sum, Term, ReduceToType> node;
+			constexpr ReduceToType to_value()
+			{
+				ReduceToType value = ReduceToType::zero();
+				std::visit(
+						OverloadedVisit{
+								[&](auto node) {
+									value = node.to_value();
+								}, 
+								[&](ReduceToType node) {
+									value = node;
+								}
+						}, 
+						node
+					);
+				return value;
+			}
+			constexpr AlternativeTag held_alternative()
+			{
+				switch(node.index())
+				{
+					case 0 : return AlternativeTag::Sum;
+					case 1 : return AlternativeTag::Term;
+					case 2 : return AlternativeTag::ReduceTo;
+					default : return AlternativeTag::None;
+				}
+			}
 		};
 
 		enum class TypeSpecificMathematicalExpressionTermTags {
@@ -292,9 +290,9 @@ namespace Warp::Parsing
 		constexpr static const auto divide = term<MathematicalExpression::Divide>;
 
 		constexpr static const auto open_parenthesis 
-				= term<Brackets::OpenParenthesis>;
+				= term<MathematicalExpression::OpenParenthesis>;
 		constexpr static const auto close_parenthesis 
-				= term<Brackets::CloseParenthesis>;
+				= term<MathematicalExpression::CloseParenthesis>;
 
 		constexpr static const auto sum 
 				= term<TypeSpecificMathematicalExpressionTermTags::Sum>;
@@ -390,19 +388,19 @@ namespace Warp::Parsing
 		constexpr static const auto negated_input_to_math_term
 				= math_term(subtract, input)
 				>= [](auto, auto input_) {
-					return Term{Node<NodeType::Negation>(literal_node(input_))};
+					return Term{input_, true};
 				}; 
 
 		constexpr static const auto sum_to_expression
 				= expression(sum)
 				>= [](auto sum_) {
-					return Expression{sum_.node};
+					return Expression{sum_};
 				}; 
 		
 		constexpr static const auto math_term_to_expression
 				= expression(math_term)
 				>= [](auto math_term_) {
-					return Expression{math_term_.node};
+					return Expression{math_term_};
 				}; 
 
 		consteval static const auto rules()
@@ -410,11 +408,11 @@ namespace Warp::Parsing
 			constexpr auto base_rules = concatinate_tuples(
 					BaseType::rules(), 
 					basic_term_operation_rules<
-							[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right}; }, 
+							[](auto left, auto right) { return Sum{left, right}; }, 
 							[](auto left, auto right) { return left + right; }
 						>(sum, add), 
 					basic_term_operation_rules<
-							[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right.as_negated()}; }, 
+							[](auto left, auto right) { return Sum{left, right.as_negated()}; }, 
 							[](auto left, auto right) { return left - right; }
 						>(sum, subtract), 
 					term_operation_reduction<

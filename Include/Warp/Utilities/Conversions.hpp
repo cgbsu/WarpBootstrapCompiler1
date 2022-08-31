@@ -1,6 +1,7 @@
 #include <Warp/Common.hpp>
 #include <Warp/Utilities/Math.hpp>
 #include <Warp/Utilities/Strings.hpp>
+#include <Warp/Utilities/TemplateUtilities.hpp>
 
 #ifndef WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
 #define WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
@@ -235,7 +236,7 @@ namespace Warp::Utilities
 			typename FixedPointParameterType, 
 			std::unsigned_integral auto BaseParameterConstant = 10u
 		>
-	auto to_fixed_point_integral(
+	constexpr auto to_fixed_point_integral(
 			const std::unsigned_integral auto major_value, 
 			const std::unsigned_integral auto minor_value
 		)
@@ -249,8 +250,8 @@ namespace Warp::Utilities
 		return FixedPointType{major_fixed + (FixedPointType{minor_value} / denomonator)};
 	}
 
-	template<typename ParameterType>
-	using CleanType = std::remove_pointer_t<std::decay_t<ParameterType>>;
+	//template<typename ParameterType>
+	//using CleanType = std::remove_pointer_t<std::decay_t<ParameterType>>;
 
 	template<typename LeftParameterType, typename RightParameterType>
 	concept ComparibleConcept = std::is_same_v<LeftParameterType, RightParameterType>
@@ -297,6 +298,36 @@ namespace Warp::Utilities
 		////std::array<ElementParameterType, LengthParameterConstant> new_array{};
 		//return Builder{initializers}.new_array;
 	}
+
+	template<typename ParameterType>
+	struct Zero
+	{
+		using Type = ParameterType;
+		constexpr Zero(Type) noexcept {}
+		constexpr static const auto zero = 0;
+	};
+
+	template<
+			size_t WholePartBitsParameterConstant, 
+			size_t DecimalPartBitsParameterConstant
+		>
+	struct Zero<
+			numeric::fixed<
+					WholePartBitsParameterConstant, 
+					DecimalPartBitsParameterConstant
+				>
+		>
+	{
+		using Type = numeric::fixed<
+				WholePartBitsParameterConstant, 
+				DecimalPartBitsParameterConstant
+			>;
+		constexpr Zero(Type) noexcept {}
+		constexpr static const auto zero = Type{0};
+	};
+
+	template<typename ParameterType>
+	constexpr static const auto zero = Zero<ParameterType>::zero;
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
 
