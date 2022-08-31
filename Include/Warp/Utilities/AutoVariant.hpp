@@ -1,4 +1,3 @@
-#include <Warp/Common.hpp>
 #include <Warp/Utilities/TemplateUtilities.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -8,235 +7,158 @@
 // is awesome!! ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef WARP__UTILITIES__HEADER__UTILITIES__AUTO__VARIANT__HPP
-#define WARP__UTILITIES__HEADER__UTILITIES__AUTO__VARIANT__HPP
+#ifndef WARP_BOOTSTRAP_COMPILER_HEADER_UTILITIES_AUTO_VARIANT_HPP
+#define WARP_BOOTSTRAP_COMPILER_HEADER_UTILITIES_AUTO_VARIANT_HPP
 
 namespace Warp::Utilities
 {
-	void default_deleter(void* to_delete);
-
-    template<typename... ParameterTypes>
+    template< typename... ParameterTypes >
     struct AutoVariant;
 
-    template<auto VisitorParameterConstant, typename... ParameterTypes>
+    template< auto VisitorParameterConstant, typename... ParameterTypes >
     constexpr static auto visit( 
-            const AutoVariant<ParameterTypes...>& variant, 
+            const AutoVariant< ParameterTypes... >& variant, 
             auto... additional_arguments 
         ) noexcept;
 
-    template<typename... ParameterTypes>
+    template< typename... ParameterTypes >
     struct AutoVariant
     {
-        using ThisType = AutoVariant<ParameterTypes...>;
-		//using DeleterType = std::function<void(void*)>;
-		
-		struct BaseAlternative {};
-		template<typename AlternativeParameterType>
-		struct Alternative : public BaseAlternative
-		{
-			using Type = AlternativeParameterType;
-			Type data;
-			//constexpr Alternative(Type data) noexcept : data(data) {}
-			//constexpr Alternative() noexcept = default;
-			//constexpr Alternative(const Alternative& other) noexcept = default;
-			//constexpr Alternative(Alternative&& other) noexcept = default;
+        using ThisType = AutoVariant< ParameterTypes... >;
 
-			//constexpr Alternative& operator=(const Alternative& other) noexcept = default;
-			//constexpr Alternative& operator=(Alternative&& other) noexcept = default;
-		};
-
-        template<typename ParameterType>
-        constexpr static size_t type_index = FindTypeIndexDecay<
+        template< typename ParameterType >
+        constexpr static size_t type_index = FindTypeIndexDecay< 
                         0, 
                         ParameterType, 
-                        ParameterTypes...
+                        ParameterTypes... 
                     >::type_index;
         constexpr AutoVariant() noexcept = delete;
-        template<typename AlternativeParameterType, typename... InitializersParameterTypes>
-        constexpr AutoVariant(
-				//DeleterType deleter, 
-				std::in_place_type_t<AlternativeParameterType>, 
-				InitializersParameterTypes... initializers
-			) noexcept
-				: data([&]() -> std::unique_ptr<BaseAlternative> { return std::make_unique<Alternative<AlternativeParameterType>>(initializers...); }()), 
-                //: data(static_cast<void*>(new AlternativeParameterType(
-                //        std::forward<InitializersParameterTypes>(initializers)...)
-                //    )), 
-                alternative_index(type_index<AlternativeParameterType>) {}//, 
-				//deleter(deleter) {}
-		//template<typename AlternativeParameterType>
-        //constexpr AutoVariant(/*DeleterType deleter,*/ AlternativeParameterType alternative) noexcept 
-        //        //: data(static_cast<void*>(new decltype(alternative)(alternative))), 
-		//		: data{std::unique_ptr<BaseAlternative>{new Alternative<AlternativeParameterType>{alternative}}}, 
-        //        alternative_index(type_index<decltype(alternative)>) {} //, 
-		//		//deleter(deleter) {}
-        constexpr AutoVariant(const AutoVariant& other) noexcept 
-				: data(
-						visit<[](auto alternative) -> std::unique_ptr<BaseAlternative>
-							{ 
-								return std::make_unique<Alternative<decltype(alternative)>>(alternative);
-							}>(other)
-					), 
-				alternative_index(
-						visit<[](auto alternative) { 
-								return type_index<decltype(alternative)>;
-							}>(other)
-					) {}
-        constexpr AutoVariant(AutoVariant&& other) noexcept = default;
-		//		: data(other.data), 
-		//		alternative_index(other.alternative_index), 
-		//		//deleter(other.deleter) {
-		//	other.data = nullptr;
-		//}
-        //constexpr ~AutoVariant() noexcept
-        //{
-		//	//deleter(data);
-		//	//data = nullptr;
-
-        //    //visit<[](auto* data_) {
-        //    //        delete static_cast<decltype(data_)>(data_);
-        //    //        return nullptr; 
-        //    //    }>(*this);
-        //}
-        constexpr ThisType& operator=(const ThisType& other) = default;
-        constexpr ThisType& operator=(ThisType&& other) = default;
-
-		constexpr ThisType clone() const {
-			return visit<[](auto alternative) 
-				{ 
-					return AutoVariant<ParameterTypes...>{std::in_place_type_t<decltype(alternative)>{}, alternative};
-				}>(*this);
-		}
+        template< typename AlternativeParameterType, typename... InitializersParameterTypes >
+        constexpr AutoVariant( std::in_place_type_t< AlternativeParameterType >, InitializersParameterTypes... initializers ) noexcept
+                : data( static_cast< void* >( new AlternativeParameterType( 
+                        std::forward< InitializersParameterTypes >( initializers )... ) 
+                    ) ), 
+                alternative_index( type_index< AlternativeParameterType > ) {}
+        constexpr ~AutoVariant() noexcept
+        {
+            visit< []( auto* data_ ) {
+                    delete static_cast< decltype( data_ ) >( data_ );
+                    return nullptr; 
+                } >( *this );
+        }
+        constexpr AutoVariant( const AutoVariant& other ) noexcept = default;
+        constexpr AutoVariant( AutoVariant&& other ) noexcept = default;
+        constexpr ThisType& operator=( const ThisType& other ) = default;
+        constexpr ThisType& operator=( ThisType&& other ) = default;
 
         constexpr const size_t index() const noexcept {
             return alternative_index;
         }
-        constexpr auto get_data() const noexcept {
+        constexpr void* get_data() const noexcept {
             return data;
         }
-		//constexpr DeleterType get_deleter() const noexcept {
-		//	return deleter;
-		//}
-        template<typename TypeParameterConstant, bool IKnowWhatIAmDoingParameterConstant = false>
-        constexpr auto& data_as() const noexcept
+        template< typename TypeParameterConstant, bool IKnowWhatIAmDoingParameterConstant = false >
+        constexpr auto data_as() const noexcept
         {
-            static_assert(IKnowWhatIAmDoingParameterConstant, 
+            static_assert( IKnowWhatIAmDoingParameterConstant, 
                     "AutoVariant< typename... >::template< typename, bool > auto data_as()::Saftey Check: "
                     "Do you know what you are doing? this method performs a cast without checking "
                     "too see if the specified type is held by the varaiant nor if it is the the "
                     "type the varaiant presently holds. If you understand and wish to proceede "
-                    "enter a true value for the second template parameter."
+                    "enter a true value for the second template parameter." 
                 );
-            return static_cast<Alternative<TypeParameterConstant>*>(data.get())->data;
-        }
-        template<typename TypeParameterConstant, bool IKnowWhatIAmDoingParameterConstant = false>
-        constexpr auto alternative_as() const noexcept
-        {
-            static_assert(IKnowWhatIAmDoingParameterConstant, 
-                    "AutoVariant< typename... >::template< typename, bool > auto data_as()::Saftey Check: "
-                    "Do you know what you are doing? this method performs a cast without checking "
-                    "too see if the specified type is held by the varaiant nor if it is the the "
-                    "type the varaiant presently holds. If you understand and wish to proceede "
-                    "enter a true value for the second template parameter."
-                );
-            return static_cast<Alternative<TypeParameterConstant>*>(data.get());
+            return static_cast< TypeParameterConstant* >( data );
         }
         protected: 
-            //void* data;
-			std::unique_ptr<BaseAlternative> data;
-            size_t alternative_index;
-			//std::function<void(void*)> deleter;
+            void* data;
+            const size_t alternative_index;
     };
 
-	template<typename AutoVariantParameterType>
-	constexpr static auto to_auto_variant(auto alternative) {
-		return AutoVariantParameterType{alternative};
-	}
 
-    template<typename AlternativeType>
-    constexpr bool holds_alternative(const auto& variant) {
-        return std::remove_reference_t< std::decay_t<decltype(variant)>>::template type_index<AlternativeType> == variant.index();
+    template< typename AlternativeType >
+    constexpr bool holds_alternative( const auto& variant ) {
+        return std::remove_reference_t< std::decay_t< decltype( variant ) > >::template type_index< AlternativeType > == variant.index();
     }
 
-    template<
+    template< 
             typename ReturnParameterType, 
             size_t IndexParameterConstant, 
             size_t MaximumParameterConstant, 
             auto VisitorParameterConstant, 
-            typename... ParameterTypes
+            typename... ParameterTypes 
         >
     struct VisitImplementation
     {
         ReturnParameterType result;
-        using Type = typename IndexToType<
+        using PointerType = typename IndexToType< 
                 IndexParameterConstant, 
                 0, 
-                ParameterTypes...
-            >::Type;
-        using NextType = VisitImplementation<
+                ParameterTypes... 
+            >::Type*;
+        using NextType = VisitImplementation< 
                 ReturnParameterType, 
                 IndexParameterConstant + 1, 
                 MaximumParameterConstant, 
                 VisitorParameterConstant, 
-                ParameterTypes...
+                ParameterTypes... 
             >;
-        constexpr VisitImplementation(
-                const AutoVariant<ParameterTypes...>& variant, 
-                auto... additional_arguments
-            ) noexcept 
-			: result((IndexParameterConstant == variant.index()) 
-					? VisitorParameterConstant(
-					        variant.template data_as<Type, true>(), 
-					        additional_arguments... 
-					    )
-					: NextType(variant, additional_arguments...).result
-				) {}
+        constexpr VisitImplementation( 
+                const AutoVariant< ParameterTypes... >& variant, 
+                auto... additional_arguments 
+            ) noexcept : result( 
+                    ( IndexParameterConstant == variant.index() ) 
+                            ? VisitorParameterConstant( 
+                                    static_cast< PointerType >( variant.get_data() ), 
+                                    additional_arguments... 
+                                ) 
+                            : NextType( variant, additional_arguments... ).result 
+                ) {}
     };
 
-    template<
+    template< 
             typename ReturnParameterType, 
             size_t MaximumParameterConstant, 
             auto VisitorParameterConstant, 
-            typename... ParameterTypes
+            typename... ParameterTypes 
         >
-    struct VisitImplementation<
+    struct VisitImplementation< 
             ReturnParameterType, 
             MaximumParameterConstant, 
             MaximumParameterConstant, 
             VisitorParameterConstant, 
-            ParameterTypes...
+            ParameterTypes... 
         >
     {
-        using Type = typename IndexToType<
+        using PointerType = typename IndexToType< 
                 MaximumParameterConstant, 
                 0, 
-                ParameterTypes...
-            >::Type;
+                ParameterTypes... 
+            >::Type*;
         ReturnParameterType result;
-        constexpr VisitImplementation(
-                const AutoVariant<ParameterTypes...>& variant, 
-                auto... additional_arguments
-            ) noexcept 
-			: result(VisitorParameterConstant(variant.template data_as<Type, true>(), additional_arguments...)) {}
+        constexpr VisitImplementation( 
+                const AutoVariant< ParameterTypes... >& variant, 
+                auto... additional_arguments 
+            ) noexcept : result( VisitorParameterConstant( static_cast< PointerType >( variant.get_data() ), additional_arguments... )
+                ) {}
     };
 
     template< auto VisitorParameterConstant, typename... ParameterTypes >
-    constexpr static auto visit(
-            const AutoVariant<ParameterTypes...>& variant, 
-            auto... additional_arguments
+    constexpr static auto visit( 
+            const AutoVariant< ParameterTypes... >& variant, 
+            auto... additional_arguments 
         ) noexcept
     {
         
-        using FirstAlternativeType = typename IndexToType<0, 0, ParameterTypes...>::Type;
+        using FirstAlternativeType = typename IndexToType< 0, 0, ParameterTypes... >::Type;
         FirstAlternativeType* substitute = nullptr;
-        using ReturnType = decltype(VisitorParameterConstant(substitute, additional_arguments...));
-        return VisitImplementation<
+        using ReturnType = decltype( VisitorParameterConstant( substitute, additional_arguments... ) );
+        return VisitImplementation< 
                 ReturnType, 
                 0, 
-                sizeof...(ParameterTypes) - 1, 
+                sizeof...( ParameterTypes ) - 1, 
                 VisitorParameterConstant, 
-                ParameterTypes...
-            >(variant, additional_arguments...).result;
+                ParameterTypes... 
+            >( variant, additional_arguments... ).result;
     }
 
     /*template< auto VisitorParameterConstant, typename... ParameterTypes >
@@ -247,15 +169,12 @@ namespace Warp::Utilities
         return visit( refrence );
     }*/
 
-    template<typename QueryParameterType, typename... VariantAlternativeParameterTypes>
-    constexpr static QueryParameterType* get_if(const AutoVariant<VariantAlternativeParameterTypes...>* variant)
-	{
-        if(decltype(FindTypeIndexDecay<0, QueryParameterType, VariantAlternativeParameterTypes...>{})
-					::type_index == variant->index())
-            return variant->template data_as<QueryParameterType, true>();
+    template< typename QueryParameterType, typename... VariantAlternativeParameterTypes >
+    constexpr static QueryParameterType* get_if( const AutoVariant< VariantAlternativeParameterTypes... >* variant ) {
+        if( decltype( FindTypeIndexDecay< 0, QueryParameterType, VariantAlternativeParameterTypes... >{} )::type_index == variant->index() )
+            return static_cast< QueryParameterType* >( variant->get_data() );
         return nullptr;
     }
 }
 
-#endif // WARP__UTILITIES__HEADER__UTILITIES__AUTO__VARIANT__HPP
-
+#endif // WARP_BOOTSTRAP_COMPILER_HEADER_UTILITIES_AUTO_VARIANT_HPP

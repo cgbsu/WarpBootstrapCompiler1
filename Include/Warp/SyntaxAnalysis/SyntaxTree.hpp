@@ -68,7 +68,7 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	using namespace Warp::Runtime::Compiler;
 	using namespace Warp::Utilities;
 
-	using SyntaxNodeVariant = AutoVariant<
+	using InternalSyntaxNodeVariant = AutoVariant<
 			Node<NodeType::Multiply>, 
 			Node<NodeType::Divide>, 
 			Node<NodeType::Add>, 
@@ -81,6 +81,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 			Node<NodeType::LiteralFixed>, 
 			Node<NodeType::LiteralBool>
 		>;
+
+	using SyntaxNodeVariant = NotSoUniquePointer<InternalSyntaxNodeVariant>;
 
 
 	//extern void auto_variant_delete(Node<NodeType::LiteralWhole>* to_delete);
@@ -134,26 +136,33 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 
 	#undef DEFINE_FIND_DELETER
 
+	template<NodeType NodeTypeParameterConstant>
+	SyntaxNodeVariant allocate_node(auto... initializers)
+	{
+		using AlternativeParameterType = Node<NodeTypeParameterConstant>;
+		return NotSoUniquePointer{
+				std::in_place_type_t<InternalSyntaxNodeVariant>{}, 
+				std::in_place_type_t<AlternativeParameterType>{}, 
+				initializers...
+			};
+	}
+
 	struct SyntaxNode
 	{
 		SyntaxNodeVariant data;
 		template<NodeType NodeTypeParameterConstant>
 		constexpr SyntaxNode(Node<NodeTypeParameterConstant> data) noexcept 
-				: data(std::in_place_type_t<decltype(data)>{}, data) {}
-		SyntaxNode(SyntaxNodeVariant data) noexcept : data(data.clone()) {}
+				: data(allocate_node<decltype(data)::tag>(data)) {}
+		SyntaxNode(SyntaxNodeVariant data) noexcept : data(data) {}
 		constexpr SyntaxNode() noexcept = default;
-		SyntaxNode(const SyntaxNode& other) noexcept : data(other.data.clone()) {}
-		//= default;
+		SyntaxNode(const SyntaxNode& other) noexcept = default;
 		SyntaxNode(SyntaxNode&& other) noexcept = default;
 
 		constexpr SyntaxNode& operator=(const SyntaxNode& other) noexcept = default;
 		SyntaxNode& operator=(SyntaxNode&& other) noexcept = default;
 
-		operator const SyntaxNodeVariant&() const {
-			return data;
-		}
-		operator SyntaxNodeVariant&() {
-			return data;
+		operator const InternalSyntaxNodeVariant&() const {
+			return *data.get_pointer();
 		}
 	};
 }

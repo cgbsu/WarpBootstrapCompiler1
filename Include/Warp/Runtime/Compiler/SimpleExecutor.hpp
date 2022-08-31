@@ -24,7 +24,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 							CleanType<decltype(node)>::tag
 						>(*node).to_value(); 
 				}
-			>(*node.data.get());
+			>(*node.data.get_pointer());
 	}
 
 	#define LITERAL_NODE(LITERAL_TAG) \

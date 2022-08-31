@@ -8,6 +8,7 @@
 #include <Warp/Utilities/ConstantVector.hpp>
 #include <Warp/Utilities/MovingVector.hpp>
 #include <Warp/Utilities/TemplateUtilities.hpp>
+#include <Warp/Utilities/NotSoUniquePointer.hpp>
 #include <Warp/Utilities/AutoVariant.hpp>
 
 #ifndef WARP__UTILITIES__HEADER__HPP
