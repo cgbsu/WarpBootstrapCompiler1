@@ -136,16 +136,16 @@ namespace Warp::Parsing
 
 			constexpr Term operator*(const InputType& other) const noexcept
 			{
-				return Term{Node<NodeType::Multiply>{
-						to_auto_variant<SyntaxNode>(node), 
+				return Term(Node<NodeType::Multiply>{
+						SyntaxNode{node}, 
 						literal_node(other)
-					}};
+					});
 				//return Term{value * absolute_value(other), is_negated(other)};
 			}
 			constexpr Term operator/(const InputType& other) const noexcept
 			{
 				return Term{Node<NodeType::Divide>{
-						to_auto_variant<SyntaxNode>(node), 
+						SyntaxNode{node}, 
 						literal_node(other)
 					}};
 				//return Term{value / absolute_value(other), is_negated(other)};
@@ -153,7 +153,7 @@ namespace Warp::Parsing
 			constexpr Term operator*(const Term& other) const noexcept
 			{
 				return Term{Node<NodeType::Multiply>{
-						to_auto_variant<SyntaxNode>(node), 
+						SyntaxNode{node}, 
 						other.node
 					}};
 				//return Term{value * other.value, is_negated(other)};
@@ -161,17 +161,17 @@ namespace Warp::Parsing
 			constexpr Term operator/(const Term& other) const noexcept
 			{
 				return Term{Node<NodeType::Divide>{
-						to_auto_variant<SyntaxNode>(node), 
+						SyntaxNode{node}, 
 						other.node
 					}};
 				//return Term{value / other.value, is_negated(other)};
 			}
 			constexpr Term operator-() const noexcept {
-				return Term{Node<NodeType::Negation>{to_auto_variant<SyntaxNode>(node)}};
+				return Term{Node<NodeType::Negation>{SyntaxNode{node}}};
 				//return Term{value, !negated};
 			}
 			constexpr Term as_negated() const noexcept {
-				return Term{Node<NodeType::Negation>{to_auto_variant<SyntaxNode>(node)}};
+				return Term{Node<NodeType::Negation>{SyntaxNode{node}}};
 				//return Term{value, !negated};
 			}
 		};
@@ -214,28 +214,28 @@ namespace Warp::Parsing
 			constexpr Sum operator+(const InputType& other) const noexcept
 			{
 				return Sum{Node<NodeType::Add>{
-						to_auto_variant<SyntaxNode>(node), 
+						SyntaxNode{node}, 
 						literal_node(other)
 					}};
 			}
 			constexpr Sum operator-(const InputType& other) const noexcept
 			{
 				return Sum{Node<NodeType::Subtract>{
-						to_auto_variant<SyntaxNode>(node), 
+						SyntaxNode{node}, 
 						literal_node(other)
 					}};
 			}
 			constexpr Sum operator+(const Term& other) const noexcept
 			{
 				return Sum{Node<NodeType::Add>{
-						to_auto_variant<SyntaxNode>(node), 
+						SyntaxNode{node}, 
 						other.node
 					}};
 			}
 			constexpr Sum operator-(const Term& other) const noexcept
 			{
 				return Sum{Node<NodeType::Subtract>{
-						to_auto_variant<SyntaxNode>(node), 
+						SyntaxNode{node}, 
 						other.node
 					}};
 			}

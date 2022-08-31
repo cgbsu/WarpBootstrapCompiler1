@@ -1,7 +1,6 @@
 #include <Warp/Common.hpp>
-#include <Warp/SyntaxAnalysis/SyntaxNode.hpp>
-#include <Warp/SyntaxAnalysis/NumericLiterals.hpp>
 #include <Warp/Utilities.hpp>
+#include <Warp/SyntaxAnalysis.hpp>
 
 #ifndef WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__SIMPLE__EXECUTOR__HPP
 #define WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__SIMPLE__EXECUTOR__HPP
@@ -18,8 +17,14 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	static auto retrieve_value(const SyntaxNode& node) -> ReduceToParameterType
 	{
 		return visit<
-				[](auto node) { return Executor<ReduceToParameterType, CleanType<decltype(node)>::tag>(*node).to_value(); }
-			>(node);
+				[](auto node)
+				{ 
+					return Executor<
+							ReduceToParameterType, 
+							CleanType<decltype(node)>::tag
+						>(*node).to_value(); 
+				}
+			>(node.data);
 	}
 
 	#define LITERAL_NODE(LITERAL_TAG) \

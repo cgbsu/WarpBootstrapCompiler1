@@ -1,4 +1,4 @@
-#include <Warp/SyntaxAnalysis/SyntaxNode.hpp>
+#include <Warp/SyntaxAnalysis/SyntaxTree.hpp>
 #include <Warp/Runtime/Compiler/NumericType.hpp>
 
 #ifndef WARP__PARSING__HEADER__SYNTAX__ANALYSIS__NUMERIC__LITERALS__HPP
@@ -27,6 +27,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				operator NumericType() { \
 					return value; \
 				} \
+				constexpr operator SyntaxNode() const noexcept { \
+					return SyntaxNode{*this}; \
+				} \
 			}
 
 	LITERAL_NODE(LiteralWhole, Whole);
@@ -37,11 +40,6 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	
 	#undef LITERAL_NODE
 
-	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Whole>::Type value);
-	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Integer>::Type value);
-	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::FixedPoint>::Type value);
-	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Character>::Type value);
-	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Bool>::Type value);
 }
 
 #endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__NUMERIC__LITERALS__HPP

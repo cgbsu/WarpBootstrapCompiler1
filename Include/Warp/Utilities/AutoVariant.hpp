@@ -13,6 +13,8 @@
 
 namespace Warp::Utilities
 {
+	void auto_variant_delete(int* point);
+
     template< typename... ParameterTypes >
     struct AutoVariant;
 

@@ -1,10 +1,11 @@
-#include <Warp/SyntaxAnalysis/SyntaxNode.hpp>
+#include <Warp/SyntaxAnalysis/SyntaxTree.hpp>
 
 #ifndef WARP__PARSING__HEADER__SYNTAX__ANALYSIS__MATHEMATICAL__EXPRESSIONS__HPP
 #define WARP__PARSING__HEADER__SYNTAX__ANALYSIS__MATHEMATICAL__EXPRESSIONS__HPP
 
 namespace Warp::SyntaxAnalysis::SyntaxTree
 {
+	// Idea have the SyntaxNode type be incomplete inistead of the node type. //
 	#define BINARY_NODE(OPERATION) \
 			template<> \
 			struct Node<NodeType:: OPERATION > : public BaseNode \
@@ -19,6 +20,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				constexpr Node(const SyntaxNode& left, const SyntaxNode& right) noexcept : left(std::move(left)), right(std::move(right)) {} \
 				constexpr virtual NodeType get_tag() const noexcept final { \
 					return tag; \
+				} \
+				constexpr operator SyntaxNode() const noexcept { \
+					return SyntaxNode{*this}; \
 				} \
 			}
 	BINARY_NODE(Multiply);
@@ -42,6 +46,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		constexpr virtual NodeType get_tag() const noexcept final {
 			return tag;
 		}
+		constexpr operator SyntaxNode() const noexcept {
+			return SyntaxNode{*this};
+		}
 	};
 
 	template<>
@@ -57,6 +64,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		constexpr Node& operator=(Node&& other) noexcept = default; \
 		constexpr virtual NodeType get_tag() const noexcept final {
 			return tag;
+		}
+		constexpr operator SyntaxNode() const noexcept {
+			return SyntaxNode{*this};
 		}
 	};
 }

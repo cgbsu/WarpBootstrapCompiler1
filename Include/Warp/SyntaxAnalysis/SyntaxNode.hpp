@@ -1,65 +1,19 @@
-#include <Warp/Common.hpp>
-#include <Warp/Runtime/Compiler/NumericType.hpp>
-#include <Warp/Utilities/AutoVariant.hpp>
+#include <Warp/SyntaxAnalysis/NumericLiterals.hpp>
+#include <Warp/SyntaxAnalysis/MathematicalExpressions.hpp>
+#include <Warp/SyntaxAnalysis/SyntaxTree.hpp>
 
-#ifndef WARP__PARSING__HEADER__SYNTAX__ANALYSIS__EXPRESSIONS__HPP
-#define WARP__PARSING__HEADER__SYNTAX__ANALYSIS__EXPRESSIONS__HPP
+#ifndef WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__NODE__HPP
+#define WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__NODE__HPP
 
 namespace Warp::SyntaxAnalysis::SyntaxTree
 {
 
-	using namespace Warp::Runtime::Compiler;
-
-	enum class NodeType
-	{
-		Multiply, 
-		Divide, 
-		Add, 
-		Subtract, 
-		Negation, 
-		LiteralWhole, 
-		LiteralInteger, 
-		LiteralCharacter, 
-		LiteralFixed, 
-		LiteralBool, 
-		Expression
-	};
-
-	template<NodeType> struct Node {};
-
-	struct BaseNode {
-		constexpr virtual NodeType get_tag() const noexcept = 0;
-	};
-
-	template<> struct Node<NodeType::Multiply>;
-	template<> struct Node<NodeType::Divide>;
-	template<> struct Node<NodeType::Add>;
-	template<> struct Node<NodeType::Subtract>;
-	template<> struct Node<NodeType::Negation>;
-
-	template<> struct Node<NodeType::LiteralWhole>;
-	template<> struct Node<NodeType::LiteralInteger>;
-	template<> struct Node<NodeType::LiteralCharacter>;
-	template<> struct Node<NodeType::LiteralFixed>;
-	template<> struct Node<NodeType::LiteralBool>;
-
-	template<> struct Node<NodeType::Expression>;
-
-	//using SyntaxNode = std::variant<
-	using SyntaxNode = AutoVariant<
-			Node<NodeType::Multiply>, 
-			Node<NodeType::Divide>, 
-			Node<NodeType::Add>, 
-			Node<NodeType::Subtract>, 
-			Node<NodeType::Negation>, 
-			Node<NodeType::Expression>, 
-			Node<NodeType::LiteralWhole>, 
-			Node<NodeType::LiteralInteger>, 
-			Node<NodeType::LiteralCharacter>, 
-			Node<NodeType::LiteralFixed>, 
-			Node<NodeType::LiteralBool>
-		>;
+	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Whole>::Type value);
+	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Integer>::Type value);
+	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::FixedPoint>::Type value);
+	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Character>::Type value);
+	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Bool>::Type value);
 }
 
-#endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__EXPRESSIONS__HPP
+#endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__NODE__HPP
 
