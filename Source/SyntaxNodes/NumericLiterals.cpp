@@ -28,26 +28,34 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	template struct Node<NodeType::LiteralFixed>;
 	template struct Node<NodeType::LiteralBool>;
 
-}
+	//void auto_variant_delete(Node<NodeType::LiteralWhole>* to_delete) {
+	//	delete to_delete;
+	//}
+	//void auto_variant_delete(Node<NodeType::LiteralInteger>* to_delete) {
+	//	delete to_delete;
+	//}
+	//void auto_variant_delete(Node<NodeType::LiteralCharacter>* to_delete) {
+	//	delete to_delete;
+	//}
+	//void auto_variant_delete(Node<NodeType::LiteralFixed>* to_delete) {
+	//	delete to_delete;
+	//}
+	//void auto_variant_delete(Node<NodeType::LiteralBool>* to_delete) {
+	//	delete to_delete;
+	//}
 
-namespace Warp::Utilities
-{
-	using namespace Warp::SyntaxAnalysis::SyntaxTree;
+	#define DELETER_FUNCTION(NODE_TYPE, FUNCTION_SUFFIX) \
+		void auto_variant_delete_##FUNCTION_SUFFIX (void* to_delete) { \
+			delete static_cast<Node<NodeType :: NODE_TYPE >*>(to_delete); \
+		}
 
-	void auto_variant_delete(Node<NodeType::LiteralWhole>* to_delete) {
-		delete to_delete;
-	}
-	void auto_variant_delete(Node<NodeType::LiteralInteger>* to_delete) {
-		delete to_delete;
-	}
-	void auto_variant_delete(Node<NodeType::LiteralCharacter>* to_delete) {
-		delete to_delete;
-	}
-	void auto_variant_delete(Node<NodeType::LiteralFixed>* to_delete) {
-		delete to_delete;
-	}
-	void auto_variant_delete(Node<NodeType::LiteralBool>* to_delete) {
-		delete to_delete;
-	}
+	DELETER_FUNCTION(LiteralWhole, literal_whole)
+	DELETER_FUNCTION(LiteralInteger, literal_integer)
+	DELETER_FUNCTION(LiteralCharacter, literal_character)
+	DELETER_FUNCTION(LiteralFixed, literal_fixed)
+	DELETER_FUNCTION(LiteralBool, literal_bool)
+
+	#undef DELETER_FUNCTION
+
 }
 

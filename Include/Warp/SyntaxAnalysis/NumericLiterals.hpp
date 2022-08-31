@@ -45,20 +45,7 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	extern template struct Node<NodeType::LiteralCharacter>;
 	extern template struct Node<NodeType::LiteralFixed>;
 	extern template struct Node<NodeType::LiteralBool>;
-
-
 }
 
-namespace Warp::Utilities
-{
-	using namespace Warp::SyntaxAnalysis::SyntaxTree;
-
-	extern void auto_variant_delete(Node<NodeType::LiteralWhole>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::LiteralInteger>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::LiteralCharacter>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::LiteralFixed>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::LiteralBool>* to_delete);
-
-}
 #endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__NUMERIC__LITERALS__HPP
 

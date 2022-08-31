@@ -13,12 +13,14 @@
 
 namespace Warp::Utilities
 {
+	void default_deleter(void* to_delete);
+
     template<typename... ParameterTypes>
     struct AutoVariant;
 
     template<auto VisitorParameterConstant, typename... ParameterTypes>
     constexpr static auto visit( 
-            const AutoVariant< ParameterTypes... >& variant, 
+            const AutoVariant<ParameterTypes...>& variant, 
             auto... additional_arguments 
         ) noexcept;
 
@@ -26,6 +28,7 @@ namespace Warp::Utilities
     struct AutoVariant
     {
         using ThisType = AutoVariant<ParameterTypes...>;
+		using DeleterType = std::function<void(void*)>;
 
         template<typename ParameterType>
         constexpr static size_t type_index = FindTypeIndexDecay<
@@ -35,22 +38,28 @@ namespace Warp::Utilities
                     >::type_index;
         constexpr AutoVariant() noexcept = delete;
         template<typename AlternativeParameterType, typename... InitializersParameterTypes>
-        constexpr AutoVariant(std::in_place_type_t<AlternativeParameterType>, InitializersParameterTypes... initializers) noexcept
+        constexpr AutoVariant(
+				DeleterType deleter, 
+				std::in_place_type_t<AlternativeParameterType>, 
+				InitializersParameterTypes... initializers) noexcept
                 : data(static_cast<void*>(new AlternativeParameterType(
                         std::forward<InitializersParameterTypes>(initializers)...)
                     )), 
-                alternative_index(type_index<AlternativeParameterType>) {}
-        constexpr AutoVariant(auto alternative) noexcept 
+                alternative_index(type_index<AlternativeParameterType>), 
+				deleter(deleter) {}
+        constexpr AutoVariant(DeleterType deleter, auto alternative) noexcept 
                 : data(static_cast<void*>(new decltype(alternative)(alternative))), 
-                alternative_index(type_index<decltype(alternative)>) {}
+                alternative_index(type_index<decltype(alternative)>), 
+				deleter(deleter) {}
         constexpr AutoVariant(const AutoVariant& other) noexcept = default;
         constexpr AutoVariant(AutoVariant&& other) noexcept = default;
         constexpr ~AutoVariant() noexcept
         {
-            visit<[](auto* data_) {
-                    delete static_cast<decltype(data_)>(data_);
-                    return nullptr; 
-                }>(*this);
+			deleter(data);
+            //visit<[](auto* data_) {
+            //        delete static_cast<decltype(data_)>(data_);
+            //        return nullptr; 
+            //    }>(*this);
         }
         constexpr ThisType& operator=(const ThisType& other) = default;
         constexpr ThisType& operator=(ThisType&& other) = default;
@@ -61,6 +70,9 @@ namespace Warp::Utilities
         constexpr void* get_data() const noexcept {
             return data;
         }
+		constexpr DeleterType get_deleter() const noexcept {
+			return deleter;
+		}
         template<typename TypeParameterConstant, bool IKnowWhatIAmDoingParameterConstant = false>
         constexpr auto data_as() const noexcept
         {
@@ -76,6 +88,7 @@ namespace Warp::Utilities
         protected: 
             void* data;
             size_t alternative_index;
+			std::function<void(void*)> deleter;
     };
 
 	template<typename AutoVariantParameterType>
@@ -111,7 +124,7 @@ namespace Warp::Utilities
                 ParameterTypes...
             >;
         constexpr VisitImplementation(
-                const AutoVariant< ParameterTypes... >& variant, 
+                const AutoVariant<ParameterTypes...>& variant, 
                 auto... additional_arguments
             ) noexcept 
 			: result((IndexParameterConstant == variant.index()) 
@@ -144,7 +157,7 @@ namespace Warp::Utilities
             >::Type*;
         ReturnParameterType result;
         constexpr VisitImplementation(
-                const AutoVariant< ParameterTypes... >& variant, 
+                const AutoVariant<ParameterTypes...>& variant, 
                 auto... additional_arguments
             ) noexcept 
 			: result(VisitorParameterConstant(static_cast<PointerType>(variant.get_data()), additional_arguments...)) {}
@@ -152,7 +165,7 @@ namespace Warp::Utilities
 
     template< auto VisitorParameterConstant, typename... ParameterTypes >
     constexpr static auto visit(
-            const AutoVariant< ParameterTypes... >& variant, 
+            const AutoVariant<ParameterTypes...>& variant, 
             auto... additional_arguments
         ) noexcept
     {
@@ -178,9 +191,10 @@ namespace Warp::Utilities
     }*/
 
     template< typename QueryParameterType, typename... VariantAlternativeParameterTypes >
-    constexpr static QueryParameterType* get_if(const AutoVariant< VariantAlternativeParameterTypes... >* variant)
+    constexpr static QueryParameterType* get_if(const AutoVariant<VariantAlternativeParameterTypes...>* variant)
 	{
-        if(decltype(FindTypeIndexDecay<0, QueryParameterType, VariantAlternativeParameterTypes...>{} )::type_index == variant->index())
+        if(decltype(FindTypeIndexDecay<0, QueryParameterType, VariantAlternativeParameterTypes...>{})
+					::type_index == variant->index())
             return static_cast<QueryParameterType*>(variant->get_data());
         return nullptr;
     }

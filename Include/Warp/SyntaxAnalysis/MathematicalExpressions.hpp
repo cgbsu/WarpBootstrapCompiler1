@@ -77,17 +77,6 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	extern template struct Node<NodeType::Negation>;
 	extern template struct Node<NodeType::Expression>;
 }
-namespace Warp::Utilities
-{
-	using namespace Warp::SyntaxAnalysis::SyntaxTree;
-
-	extern void auto_variant_delete(Node<NodeType::Multiply>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::Divide>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::Add>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::Subtract>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::Negation>* to_delete);
-	extern void auto_variant_delete(Node<NodeType::Expression>* to_delete);
-}
 
 #endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__MATHEMATICAL__EXPRESSIONS__HPP
 
