@@ -125,7 +125,7 @@ namespace Warp::Parsing
 		struct Term
 		{
 			SyntaxNode node;
-			constexpr Term(SyntaxNode node) noexcept : node(node) {}
+			constexpr Term(SyntaxNode&& node) noexcept : node(node) {}
 			constexpr Term(InputType value) noexcept : node(literal_node(value)) {}
 			constexpr Term() noexcept = default;
 			constexpr Term(const Term& other) noexcept = default;
@@ -153,7 +153,7 @@ namespace Warp::Parsing
 			constexpr Term operator*(const Term& other) const noexcept
 			{
 				return Term{Node<NodeType::Multiply>{
-						SyntaxNode{node}, 
+						node, 
 						other.node
 					}};
 				//return Term{value * other.value, is_negated(other)};
@@ -161,17 +161,17 @@ namespace Warp::Parsing
 			constexpr Term operator/(const Term& other) const noexcept
 			{
 				return Term{Node<NodeType::Divide>{
-						SyntaxNode{node}, 
+						node, 
 						other.node
 					}};
 				//return Term{value / other.value, is_negated(other)};
 			}
 			constexpr Term operator-() const noexcept {
-				return Term{Node<NodeType::Negation>{SyntaxNode{node}}};
+				return Term{Node<NodeType::Negation>{node}};
 				//return Term{value, !negated};
 			}
 			constexpr Term as_negated() const noexcept {
-				return Term{Node<NodeType::Negation>{SyntaxNode{node}}};
+				return Term{Node<NodeType::Negation>{node}};
 				//return Term{value, !negated};
 			}
 		};

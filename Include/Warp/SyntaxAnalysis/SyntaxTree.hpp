@@ -7,8 +7,8 @@
 
 namespace Warp::SyntaxAnalysis::SyntaxTree
 {
-
 	using namespace Warp::Runtime::Compiler;
+	using namespace Warp::Utilities;
 
 	enum class NodeType
 	{
@@ -44,6 +44,29 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	template<> struct Node<NodeType::LiteralBool>;
 
 	template<> struct Node<NodeType::Expression>;
+}
+namespace Warp::Utilities
+{
+	using namespace Warp::SyntaxAnalysis::SyntaxTree;
+	extern template struct Warp::Utilities::AutoVariant<
+			Node<NodeType::Multiply>, 
+			Node<NodeType::Divide>, 
+			Node<NodeType::Add>, 
+			Node<NodeType::Subtract>, 
+			Node<NodeType::Negation>, 
+			Node<NodeType::Expression>, 
+			Node<NodeType::LiteralWhole>, 
+			Node<NodeType::LiteralInteger>, 
+			Node<NodeType::LiteralCharacter>, 
+			Node<NodeType::LiteralFixed>, 
+			Node<NodeType::LiteralBool>
+		>;
+}
+
+namespace Warp::SyntaxAnalysis::SyntaxTree
+{
+	using namespace Warp::Runtime::Compiler;
+	using namespace Warp::Utilities;
 
 	using SyntaxNodeVariant = AutoVariant<
 			Node<NodeType::Multiply>, 
@@ -58,6 +81,7 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 			Node<NodeType::LiteralFixed>, 
 			Node<NodeType::LiteralBool>
 		>;
+
 
 	//extern void auto_variant_delete(Node<NodeType::LiteralWhole>* to_delete);
 	//extern void auto_variant_delete(Node<NodeType::LiteralInteger>* to_delete);

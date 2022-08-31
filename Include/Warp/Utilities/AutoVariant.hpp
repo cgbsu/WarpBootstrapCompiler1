@@ -52,10 +52,16 @@ namespace Warp::Utilities
                 alternative_index(type_index<decltype(alternative)>), 
 				deleter(deleter) {}
         constexpr AutoVariant(const AutoVariant& other) noexcept = default;
-        constexpr AutoVariant(AutoVariant&& other) noexcept = default;
+        constexpr AutoVariant(AutoVariant&& other) noexcept //= default;
+				: data(other.data), 
+				alternative_index(other.alternative_index), 
+				deleter(other.deleter) {
+			other.data = nullptr;
+		}
         constexpr ~AutoVariant() noexcept
         {
 			deleter(data);
+			data = nullptr;
             //visit<[](auto* data_) {
             //        delete static_cast<decltype(data_)>(data_);
             //        return nullptr; 

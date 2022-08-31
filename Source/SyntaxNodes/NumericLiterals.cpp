@@ -46,7 +46,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 
 	#define DELETER_FUNCTION(NODE_TYPE, FUNCTION_SUFFIX) \
 		void auto_variant_delete_##FUNCTION_SUFFIX (void* to_delete) { \
-			delete static_cast<Node<NodeType :: NODE_TYPE >*>(to_delete); \
+			if(to_delete != nullptr) \
+				delete static_cast<Node<NodeType :: NODE_TYPE >*>(to_delete); \
 		}
 
 	DELETER_FUNCTION(LiteralWhole, literal_whole)
