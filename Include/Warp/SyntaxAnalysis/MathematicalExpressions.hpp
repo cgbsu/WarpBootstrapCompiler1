@@ -13,15 +13,15 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				constexpr static const auto tag = NodeType:: OPERATION ; \
 				SyntaxNode left, right; \
 				constexpr Node() noexcept = default; \
-				constexpr Node(const Node& other) noexcept = default; \
-				constexpr Node(Node&& other) noexcept = default; \
+				Node(const Node& other) noexcept = default; \
+				Node(Node&& other) noexcept = default; \
 				constexpr Node& operator=(const Node& other) noexcept = default; \
-				constexpr Node& operator=(Node&& other) noexcept = default; \
-				constexpr Node(const SyntaxNode& left, const SyntaxNode& right) noexcept : left(std::move(left)), right(std::move(right)) {} \
+				Node& operator=(Node&& other) noexcept = default; \
+				Node(const SyntaxNode& left, const SyntaxNode& right) noexcept : left(std::move(left)), right(std::move(right)) {} \
 				constexpr virtual NodeType get_tag() const noexcept final { \
 					return tag; \
 				} \
-				constexpr operator SyntaxNode() const noexcept { \
+				operator SyntaxNode() const noexcept { \
 					return SyntaxNode{*this}; \
 				} \
 			}
@@ -38,15 +38,15 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		constexpr static const auto tag = NodeType::Negation;
 		SyntaxNode negated;
 		constexpr Node() noexcept = default; \
-		constexpr Node(const Node& other) noexcept = default; \
-		constexpr Node(Node&& other) noexcept = default; \
-		constexpr Node(const SyntaxNode& negated) noexcept : negated(negated) {} \
-		constexpr Node& operator=(const Node& other) noexcept = default; \
-		constexpr Node& operator=(Node&& other) noexcept = default; \
+		Node(const Node& other) noexcept = default; \
+		Node(Node&& other) noexcept = default; \
+		Node(const SyntaxNode& negated) noexcept : negated(negated) {} \
+		Node& operator=(const Node& other) noexcept = default; \
+		Node& operator=(Node&& other) noexcept = default; \
 		constexpr virtual NodeType get_tag() const noexcept final {
 			return tag;
 		}
-		constexpr operator SyntaxNode() const noexcept {
+		operator SyntaxNode() const noexcept {
 			return SyntaxNode{*this};
 		}
 	};
@@ -57,18 +57,36 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		constexpr static const auto tag = NodeType::Expression;
 		SyntaxNode root;
 		constexpr Node() noexcept = default; \
-		constexpr Node(const Node& other) noexcept = default; \
-		constexpr Node(Node&& other) noexcept = default; \
-		constexpr Node(const SyntaxNode& root) noexcept : root(root) {} \
-		constexpr Node& operator=(const Node& other) noexcept = default; \
-		constexpr Node& operator=(Node&& other) noexcept = default; \
+		Node(const Node& other) noexcept = default; \
+		Node(Node&& other) noexcept = default; \
+		Node(const SyntaxNode& root) noexcept : root(root) {} \
+		Node& operator=(const Node& other) noexcept = default; \
+		Node& operator=(Node&& other) noexcept = default; \
 		constexpr virtual NodeType get_tag() const noexcept final {
 			return tag;
 		}
-		constexpr operator SyntaxNode() const noexcept {
+		operator SyntaxNode() const noexcept {
 			return SyntaxNode{*this};
 		}
 	};
+
+	extern template struct Node<NodeType::Multiply>;
+	extern template struct Node<NodeType::Divide>;
+	extern template struct Node<NodeType::Add>;
+	extern template struct Node<NodeType::Subtract>;
+	extern template struct Node<NodeType::Negation>;
+	extern template struct Node<NodeType::Expression>;
+}
+namespace Warp::Utilities
+{
+	using namespace Warp::SyntaxAnalysis::SyntaxTree;
+
+	extern void auto_variant_delete(Node<NodeType::Multiply>* to_delete);
+	extern void auto_variant_delete(Node<NodeType::Divide>* to_delete);
+	extern void auto_variant_delete(Node<NodeType::Add>* to_delete);
+	extern void auto_variant_delete(Node<NodeType::Subtract>* to_delete);
+	extern void auto_variant_delete(Node<NodeType::Negation>* to_delete);
+	extern void auto_variant_delete(Node<NodeType::Expression>* to_delete);
 }
 
 #endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__MATHEMATICAL__EXPRESSIONS__HPP

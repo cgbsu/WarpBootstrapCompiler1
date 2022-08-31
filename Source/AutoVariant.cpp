@@ -1,9 +1,4 @@
+#include <Warp/SyntaxAnalysis/NumericLiterals.hpp>
+#include <Warp/SyntaxAnalysis/MathematicalExpressions.hpp>
 #include <Warp/Utilities/AutoVariant.hpp>
-
-namespace Warp::Utilities
-{
-	void auto_variant_delete(int* point) {
-		delete point;
-	}
-}
 

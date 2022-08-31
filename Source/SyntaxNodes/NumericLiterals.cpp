@@ -21,5 +21,33 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Bool>::Type value) {
 		return SyntaxNode(Node<NodeType::LiteralBool>{value});
 	}
+
+	template struct Node<NodeType::LiteralWhole>;
+	template struct Node<NodeType::LiteralInteger>;
+	template struct Node<NodeType::LiteralCharacter>;
+	template struct Node<NodeType::LiteralFixed>;
+	template struct Node<NodeType::LiteralBool>;
+
+}
+
+namespace Warp::Utilities
+{
+	using namespace Warp::SyntaxAnalysis::SyntaxTree;
+
+	void auto_variant_delete(Node<NodeType::LiteralWhole>* to_delete) {
+		delete to_delete;
+	}
+	void auto_variant_delete(Node<NodeType::LiteralInteger>* to_delete) {
+		delete to_delete;
+	}
+	void auto_variant_delete(Node<NodeType::LiteralCharacter>* to_delete) {
+		delete to_delete;
+	}
+	void auto_variant_delete(Node<NodeType::LiteralFixed>* to_delete) {
+		delete to_delete;
+	}
+	void auto_variant_delete(Node<NodeType::LiteralBool>* to_delete) {
+		delete to_delete;
+	}
 }
 
