@@ -494,6 +494,19 @@ namespace Warp::Parsing
 			NumericTypeTag::Bool, 
 			NumericTypeTag::Bool
 		>;
+
+	template<
+			auto TypeTagParameterConstant, 
+			typename TermsParameterType, 
+			template<auto> typename TypeResolverParameterTemplate
+		>
+	using HomogenousMathematicalExpressionParser 
+			= MathematicalExpressionParser<
+				TermsParameterType, 
+				TypeResolverParameterTemplate, 
+				TypeTagParameterConstant, 
+				TypeTagParameterConstant
+			>;
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
