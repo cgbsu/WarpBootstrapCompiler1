@@ -26,8 +26,17 @@ namespace Warp::Parsing
 	};
 
 	enum class Identifier {
-		Identifier, 
-		Meta
+		Identifier//, 
+		//Meta
+	};
+
+	enum class Declaration {
+		Constant, 
+		SemiColon
+	};
+
+	enum class Construct {
+		Constant
 	};
 }
 #endif // WARP__PARSING__HEADER__PARSING__GENERAL__TERM__TAGS__HPP

@@ -78,11 +78,41 @@ namespace Warp::Testing
 	template<
 			typename ParserParameterType, 
 			FixedString StringParameterConstant, 
+			auto ReduceToTagParameterConstant
+		>
+	constexpr auto runtime_parse(auto& context, bool debug = false)
+	{
+		return parser<ParserParameterType, ReduceToTagParameterConstant>.context_parse(
+				context, 
+				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
+				ctpg::buffers::string_buffer(StringParameterConstant.string), 
+				std::cerr
+			);
+	}
+
+	template<
+			typename ParserParameterType, 
+			FixedString StringParameterConstant, 
 			typename ReduceToParameterType
 		>
 	constexpr auto typed_runtime_parse(bool debug = false)
 	{
 		return typed_parser<ParserParameterType, ReduceToParameterType>.parse(
+				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
+				ctpg::buffers::string_buffer(StringParameterConstant.string), 
+				std::cerr
+			);
+	}
+
+	template<
+			typename ParserParameterType, 
+			FixedString StringParameterConstant, 
+			typename ReduceToParameterType
+		>
+	constexpr auto typed_runtime_parse(auto& context, bool debug = false)
+	{
+		return typed_parser<ParserParameterType, ReduceToParameterType>.parse(
+				context, 
 				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
 				ctpg::buffers::string_buffer(StringParameterConstant.string), 
 				std::cerr

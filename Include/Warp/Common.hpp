@@ -16,6 +16,7 @@
 #include <memory>
 #include <functional>
 #include <utility>
+#include <unordered_map>
 #include <cmath>
 #include <climits>
 
