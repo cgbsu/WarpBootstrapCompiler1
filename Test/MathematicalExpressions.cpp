@@ -77,7 +77,7 @@ void print_whole(bool debug = false)
 {
 	const auto result = parse_whole<TestParameterConstant>(debug);
 	std::cout << "\nWhole Result: " << TestParameterConstant.string 
-			<< " = " << retrieve_value<WholeType>(result.value()) << "\n\n";
+			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Whole>::Type>(result.value().node) << "\n\n";
 }
 
 template<auto TestParameterConstant>
@@ -85,7 +85,7 @@ void print_integer(bool debug = false)
 {
 	const auto result = parse_integer<TestParameterConstant>(debug);
 	std::cout << "\nInteger Result: " << TestParameterConstant.string 
-			<< " = " << retrieve_value<IntegerType>(result.value()) << "\n\n";
+			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Integer>::Type>(result.value().node) << "\n\n";
 }
 
 template<auto TestParameterConstant>
@@ -93,7 +93,7 @@ void print_fixed(bool debug = false)
 {
 	const auto result = parse_fixed<TestParameterConstant>(debug);
 	std::cout << "\nFixed Result: " << TestParameterConstant.string 
-			<< " = " << retrieve_value<FixedType>(result.value()).number << "\n\n";
+			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::FixedPoint>::Type>(result.value().node) << "\n\n";
 }
 
 
@@ -207,5 +207,29 @@ TEST(MathematicalExpressions, MixingBasicSumsAndProducts)
 	whole_test<FixedString{"6u + 5u * 3u - 21u / 7u + 4u"}>(22, debug);
 	whole_test<FixedString{"5u * 3u - 21u / 7u + 4u"}>(16, debug);
 	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+};
+
+TEST(MathematicalExpressions, Parenthesis)
+{
+	bool debug = false;
+
+	whole_test<FixedString{"(1)"}>(1, debug);
+	whole_test<FixedString{"6u + 5u * 3u - (21u / 7u + 4u)"}>(14, debug);
+	whole_test<FixedString{"(6u + 5u) * 3u - 21u / 7u + 4u"}>(34, debug);
+	whole_test<FixedString{"(6u + 5u) * 3u - 33u / (7u + 4u)"}>(30, debug);
+	integer_test<FixedString{"6i + (5i * 3i - 3102i) / 7i + 4i"}>(-431, debug);
+	whole_test<FixedString{"5u * (3u * 21u / 7u) + 4u"}>(49, debug);
+	whole_test<FixedString{"5u * 3u * 21u / (7u + 4u + 10u)"}>(15, debug);
+};
+
+
+TEST(MathematicalExpressions, NestedParenthesis)
+{
+	bool debug = false;
+
+	whole_test<FixedString{"3 * (4 * (4 + 4) + 6 * (2 + 3))"}>(186, debug);
+	whole_test<FixedString{"3 * (4 * (4 + 4) + 6 * (2 + ((2 + 4) / 2)))"}>(186, debug);
+	whole_test<FixedString{"3 * (4 * (4 + 4) + (2 + 3) * (2 + ((2 + 4) / 2)))"}>(171, debug);
+	whole_test<FixedString{"3* ((4 * (4 + 4) + (2 + 3)) * (2 + ((2 + 4) / 2)))"}>(555, debug);
 };
 
