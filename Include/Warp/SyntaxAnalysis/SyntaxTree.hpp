@@ -142,6 +142,7 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		using AlternativeParameterType = Node<NodeTypeParameterConstant>;
 		return NotSoUniquePointer{
 				std::in_place_type_t<InternalSyntaxNodeVariant>{}, 
+				FindDeleter<NodeTypeParameterConstant>::deleter, 
 				std::in_place_type_t<AlternativeParameterType>{}, 
 				initializers...
 			};
