@@ -126,6 +126,7 @@ namespace Warp::Parsing
 		{
 			SyntaxNode node;
 			constexpr Term(SyntaxNode&& node) noexcept : node(node) {}
+			constexpr Term(SyntaxNode& node) noexcept : node(node) {}
 			constexpr Term(InputType value) noexcept : node(literal_node(value)) {}
 			constexpr Term() noexcept = default;
 			constexpr Term(const Term& other) noexcept = default;
@@ -389,8 +390,6 @@ namespace Warp::Parsing
 					}
 				);
 		}
-						
-							
 
 		constexpr static const auto input_to_math_term
 				= math_term(input)
@@ -446,6 +445,7 @@ namespace Warp::Parsing
 					input_operation_rules<
 							[](auto left, auto right) { return left / right; }
 						>(math_term, divide), 
+					from_parenthesis(), 
 					ctpg::rules(
 							input_to_math_term, 
 							negated_input_to_math_term, 
