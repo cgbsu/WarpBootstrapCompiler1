@@ -1,10 +1,18 @@
-#include "MathematicalExpressions.hpp"
+#include <Warp/Parsing/NumericLiterals.hpp>
+#include <Warp/Parsing/MathematicalExpressions.hpp>
+#include <Warp/Utilities.hpp>
+#include <ThirdParty/fpm/ios.hpp>
+#include <Warp/Parsing/Terms.hpp>
+#include <Warp/Testing/TestParser.hpp>
+#include <Warp/Runtime/Compiler/SimpleExecutor.hpp>
 #include <CppUTest/TestHarness.h>
 #define WARP__TESTING__HEADER__TESTING__PARSE__TESTING__UTILITIES__HPP__CHECK__MACRO__REQUIRED CHECK
 #include <Warp/Testing/ParseTestingUtilities.hpp>
 
 using namespace Warp::Testing;
 using namespace Warp::Runtime::Compiler::SimpleExecutor;
+using namespace Warp::Parsing;
+using namespace Warp::Utilities;
 
 template<auto ResultTagParameterConstant, auto InputTagParameterConstant>
 using ParserTestTemplate = MathematicalExpressionParser<
