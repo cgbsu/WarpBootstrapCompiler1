@@ -30,7 +30,7 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 		- [ ] Addition/Subtraction (Calls/Constants)
 		- [x] Multiplication/Division (No Calls/Constants)
 		- [ ] Multiplication/Division (Calls/Constants)
-		- [ ] Parenthesis Prioritization
+		- [x] Parenthesis Prioritization
 		- [ ] Bitwise?
 	- [ ] Boolean expressions
 	- [ ] Functions
