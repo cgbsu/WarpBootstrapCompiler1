@@ -21,8 +21,13 @@ namespace Warp::Parsing
 		Let
 	};
 
+	enum class MultiPurposeOperator {
+		Equal
+	};
+
 	enum class Identifier {
-		Identifier
+		Identifier, 
+		Meta
 	};
 }
 #endif // WARP__PARSING__HEADER__PARSING__GENERAL__TERM__TAGS__HPP

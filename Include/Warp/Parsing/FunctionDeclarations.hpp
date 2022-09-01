@@ -5,7 +5,19 @@
 
 namespace Warp::Parsing
 {
-	using FunctionDeclaritionTermsType = MathematicalExpressionTermsType::AddOnePriority<
+	enum class FunctionTags {
+		Constant
+	};
+
+	using FunctionDeclaritionTermsType = MathematicalExpressionTermsType
+		::AddOnePriority<
+			TreeTerm<
+					MultiPurposeOperator::Equal, 
+					CharTerm, 
+					'=', 
+					ctpg::associativity::no_assoc
+				>
+		>::AddOnePriority<
 			TreeTerm<
 					Identifier::Identifier, 
 					RegexTerm, 
@@ -20,7 +32,11 @@ namespace Warp::Parsing
 					FixedString{"let"}, 
 					ctpg::associativity::no_assoc
 				>
-			>;
+			//TypeTreeTerm<
+			//		FunctionTags::Constant, 
+			//		NonTerminalTerm, 
+					
+		>;
 
 	template<
 			typename TermsParameterType, 
@@ -72,12 +88,26 @@ namespace Warp::Parsing
 		template<auto TermTagParameterConstant>
 		constexpr static const auto term = BaseTermsType::template term<TermTagParameterConstant>;
 
+		constexpr static const auto let_keyword = term<Keyword::Let>;
+		constexpr static const auto equal = term<MultiPurposeOperator::Equal>;
+		constexpr static const auto identifier = term<Identifier::Identifier>;
+		constexpr static const auto open_parenthesis = term<Brackets::OpenParenthesis>;
+		constexpr static const auto close_parenthesis = term<Brackets::CloseParenthesis>;
+
+		constexpr static const auto reduce_to = term<reduce_to_tag>;
+
 		constexpr static const auto terms = concatinate_tuples(
 				WholeMathematicalParserType::terms, 
 				IntegerMathematicalParserType::terms, 
 				FixedPointMathematicalParserType::terms, 
 				CharacterMathematicalParserType::terms, 
-				BoolMathematicalParserType::terms
+				BoolMathematicalParserType::terms, 
+				ctpg::terms(
+						let_keyword, 
+						equal, 
+						open_parenthesis, 
+						close_parenthesis
+					)
 			);
 
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
@@ -87,6 +117,7 @@ namespace Warp::Parsing
 				CharacterMathematicalParserType::non_terminal_terms, 
 				BoolMathematicalParserType::non_terminal_terms
 			);
+
 	};
 }
 
