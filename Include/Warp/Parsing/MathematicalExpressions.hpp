@@ -245,7 +245,8 @@ namespace Warp::Parsing
 			SyntaxNode node;
 		};
 
-		enum class TypeSpecificMathematicalExpressionTermTags {
+		enum class TypeSpecificMathematicalExpressionTermTags
+		{
 			Sum, 
 			Term, 
 			Expression, 
@@ -265,12 +266,12 @@ namespace Warp::Parsing
 						Expression, 
 						FixedString{"Expression"}
 					>, 
-				//TypeTreeTerm<
-				//		TypeSpecificMathematicalExpressionTermTags::ParenthesisScope, 
-				//		NonTerminalTerm, 
-				//		ParenthesisScope, 
-				//		FixedString{"ParenthesisScope"}
-				//	>, 
+				TypeTreeTerm<
+						TypeSpecificMathematicalExpressionTermTags::ParenthesisScope, 
+						NonTerminalTerm, 
+						Term, 
+						FixedString{"ParenthesisScope"}
+					>, 
 				TypeTreeTerm<
 						TypeSpecificMathematicalExpressionTermTags::Term, 
 						NonTerminalTerm, 
@@ -302,8 +303,8 @@ namespace Warp::Parsing
 				= term<TypeSpecificMathematicalExpressionTermTags::Term>;
 		constexpr static const auto expression 
 				= term<TypeSpecificMathematicalExpressionTermTags::Expression>;
-		//constexpr static const auto parenthesis_scope
-		//		= term<TypeSpecificMathematicalExpressionTermTags::ParenthesisScope>;
+		constexpr static const auto parenthesis_scope
+				= term<TypeSpecificMathematicalExpressionTermTags::ParenthesisScope>;
 
 		constexpr static const auto terms = std::tuple_cat(
 				BaseType::terms, 
@@ -375,10 +376,20 @@ namespace Warp::Parsing
 				);
 		}
 
-		//consteval static const auto from_parenthesis(auto enclosed_term)
-		//{
-		//	return ctpg::rules(
-		//			math_term(open_parenthesis, operation_term, close_parenthesis) {
+		consteval static const auto from_parenthesis()
+		{
+			return ctpg::rules(
+					math_term(open_parenthesis, math_term, close_parenthesis)
+					>= [](auto left, auto term, auto right) {
+						return term;
+					}, 
+					math_term(open_parenthesis, sum, close_parenthesis) 
+					>= [](auto left, auto sum, auto right) {
+						return Term{sum.node};
+					}
+				);
+		}
+						
 							
 
 		constexpr static const auto input_to_math_term
@@ -390,7 +401,7 @@ namespace Warp::Parsing
 		constexpr static const auto negated_input_to_math_term
 				= math_term(subtract, input)
 				>= [](auto, auto input_) {
-					return Term{Node<NodeType::Negation>(literal_node(input_))};
+					return Term{input_}.as_negated();//Node<NodeType::Negation>(literal_node(input_))};
 				}; 
 
 		constexpr static const auto sum_to_expression
@@ -414,7 +425,13 @@ namespace Warp::Parsing
 							[](auto left, auto right) { return left + right; }
 						>(sum, add), 
 					basic_term_operation_rules<
-							[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right.as_negated()}; }, 
+							[](auto left, auto right) { 
+								return Sum{
+										left, 
+										OperationHolder<NodeType::Subtract>{}, 
+										right
+									};
+								}, 
 							[](auto left, auto right) { return left - right; }
 						>(sum, subtract), 
 					term_operation_reduction<

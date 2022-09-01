@@ -65,7 +65,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 						: value( \
 								retrieve_value<ReduceToParameterType>(node.left) \
 										OPERATOR retrieve_value<ReduceToParameterType>(node.right) \
-								) {} \
+							) {} \
 				ReduceToType to_value() { \
 					return value; \
 				} \
@@ -86,7 +86,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	{
 		using ReduceToType = ReduceToParameterType;
 		ReduceToType value;
-		Executor(const Node<NodeType::Negation>& node) : value(-retrieve_value<ReduceToType>(node)) {}
+		Executor(const Node<NodeType::Negation>& node) : value(-retrieve_value<ReduceToType>(node.negated)) {}
 		ReduceToType to_value() {
 			return value;
 		}
@@ -100,7 +100,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	{
 		using ReduceToType = ReduceToParameterType;
 		ReduceToType value;
-		Executor(const Node<NodeType::Expression>& node) : value(retrieve_value<ReduceToType>(node)) {}
+		Executor(const Node<NodeType::Expression>& node) : value(retrieve_value<ReduceToType>(node.root)) {}
 		ReduceToType to_value() {
 			return value;
 		}

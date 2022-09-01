@@ -98,17 +98,17 @@ void print_fixed(bool debug = false)
 
 
 template<auto TestParameterConstant>
-void whole_test(auto expected, bool debug = false)
+void whole_test(UnderlyingWholeType expected, bool debug = false)
 {
 	check_parse<compare_value>(
 			parse_whole<TestParameterConstant>(debug) /*Actual*/, 
-			UnderlyingWholeType{expected} /*Expected*/
+			expected /*Expected*/
 		);
 }
 
 
 template<auto TestParameterConstant>
-void integer_test(auto expected, bool debug = false)
+void integer_test(UnderlyingIntegerType expected, bool debug = false)
 {
 	check_parse<compare_value>(
 			parse_integer<TestParameterConstant>(debug) /*Actual*/, 
@@ -117,7 +117,7 @@ void integer_test(auto expected, bool debug = false)
 }
 
 template<auto TestParameterConstant> 
-void fixed_test(auto expected, bool debug = false)
+void fixed_test(UnderlyingFixedType expected, bool debug = false)
 { 
 		check_parse<compare_value>(
 			parse_fixed<TestParameterConstant>(debug) /*Actual*/, 
@@ -139,72 +139,73 @@ TEST(MathematicalExpressions, InputAddition)
 {
 	bool debug = false;
 	whole_test<FixedString{"1u + 1u"}>(2u, debug);
+	whole_test<FixedString{"1 + 1"}>(2u, debug);
+	whole_test<FixedString{"5 + 3"}>(8u, debug);
+	whole_test<FixedString{"5u8 + 3u8"}>(8u, debug);
+	integer_test<FixedString{"9i8 + 3i5"}>(12u, debug);
+	integer_test<FixedString{"9i8 + 3i8 + 10i"}>(22, debug);
+	fixed_test<FixedString{"16.16xp + 16.16xp"}>(FixedType{32, 32}, debug);
 };
-//	whole_test<FixedString{"1 + 1"}>(2u, debug);
-//	whole_test<FixedString{"5 + 3"}>(8u, debug);
-//	whole_test<FixedString{"5u8 + 3u8"}>(8u, debug);
-//	integer_test<FixedString{"9i8 + 3i5"}>(12u, debug);
-//	integer_test<FixedString{"9i8 + 3i8 + 10i"}>(22, debug);
-//	fixed_test<FixedString{"16.16xp + 16.16xp"}>(FixedType{32, 32}, debug);
-//};
-//
-//TEST(MathematicalExpressions, InputSubraction)
-//{
-//	bool debug = false;
-//	whole_test<FixedString{"5 - 3"}>(2, debug);
-//	integer_test<FixedString{"5i - 10i"}>(-5, debug);
-//	//std::cout << "RTF: " << parse_integer<FixedString{"5i - 10i - 8i"}>(true).value().value.number << "\n";
-//	integer_test<FixedString{"5i - 10i - 8i"}>(-13, debug);
-//	fixed_test<FixedString{"16.16xp - 8.8xp"}>(FixedType{7, 36}, debug);
-//	//std::cout << "RTF: " << parse_fixed<FixedString{"16.16xp - 8.8xp - 1.xp - 2.2xp"}>(true).value().value.number << "\n";
-//	fixed_test<FixedString{"16.16xp - 8.8xp - 1.xp - 2.2xp"}>(FixedType{4, 16}, debug);
-//};
-//
-//TEST(MathematicalExpressions, InputSums)
-//{
-//	bool debug = false;
-//	integer_test<FixedString{"5i - 10i + 14i - 1i"}>(8, debug);
-//	integer_test<FixedString{"5i - 10i + 14i - 1i - 23i"}>(-15, debug);
-//};
-//
-//TEST(MathematicalExpressions, InputMultiplication)
-//{
-//	bool debug = false;
-//	whole_test<FixedString{"5u * 3u"}>(15, debug);
-//	whole_test<FixedString{"5u * 3u * 20u"}>(300, debug);
-//	whole_test<FixedString{"5u * 3u * 20u * 44u"}>(13200, debug);
-//};
-//
-//TEST(MathematicalExpressions, InputNegation)
-//{
-//	bool debug = false;
-//	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
-//	integer_test<FixedString{"-44i"}>(-44, debug);
-//	integer_test<FixedString{"5i * -3i * -20i * -44i"}>(-13200, debug);
-//	integer_test<FixedString{"-5i * -3i * -20i * 44i"}>(-13200, debug);
-//	integer_test<FixedString{"-5i * -3i * -20i * -44i"}>(13200, debug);
-//};
-//
-//TEST(MathematicalExpressions, InputDivision)
-//{
-//	bool debug = false;
-//	whole_test<FixedString{"15u / 3u"}>(5, debug);
-//	whole_test<FixedString{"60u / 3u / 20u"}>(1, debug);
-//	whole_test<FixedString{"126 / 7 / 3 / 2"}>(3, debug);
-//};
-//
-//TEST(MathematicalExpressions, MixingBasicSumsAndProducts)
-//{
-//	bool debug = false;
-//
-//	whole_test<FixedString{"5u * 3u + 8u * 7u"}>(71, debug);
-//	whole_test<FixedString{"4u + 5u * 3u - 21u / 7u"}>(16, debug);
-//	whole_test<FixedString{"5u * 3u - 21u / 7u"}>(12, debug);
-//	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
-//	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u + 8u"}>(57, debug);
-//	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u * 8u"}>(77, debug);
-//	whole_test<FixedString{"6u + 5u * 3u - 21u / 7u + 4u"}>(22, debug);
-//	whole_test<FixedString{"5u * 3u - 21u / 7u + 4u"}>(16, debug);
-//	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
-//};
-//
+
+TEST(MathematicalExpressions, InputSubraction)
+{
+	bool debug = false;
+	integer_test<FixedString{"5i - 3i"}>(2, debug);
+	whole_test<FixedString{"5 - 3"}>(2, debug);
+	integer_test<FixedString{"5i - 10i"}>(-5, debug);
+	//std::cout << "RTF: " << parse_integer<FixedString{"5i - 10i - 8i"}>(true).value().value.number << "\n";
+	integer_test<FixedString{"5i - 10i - 8i"}>(-13, debug);
+	fixed_test<FixedString{"16.16xp - 8.8xp"}>(FixedType{7, 36}, debug);
+	//std::cout << "RTF: " << parse_fixed<FixedString{"16.16xp - 8.8xp - 1.xp - 2.2xp"}>(true).value().value.number << "\n";
+	fixed_test<FixedString{"16.16xp - 8.8xp - 1.xp - 2.2xp"}>(FixedType{4, 16}, debug);
+};
+
+TEST(MathematicalExpressions, InputSums)
+{
+	bool debug = false;
+	integer_test<FixedString{"5i - 10i + 14i - 1i"}>(8, debug);
+	integer_test<FixedString{"5i - 10i + 14i - 1i - 23i"}>(-15, debug);
+};
+
+TEST(MathematicalExpressions, InputMultiplication)
+{
+	bool debug = false;
+	whole_test<FixedString{"5u * 3u"}>(15, debug);
+	whole_test<FixedString{"5u * 3u * 20u"}>(300, debug);
+	whole_test<FixedString{"5u * 3u * 20u * 44u"}>(13200, debug);
+};
+
+TEST(MathematicalExpressions, InputNegation)
+{
+	bool debug = false;
+	integer_test<FixedString{"-44i"}>(-44, debug);
+	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
+	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
+	integer_test<FixedString{"5i * -3i * -20i * -44i"}>(-13200, debug);
+	integer_test<FixedString{"-5i * -3i * -20i * 44i"}>(-13200, debug);
+	integer_test<FixedString{"-5i * -3i * -20i * -44i"}>(13200, debug);
+};
+
+TEST(MathematicalExpressions, InputDivision)
+{
+	bool debug = false;
+	whole_test<FixedString{"15u / 3u"}>(5, debug);
+	whole_test<FixedString{"60u / 3u / 20u"}>(1, debug);
+	whole_test<FixedString{"126 / 7 / 3 / 2"}>(3, debug);
+};
+
+TEST(MathematicalExpressions, MixingBasicSumsAndProducts)
+{
+	bool debug = false;
+
+	whole_test<FixedString{"5u * 3u + 8u * 7u"}>(71, debug);
+	whole_test<FixedString{"4u + 5u * 3u - 21u / 7u"}>(16, debug);
+	whole_test<FixedString{"5u * 3u - 21u / 7u"}>(12, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u + 8u"}>(57, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u * 8u"}>(77, debug);
+	whole_test<FixedString{"6u + 5u * 3u - 21u / 7u + 4u"}>(22, debug);
+	whole_test<FixedString{"5u * 3u - 21u / 7u + 4u"}>(16, debug);
+	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
+};
+

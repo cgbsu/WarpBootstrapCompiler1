@@ -461,7 +461,12 @@ namespace Warp::Utilities
     concept IsAnyOfConcept = (std::same_as<ParameterType, ParameterTypes> || ...);
 
 	template<typename CanidateParamterType>
-	concept IsCompleteConcept = (sizeof(CanidateParamterType) == sizeof(CanidateParamterType));
+	concept IsCompleteConcept = (sizeof(CanidateParamterType) == sizeof(CanidateParamterType))
+			|| std::is_same_v<
+					std::__is_complete_or_unbounded(std::__type_identity<CanidateParamterType>{}), 
+					std::integral_constant<bool, false>
+				>;
+			///|| std::is_destructible_v<CanidateParamterType>;
 		//= requires(CanidateParamterType) {
 		//	std::declval<CleanType<CanidateParamterType>>().~CleanType<CanidateParamterType>();
 		//}
