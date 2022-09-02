@@ -59,14 +59,14 @@ bool check(auto left, auto right) {
 template<
 		auto TestParameterConstant, 
 		auto TypeTagParameterConstant, 
-		auto CheckParamterConstant = check, 
+		//auto CheckParamterConstant = check, 
 		typename ParserParameterType = NumericParserType
 	>
-void check_constant(
-		std::string name, 
+void check_contex_constant(
+		std::vector<std::string> names, 
 		const auto expected, 
 		bool debug = false, 
-		std::source_location test_location = std::source_location::current
+		std::source_location test_location = std::source_location::current()
 	)
 {
 
@@ -75,24 +75,29 @@ void check_constant(
 			TestParameterConstant, 
 			NumericParserType::UniqueProductions::Context
 		>(debug);
-	if(const bool parse_success = context.has_value() == false; parse_success == false)
+	if(const bool parse_success = (context.has_value() == true); parse_success == false)
 	{
-		std::cerr << test_location.file_name() << ": " << test_location.line() << ": "
-				<< "Failed to parse or retrieve constant {" << name << "} with " 
-				<< TestParameterConstant.string << "\n";
+		std::cerr << "\n" << test_location.file_name() << ": " << test_location.line() << ": "
+				<< "Failed to parse or retrieve constants from \"" 
+				<< TestParameterConstant.string << "\"\n";
 		CHECK((parse_success == true));
 	}
 	else
 	{
-		const auto result = retrieve_constant(context, name);
-		if(const bool check_result = CheckParamterConstant(result, expected);
-				check_result == false)
+		for(size_t ii = 0; ii < names.size(); ++ii)
 		{
-			std::cerr << test_location.file_name() << ": " << test_location.line() << ": "
-					<< "Check failed with " 
-					<< name << " = " << result << " and " 
-					<< expected << "\n";
-			CHECK((check_result == true));
+			const auto result = retrieve_constant<TypeTagParameterConstant>(context, names[ii]);
+			if(debug == true)
+				std::cout << "{" << names[ii] << ":" << result << "}\n";
+			if(const bool check_result = (result == expected[ii]);
+					check_result == false)
+			{
+				std::cerr << "\n" << test_location.file_name() << ": " << test_location.line() << ": "
+						<< "Check failed with " 
+						<< names[ii] << " = " << result << " and " 
+						<< expected[ii] << "\n";
+				CHECK((check_result == true));
+			}
 		}
 	}
 };
@@ -104,21 +109,24 @@ TEST_GROUP(FunctionDeclarations) {};
 TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 {
 	bool debug = false;
-	runtime_parse<
-			NumericParserType, 
-			FixedString{"let TheQuestion = 42u"}, 
-			Construct::Constant
-		>(debug);
-	runtime_parse<
-			NumericParserType, 
-			FixedString{"let TheQuestion = 2u * 21u"}, 
-			Construct::Constant
-		>(debug);
+	//check_constant<
+	//		FixedString{"let TheQuestion = 42u"}, 
+	//		Construct::Constant
+	//	>(debug);
+	//runtime_parse<
+	//		NumericParserType, 
+	//		FixedString{"let TheQuestion = 2u * 21u"}, 
+	//		Construct::Constant
+	//	>(debug);
 	auto context = runtime_parse<
 			NumericParserType, 
 			FixedString{"let TheQuestion = 2u * 20u +2u;"}, 
 			NumericParserType::UniqueProductions::Context
 		>(debug);
 	print_constant<NumericTypeTag::Whole>(context, std::string{"TheQuestion"});
+	check_contex_constant<
+			FixedString{"let TheAnswer = 2u * 20u + 2u;"}, 
+			NumericTypeTag::Whole
+		>({"TheAnswer"}, std::vector{42u}, true);
 };
 
