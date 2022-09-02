@@ -23,63 +23,35 @@ using NumericContexType = std::unordered_map<std::string, NumericConstantType>;
 template struct FunctionDeclarationParser<
 		FunctionDeclaritionTermsType, 
 		NumericTypeResolver, 
-		Construct::Constant, 
-		NumericTypeTag, 
-		NumericConstantType
+		NumericTypeTag
 	>;
 
 using NumericParserType = FunctionDeclarationParser<
 		FunctionDeclaritionTermsType, 
-		//MathematicalExpressionTermsType, 
 		NumericTypeResolver, 
-		Construct::Constant, 
-		//MathematicalExpression::Expression, 
-		NumericTypeTag, 
-		NumericConstantType
+		NumericTypeTag
 	>;
 
 TEST_GROUP(FunctionDeclarations) {};
 
 TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 {
-	const bool debug = true;
-	NumericContexType context;
-	//runtime_parse<
-	//		NumericParserType, 
-	//		//HomogenousMathematicalExpressionParser<
-	//		//		NumericTypeTag::Whole, 
-	//		//		MathematicalExpressionTermsType, 
-	//		//		NumericTypeResolver
-	//		//	>, 
-	//		//FixedString{"let TheQuestion = 2u * 21u"},
-	//		FixedString{"2u * 21u"},
-	//		//NumericTypeTag::Whole
-	//		MathematicalExpression::Expression
-	//		//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Term
-	//		//Construct::Constant
-	//	>(debug);
+	bool debug = false;
 	runtime_parse<
 			NumericParserType, 
-			//FixedString{"12"}, 
-			//FixedString{"let TheQuestion = 1u + 41u"}, 
 			FixedString{"let TheQuestion = 42u"}, 
-			//FixedString{"let TheQuestion ="},
-			//NumericTypeTag::Whole
-			//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
-			//Declaration::Constant
 			Construct::Constant
 		>(debug);
-	////std::cout << "Value: " << retrieve_value<WholeType>(constant.value) << "\n";
 	runtime_parse<
 			NumericParserType, 
-			//FixedString{"12"}, 
-			//FixedString{"let TheQuestion = 1u + 41u"}, 
 			FixedString{"let TheQuestion = 2u * 21u"}, 
-			//FixedString{"let TheQuestion ="},
-			//NumericTypeTag::Whole
-			//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
-			//Declaration::Constant
 			Construct::Constant
 		>(debug);
+	auto context = runtime_parse<
+			NumericParserType, 
+			FixedString{"let TheQuestion = 2u * 20u +2u;"}, 
+			NumericParserType::UniqueProductions::Context
+		>(debug);
+	//std::cout << retrieve_value<WholeType>(context.value().at("TheQuestion").value) << "\n";
 };
 

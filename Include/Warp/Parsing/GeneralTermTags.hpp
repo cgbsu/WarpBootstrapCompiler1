@@ -31,7 +31,6 @@ namespace Warp::Parsing
 	};
 
 	enum class Declaration {
-		Constant, 
 		SemiColon
 	};
 

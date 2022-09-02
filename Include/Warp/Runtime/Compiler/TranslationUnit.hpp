@@ -4,7 +4,8 @@
 #ifndef WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__TRANSLATION__UNIT__HPP
 #define WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__TRANSLATION__UNIT__HPP
 
-namespace Warp::Runtime::Compiler {
+namespace Warp::Runtime::Compiler
+{
 	struct TranslationUnit {};
 }
 

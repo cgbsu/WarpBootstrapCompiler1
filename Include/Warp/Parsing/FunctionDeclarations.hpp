@@ -46,30 +46,19 @@ namespace Warp::Parsing
 					CharTerm, 
 					';', 
 					ctpg::associativity::no_assoc
-				>, 
-			TypeTreeTerm<
-					Declaration::Constant, 
-					NonTerminalTerm, 
-					std::string, 
-					FixedString{"ConstantDeclaration"}
-				>
+				> 
 		>;
 
 	template<
 			typename TermsParameterType, 
 			template<auto> typename TypeResolverParameterTemplate, 
-			auto ReductionTagParameterConstant, 
-			typename TypeTagParameterType, 
-			typename ContextParamterType
+			typename TypeTagParameterType
 		>
 	struct FunctionDeclarationParser
 	{
 		using TypeType = TypeTagParameterType;
-		using ContextType = ContextParamterType;
 
 		using BaseTermsType = TermsParameterType;
-
-		constexpr static const auto reduce_to_tag = ReductionTagParameterConstant;
 
 		template<auto NonTerminalTypeTagParameterConstant>
 		using TypeResolverTemplate = TypeResolverParameterTemplate<
@@ -77,6 +66,19 @@ namespace Warp::Parsing
 			>::Type;
 
 		using ConstantType = Constant<SyntaxNode, TypeType>;
+
+		struct Context
+		{
+			std::unordered_map<std::string, ConstantType> constants;
+			constexpr Context inject(ConstantType constant) {
+				constants.insert({constant.name, constant});
+				return *this;
+			}
+		};
+
+		enum class UniqueProductions {
+			Context
+		};
 
 		using UniqueTermsType = Terms<//BaseTermsType::template AddOnePriority<
 				TermsNoPreviousType, 
@@ -86,6 +88,12 @@ namespace Warp::Parsing
 						NonTerminalTerm, 
 						ConstantType, 
 						FixedString{"Constant"}
+					>, 
+				TypeTreeTerm< 
+						UniqueProductions::Context, 
+						NonTerminalTerm, 
+						Context, 
+						FixedString{"Context"}
 					>
 			>;
 
@@ -143,10 +151,8 @@ namespace Warp::Parsing
 		constexpr static const auto open_parenthesis = term<Brackets::OpenParenthesis>;
 		constexpr static const auto close_parenthesis = term<Brackets::CloseParenthesis>;
 		constexpr static const auto semi_colon = term<Declaration::SemiColon>;
-		constexpr static const auto constant_declaration = term<Declaration::Constant>;
 		constexpr static const auto constant = term<Construct::Constant>;
-
-		//constexpr static const auto reduce_to = term<reduce_to_tag>;
+		constexpr static const auto context = term<UniqueProductions::Context>;
 
 		constexpr static const auto whole_terms = WholeMathematicalParserType::terms;
 
@@ -169,10 +175,7 @@ namespace Warp::Parsing
 					)
 			);
 
-		constexpr static const auto whole_non_terminal_terms = WholeMathematicalParserType::non_terminal_terms;
-		//constexpr static const auto non_terminal_terms = whole_non_terminal_terms;
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
-		//		whole_non_terminal_terms, 
 				WholeMathematicalParserType::non_terminal_terms, 
 		//		//WholeMathematicalParserType::unique_non_terminal_terms, 
 		//		//IntegerMathematicalParserType::unique_non_terminal_terms, 
@@ -180,16 +183,10 @@ namespace Warp::Parsing
 		//		//CharacterMathematicalParserType::unique_non_terminal_terms, 
 		//		//BoolMathematicalParserType::unique_non_terminal_terms, 
 				ctpg::terms(
-						constant_declaration, 
-						constant
+						constant, 
+						context
 					)
 			);
-
-		//constexpr static const auto constant_declaration_rule 
-		//		= constant_declaration(let_keyword, identifier, equal)
-		//		>= [](auto let, auto name, auto equal) {
-		//			return std::string{name};
-		//		};
 
 		template<typename MathematicalExpressionGeneratorParameterType>
 		constexpr static const auto constant_from_math_term()
@@ -208,81 +205,34 @@ namespace Warp::Parsing
 			constexpr const auto reduce_to_term
 					= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
 			return ctpg::rules(
-					//constant(constant_declaration, /*expression_term,*/ semi_colon)
-					//>>=[](auto& context, auto declaration, auto semi_colon)//auto expression, auto semi_colon)
-					//{
-					//	const auto name = std::string{declaration};
-					//	const auto constant = ConstantType{name, reduction_tag};//, expression.node};
-					//	context[name] = constant;
-					//	return constant;
-					//}
-					//constant(constant_declaration, expression_term)
-					//>=[](auto declaration, auto expression)
-					//{
-					//	const auto name_ = std::string{declaration};
-					//	const auto constant = ConstantType{name_, reduction_tag, expression.node};
-					//	//context[name] = constant;
-					//	return constant;
-					//}, 
-					//constant(constant_declaration, reduce_to_term)
-					//>=[](auto declaration, auto number)
-					//{
-					//	const auto name_ = std::string{declaration};
-					//	const auto constant = ConstantType{name_, reduction_tag, literal_node(number)};
-					//	//context[name] = constant;
-					//	return constant;
-					//}, 
-					///constant(constant_declaration, sum_term)
-					///>=[](auto declaration, auto sum)
-					///{
-					///	const auto name_ = std::string{declaration};
-					///	const auto constant = ConstantType{name_, reduction_tag, sum.node};
-					///	//context[name] = constant;
-					///	return constant;
-					///}, 
-					///constant(constant_declaration, math_term_term)
-					///>=[](auto declaration, auto term)
-					///{
-					///	const auto name_ = std::string{declaration};
-					///	const auto constant = ConstantType{name_, reduction_tag, term.node};
-					///	//context[name] = constant;
-					///	return constant;
-					///}
 					constant(let_keyword, identifier, equal, expression_term)
-					>=[](auto let_, auto name, auto equal_, auto expression)
-					{
-						const auto name_ = std::string{name};
-						const auto constant = ConstantType{name_, reduction_tag, expression.node};
-						//context[name] = constant;
-						return constant;
+					>=[](auto let_, auto name, auto equal_, auto expression) {
+						return ConstantType{std::string{name}, reduction_tag, expression.node};
+					}
+				);
+		}
+
+		constexpr static const auto to_context_rules(auto from_term)
+		{
+			return ctpg::rules(
+					context(from_term, semi_colon)
+					>= [](auto new_object, auto semi_colon_) {
+						Context new_context{};
+						return new_context.inject(new_object);
 					}, 
-					constant(let_keyword, identifier, equal, math_term_term)
-					>=[](auto let_, auto name, auto equal_, auto term)
-					{
-						const auto name_ = std::string{name};
-						const auto constant = ConstantType{name_, reduction_tag, term.node};
-						//context[name] = constant;
-						return constant;
-					}, 
-					constant(let_keyword, identifier, equal, sum_term)
-					>=[](auto let_, auto name, auto equal_, auto sum)
-					{
-						const auto name_ = std::string{name};
-						const auto constant = ConstantType{name_, reduction_tag, sum.node};
-						//context[name] = constant;
-						return constant;
+					context(context, from_term, semi_colon)
+					>= [](auto context, auto new_object, auto semi_colon_) {
+						return context.inject(new_object);
 					}
 				);
 		}
 
 		consteval static const auto unique_rules()
 		{
-			return //concatinate_tuples(
-					constant_from_math_term<WholeMathematicalParserType>();//, 
-				//	ctpg::rules(
-				//			constant_declaration_rule
-				//		)
-				//);
+			return concatinate_tuples(
+					constant_from_math_term<WholeMathematicalParserType>(), 
+					to_context_rules(constant)
+				);
 		}
 
 		consteval static const auto rules()
