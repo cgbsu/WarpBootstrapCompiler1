@@ -89,6 +89,24 @@ namespace Warp::Utilities
 	// Shameless yoink from cppreference.com/reference/en/cpp/utility/variant/visit.html
 	template<class... Ts> struct OverloadedVisit : Ts... { using Ts::operator()...; };
 	template<class... Ts> OverloadedVisit(Ts...) -> OverloadedVisit<Ts...>;
+
+	template<typename ParameterType>
+	struct IsOptionalHelper {
+		constexpr static const bool value = false;
+		constexpr IsOptionalHelper(ParameterType) {}
+	};
+	
+	template<typename ParameterType>
+	struct IsOptionalHelper<std::optional<ParameterType>> {
+		constexpr static const bool value = true;
+		constexpr IsOptionalHelper(std::optional<ParameterType>) {}
+	};
+	
+	template<typename ParameterType>
+	constexpr static const auto is_optional = IsOptionalHelper<ParameterType>::value;
+	
+	template<typename ParameterType>
+	concept OptionalConcept = is_optional<ParameterType>;
 }
 
 #endif // WARP__UTILITIES__HEADER__UTILITIES__TEMPLATES__HPP
