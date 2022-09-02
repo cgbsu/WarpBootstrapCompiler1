@@ -21,36 +21,32 @@ namespace Warp::Parsing
 		
 
 	using FunctionDeclaritionTermsType = MathematicalExpressionTermsType
-		::AddOnePriority<
+		::Prepend<
 			TreeTerm<
 					MultiPurposeOperator::Equal, 
 					CharTerm, 
 					'=', 
 					ctpg::associativity::no_assoc
-				>
-		>::AddOnePriority<
+				>, 
 			TreeTerm<
 					Identifier::Identifier, 
 					RegexTerm, 
 					FixedString{"[a-zA-Z_][a-zA-Z0-9_]+"}, 
 					FixedString{"Identifier"}, 
 					ctpg::associativity::no_assoc
-				>
-		>::AddOnePriority<
+				>, 
 			TreeTerm<
 					Keyword::Let, 
 					StringTerm, 
 					FixedString{"let"}, 
 					ctpg::associativity::no_assoc
-				>
-		>::AddOnePriority<
+				>, 
 			TreeTerm<
 					Declaration::SemiColon, 
 					CharTerm, 
 					';', 
 					ctpg::associativity::no_assoc
-				>
-		>::AddOnePriority<
+				>, 
 			TypeTreeTerm<
 					Declaration::Constant, 
 					NonTerminalTerm, 
@@ -98,7 +94,8 @@ namespace Warp::Parsing
 
 		using WholeMathematicalParserType = HomogenousMathematicalExpressionParser<
 				NumericTypeTag::Whole, 
-				MathematicalExpressionTermsType, 
+				//MathematicalExpressionTermsType, 
+				TermsType, 
 				TypeResolverParameterTemplate
 			>;
 
@@ -195,6 +192,8 @@ namespace Warp::Parsing
 					= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
 			constexpr const auto expression_term 
 					= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
+			constexpr const auto reduce_to_term
+					= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
 			return ctpg::rules(
 					//constant(constant_declaration, /*expression_term,*/ semi_colon)
 					//>>=[](auto& context, auto declaration, auto semi_colon)//auto expression, auto semi_colon)
@@ -204,11 +203,19 @@ namespace Warp::Parsing
 					//	context[name] = constant;
 					//	return constant;
 					//}
-					constant(constant_declaration, expression_term, semi_colon)
-					>=[](auto declaration, auto expression, auto semi_colon)
+					constant(constant_declaration, expression_term)
+					>=[](auto declaration, auto expression)
 					{
-						const auto name = std::string{declaration};
-						const auto constant = ConstantType{name, reduction_tag, expression.node};
+						const auto name_ = std::string{declaration};
+						const auto constant = ConstantType{name_, reduction_tag, expression.node};
+						//context[name] = constant;
+						return constant;
+					}, 
+					constant(constant_declaration, reduce_to_term)
+					>=[](auto declaration, auto number)
+					{
+						const auto name_ = std::string{declaration};
+						const auto constant = ConstantType{name_, reduction_tag, literal_node(number)};
 						//context[name] = constant;
 						return constant;
 					}

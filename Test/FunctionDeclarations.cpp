@@ -39,15 +39,18 @@ TEST_GROUP(FunctionDeclarations) {};
 
 TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 {
-	const bool debug = false;
+	const bool debug = true;
 	NumericContexType context;
 	auto constant = runtime_parse<
 			NumericParserType, 
 			//FixedString{"12"}, 
-			FixedString{"let TheQuestion = 42;"}, 
+			//FixedString{"let TheQuestion = 1u + 41u"}, 
+			FixedString{"let TheQuestion = 42u"}, 
+			//FixedString{"let TheQuestion ="},
 			//NumericTypeTag::Whole
 			//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
-			 Declaration::Constant
+			//Declaration::Constant
+			Construct::Constant
 		>(debug);
 	//std::cout << "Value: " << retrieve_value<WholeType>(constant.value) << "\n";
 
