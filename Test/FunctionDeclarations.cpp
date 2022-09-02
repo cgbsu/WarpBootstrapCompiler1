@@ -32,8 +32,8 @@ using NumericParserType = FunctionDeclarationParser<
 		FunctionDeclaritionTermsType, 
 		//MathematicalExpressionTermsType, 
 		NumericTypeResolver, 
-		//Construct::Constant, 
-		MathematicalExpression::Expression, 
+		Construct::Constant, 
+		//MathematicalExpression::Expression, 
 		NumericTypeTag, 
 		NumericConstantType
 	>;

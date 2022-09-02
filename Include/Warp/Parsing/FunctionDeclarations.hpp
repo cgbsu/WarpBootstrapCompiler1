@@ -275,23 +275,22 @@ namespace Warp::Parsing
 				);
 		}
 
-		//consteval static const auto unique_rules()
-		//{
-		//	return //concatinate_tuples(
-		//			constant_from_math_term<WholeMathematicalParserType>();//, 
-		//		//	ctpg::rules(
-		//		//			constant_declaration_rule
-		//		//		)
-		//		//);
-		//}
+		consteval static const auto unique_rules()
+		{
+			return //concatinate_tuples(
+					constant_from_math_term<WholeMathematicalParserType>();//, 
+				//	ctpg::rules(
+				//			constant_declaration_rule
+				//		)
+				//);
+		}
 
 		consteval static const auto rules()
 		{
-			return //concatinate_tuples( 
-					WholeMathematicalParserType::rules()//,
-					;
-					//unique_rules()
-				//);
+			return concatinate_tuples( 
+					WholeMathematicalParserType::rules(), 
+					unique_rules()
+				);
 		}
 					
 	};
