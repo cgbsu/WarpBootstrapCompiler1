@@ -52,6 +52,6 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 			FixedString{"let TheQuestion = 2u * 20u +2u;"}, 
 			NumericParserType::UniqueProductions::Context
 		>(debug);
-	//std::cout << retrieve_value<WholeType>(context.value().at("TheQuestion").value) << "\n";
+	std::cout << retrieve_value<WholeType>(context.value().constants.at("TheQuestion").value) << "\n";
 };
 
