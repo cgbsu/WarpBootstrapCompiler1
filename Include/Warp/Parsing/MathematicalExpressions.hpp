@@ -244,7 +244,7 @@ namespace Warp::Parsing
 			ParenthesisScope
 		};
 
-		using TermsType = BaseTermsType::template AppendTerms<
+		using UniqueTermsType = MakeTerms<
 				TypeTreeTerm<
 						TypeSpecificMathematicalExpressionTermTags::Sum, 
 						NonTerminalTerm, 
@@ -270,6 +270,8 @@ namespace Warp::Parsing
 						FixedString{"Term"}
 					>
 			>;
+
+		using TermsType = decltype(BaseTermsType::template append_terms(UniqueTermsType{}));
 
 		template<auto TermTagParameterConstant>
 		constexpr static const auto term = TermsType::template term<TermTagParameterConstant>;
@@ -297,26 +299,32 @@ namespace Warp::Parsing
 		constexpr static const auto parenthesis_scope
 				= term<TypeSpecificMathematicalExpressionTermTags::ParenthesisScope>;
 
+		constexpr static const auto unique_terms = ctpg::terms(
+					add, 
+					subtract, 
+					multiply, 
+					divide, 
+					open_parenthesis, 
+					close_parenthesis
+				);
+
 		constexpr static const auto terms = std::tuple_cat(
 				BaseType::terms, 
-				ctpg::terms(
-						add, 
-						subtract, 
-						multiply, 
-						divide, 
-						open_parenthesis, 
-						close_parenthesis
-					)
+				unique_terms
+			);
+
+		constexpr static const auto unique_non_terminal_terms = ctpg::nterms(
+				sum, 
+				math_term, 
+				expression
 			);
 
 		constexpr static const auto non_terminal_terms = std::tuple_cat(
 				BaseType::non_terminal_terms, 
-				ctpg::nterms(
-						reduce_to, 
-						sum, 
-						math_term, 
-						expression
-					)
+				unique_non_terminal_terms
+				//ctpg::nterms(
+				//		//reduce_to, 
+				//	)
 			);
 
 		template<auto OperateParameterConstant>
@@ -405,10 +413,9 @@ namespace Warp::Parsing
 					return Expression{math_term_.node};
 				}; 
 
-		consteval static const auto rules()
+		consteval static const auto unique_rules()
 		{
-			constexpr auto base_rules = concatinate_tuples(
-					BaseType::rules(), 
+			return concatinate_tuples(
 					basic_term_operation_rules<
 							[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right}; }, 
 							[](auto left, auto right) { return left + right; }
@@ -443,7 +450,14 @@ namespace Warp::Parsing
 							math_term_to_expression
 						)
 				);
-			return base_rules;
+		}
+
+		consteval static const auto rules()
+		{
+			return concatinate_tuples(
+					BaseType::rules(), 
+					unique_rules()
+				);
 		}
 
 		constexpr static const auto parser = ctpg::parser(
