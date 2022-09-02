@@ -89,7 +89,7 @@ namespace Warp::Parsing
 					>
 			>;
 
-		using IntermediateTermsType = BaseTermsType;///MergeTerms<BaseTermsType, UniqueTermsType>;
+		using IntermediateTermsType = MergeTerms<BaseTermsType, UniqueTermsType>;
 
 
 		using WholeMathematicalParserType = HomogenousMathematicalExpressionParser<
@@ -130,60 +130,60 @@ namespace Warp::Parsing
 		//	>;
 
 		//using TermsType = ThisTermsType;
-		using TermsType = IntermediateTermsType;//decltype(IntermediateTermsType::append_terms(
-				//typename WholeMathematicalParserType::UniqueTermsType{}
-			//));
+		using TermsType = decltype(IntermediateTermsType::append_terms(
+				typename WholeMathematicalParserType::UniqueTermsType{}
+			));
 
 		template<auto TermTagParameterConstant>
 		constexpr static const auto term = TermsType::template term<TermTagParameterConstant>;
 
-		//constexpr static const auto let_keyword = term<Keyword::Let>;
-		//constexpr static const auto equal = term<MultiPurposeOperator::Equal>;
-		//constexpr static const auto identifier = term<Identifier::Identifier>;
-		//constexpr static const auto open_parenthesis = term<Brackets::OpenParenthesis>;
-		//constexpr static const auto close_parenthesis = term<Brackets::CloseParenthesis>;
-		//constexpr static const auto semi_colon = term<Declaration::SemiColon>;
-		//constexpr static const auto constant_declaration = term<Declaration::Constant>;
-		//constexpr static const auto constant = term<Construct::Constant>;
+		constexpr static const auto let_keyword = term<Keyword::Let>;
+		constexpr static const auto equal = term<MultiPurposeOperator::Equal>;
+		constexpr static const auto identifier = term<Identifier::Identifier>;
+		constexpr static const auto open_parenthesis = term<Brackets::OpenParenthesis>;
+		constexpr static const auto close_parenthesis = term<Brackets::CloseParenthesis>;
+		constexpr static const auto semi_colon = term<Declaration::SemiColon>;
+		constexpr static const auto constant_declaration = term<Declaration::Constant>;
+		constexpr static const auto constant = term<Construct::Constant>;
 
 		//constexpr static const auto reduce_to = term<reduce_to_tag>;
 
 		constexpr static const auto whole_terms = WholeMathematicalParserType::terms;
 
-		constexpr static const auto terms = whole_terms;
-		//constexpr static const auto terms = concatinate_tuples(
-		////		whole_terms, 
-		//		WholeMathematicalParserType::terms, 
-		////		//WholeMathematicalParserType::unique_terms, 
-		////		//IntegerMathematicalParserType::unique_terms, 
-		////		//FixedPointMathematicalParserType::unique_terms, 
-		////		//CharacterMathematicalParserType::unique_terms, 
-		////		//BoolMathematicalParserType::unique_terms, 
-		//		ctpg::terms(
-		//				let_keyword, 
-		//				equal, 
-		//				identifier, 
-		//				//open_parenthesis, 
-		//				//close_parenthesis, 
-		//				semi_colon
-		//			)
-		//	);
+		//constexpr static const auto terms = whole_terms;
+		constexpr static const auto terms = concatinate_tuples(
+		//		whole_terms, 
+				WholeMathematicalParserType::terms, 
+		//		//WholeMathematicalParserType::unique_terms, 
+		//		//IntegerMathematicalParserType::unique_terms, 
+		//		//FixedPointMathematicalParserType::unique_terms, 
+		//		//CharacterMathematicalParserType::unique_terms, 
+		//		//BoolMathematicalParserType::unique_terms, 
+				ctpg::terms(
+						let_keyword, 
+						equal, 
+						identifier, 
+						//open_parenthesis, 
+						//close_parenthesis, 
+						semi_colon
+					)
+			);
 
 		constexpr static const auto whole_non_terminal_terms = WholeMathematicalParserType::non_terminal_terms;
-		constexpr static const auto non_terminal_terms = whole_non_terminal_terms;
-		//constexpr static const auto non_terminal_terms = concatinate_tuples(
-		////		whole_non_terminal_terms, 
-		//		WholeMathematicalParserType::non_terminal_terms, 
-		////		//WholeMathematicalParserType::unique_non_terminal_terms, 
-		////		//IntegerMathematicalParserType::unique_non_terminal_terms, 
-		////		//FixedPointMathematicalParserType::unique_non_terminal_terms, 
-		////		//CharacterMathematicalParserType::unique_non_terminal_terms, 
-		////		//BoolMathematicalParserType::unique_non_terminal_terms, 
-		//		ctpg::terms(
-		//				constant_declaration, 
-		//				constant
-		//			)
-		//	);
+		//constexpr static const auto non_terminal_terms = whole_non_terminal_terms;
+		constexpr static const auto non_terminal_terms = concatinate_tuples(
+		//		whole_non_terminal_terms, 
+				WholeMathematicalParserType::non_terminal_terms, 
+		//		//WholeMathematicalParserType::unique_non_terminal_terms, 
+		//		//IntegerMathematicalParserType::unique_non_terminal_terms, 
+		//		//FixedPointMathematicalParserType::unique_non_terminal_terms, 
+		//		//CharacterMathematicalParserType::unique_non_terminal_terms, 
+		//		//BoolMathematicalParserType::unique_non_terminal_terms, 
+				ctpg::terms(
+						constant_declaration, 
+						constant
+					)
+			);
 
 		//constexpr static const auto constant_declaration_rule 
 		//		= constant_declaration(let_keyword, identifier, equal)
@@ -191,23 +191,23 @@ namespace Warp::Parsing
 		//			return std::string{name};
 		//		};
 
-		//template<typename MathematicalExpressionGeneratorParameterType>
-		//constexpr static const auto constant_from_math_term()
-		//{
-		//	using TagType = MathematicalExpressionGeneratorParameterType
-		//			::TypeSpecificMathematicalExpressionTermTags;
-		//	constexpr const auto reduction_tag 
-		//			= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
-		//	constexpr const auto expression_term 
-		//			= MathematicalExpressionGeneratorParameterType::template term<MathematicalExpression::Expression>;
-		//	//		= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
-		//	constexpr const auto math_term_term 
-		//			= MathematicalExpressionGeneratorParameterType::template term<TagType::Term>;
-		//	constexpr const auto sum_term 
-		//			= MathematicalExpressionGeneratorParameterType::template term<TagType::Sum>;
-		//	constexpr const auto reduce_to_term
-		//			= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
-		//	return ctpg::rules(
+		template<typename MathematicalExpressionGeneratorParameterType>
+		constexpr static const auto constant_from_math_term()
+		{
+			using TagType = MathematicalExpressionGeneratorParameterType
+					::TypeSpecificMathematicalExpressionTermTags;
+			constexpr const auto reduction_tag 
+					= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
+			constexpr const auto expression_term 
+					= MathematicalExpressionGeneratorParameterType::template term<MathematicalExpression::Expression>;
+			//		= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
+			constexpr const auto math_term_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Term>;
+			constexpr const auto sum_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Sum>;
+			constexpr const auto reduce_to_term
+					= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
+			return ctpg::rules(
 					//constant(constant_declaration, /*expression_term,*/ semi_colon)
 					//>>=[](auto& context, auto declaration, auto semi_colon)//auto expression, auto semi_colon)
 					//{
@@ -248,32 +248,32 @@ namespace Warp::Parsing
 					///	//context[name] = constant;
 					///	return constant;
 					///}
-		//			constant(let_keyword, identifier, equal, expression_term)
-		//			>=[](auto let_, auto name, auto equal_, auto expression)
-		//			{
-		//				const auto name_ = std::string{name};
-		//				const auto constant = ConstantType{name_, reduction_tag, expression.node};
-		//				//context[name] = constant;
-		//				return constant;
-		//			}, 
-		//			constant(let_keyword, identifier, equal, math_term_term)
-		//			>=[](auto let_, auto name, auto equal_, auto term)
-		//			{
-		//				const auto name_ = std::string{name};
-		//				const auto constant = ConstantType{name_, reduction_tag, term.node};
-		//				//context[name] = constant;
-		//				return constant;
-		//			}, 
-		//			constant(let_keyword, identifier, equal, sum_term)
-		//			>=[](auto let_, auto name, auto equal_, auto sum)
-		//			{
-		//				const auto name_ = std::string{name};
-		//				const auto constant = ConstantType{name_, reduction_tag, sum.node};
-		//				//context[name] = constant;
-		//				return constant;
-		//			}
-		//		);
-		//}
+					constant(let_keyword, identifier, equal, expression_term)
+					>=[](auto let_, auto name, auto equal_, auto expression)
+					{
+						const auto name_ = std::string{name};
+						const auto constant = ConstantType{name_, reduction_tag, expression.node};
+						//context[name] = constant;
+						return constant;
+					}, 
+					constant(let_keyword, identifier, equal, math_term_term)
+					>=[](auto let_, auto name, auto equal_, auto term)
+					{
+						const auto name_ = std::string{name};
+						const auto constant = ConstantType{name_, reduction_tag, term.node};
+						//context[name] = constant;
+						return constant;
+					}, 
+					constant(let_keyword, identifier, equal, sum_term)
+					>=[](auto let_, auto name, auto equal_, auto sum)
+					{
+						const auto name_ = std::string{name};
+						const auto constant = ConstantType{name_, reduction_tag, sum.node};
+						//context[name] = constant;
+						return constant;
+					}
+				);
+		}
 
 		//consteval static const auto unique_rules()
 		//{

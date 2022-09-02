@@ -29,8 +29,8 @@ template struct FunctionDeclarationParser<
 	>;
 
 using NumericParserType = FunctionDeclarationParser<
-		//FunctionDeclaritionTermsType, 
-		MathematicalExpressionTermsType, 
+		FunctionDeclaritionTermsType, 
+		//MathematicalExpressionTermsType, 
 		NumericTypeResolver, 
 		//Construct::Constant, 
 		MathematicalExpression::Expression, 
