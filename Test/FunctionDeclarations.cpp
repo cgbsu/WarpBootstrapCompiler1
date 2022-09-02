@@ -45,7 +45,8 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 			NumericParserType, 
 			FixedString{"12"}, 
 			//FixedString{"let TheQuestion = 42;"}, 
-			NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
+			NumericTypeTag::Whole
+			//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
 			 //Declaration::Constant
 		>(debug);
 	//std::cout << "Value: " << retrieve_value<WholeType>(constant.value) << "\n";
