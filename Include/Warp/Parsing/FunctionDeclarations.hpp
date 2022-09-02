@@ -186,44 +186,43 @@ namespace Warp::Parsing
 					return std::string{name};
 				};
 
-		//template<typename MathematicalExpressionGeneratorParameterType>
-		//constexpr static const auto constant_from_math_term()
-		//{
-		//	using TagType = MathematicalExpressionGeneratorParameterType
-		//			::TypeSpecificMathematicalExpressionTermTags;
-		//	constexpr const auto reduction_tag 
-		//			= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
-		//	constexpr const auto expression_term 
-		//			= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
-		//	return ctpg::rules(
-		//			constant(constant_declaration, /*expression_term,*/ semi_colon)
-		//			>>=[](auto& context, auto declaration, auto semi_colon)//auto expression, auto semi_colon)
-		//			{
-		//				const auto name = std::string{declaration};
-		//				const auto constant = ConstantType{name, reduction_tag};//, expression.node};
-		//				context[name] = constant;
-		//				return constant;
-		//			}
-		//			//constant(constant_declaration, expression_term, semi_colon)
-		//			//>=[](auto declaration, auto expression, auto semi_colon)
-		//			//{
-		//			//	const auto name = std::string{declaration};
-		//			//	const auto constant = ConstantType{name, reduction_tag, expression.node};
-		//			//	//context[name] = constant;
-		//			//	return constant;
-		//			//}
-		//		);
-		//}
+		template<typename MathematicalExpressionGeneratorParameterType>
+		constexpr static const auto constant_from_math_term()
+		{
+			using TagType = MathematicalExpressionGeneratorParameterType
+					::TypeSpecificMathematicalExpressionTermTags;
+			constexpr const auto reduction_tag 
+					= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
+			constexpr const auto expression_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
+			return ctpg::rules(
+					//constant(constant_declaration, /*expression_term,*/ semi_colon)
+					//>>=[](auto& context, auto declaration, auto semi_colon)//auto expression, auto semi_colon)
+					//{
+					//	const auto name = std::string{declaration};
+					//	const auto constant = ConstantType{name, reduction_tag};//, expression.node};
+					//	context[name] = constant;
+					//	return constant;
+					//}
+					constant(constant_declaration, expression_term, semi_colon)
+					>=[](auto declaration, auto expression, auto semi_colon)
+					{
+						const auto name = std::string{declaration};
+						const auto constant = ConstantType{name, reduction_tag, expression.node};
+						//context[name] = constant;
+						return constant;
+					}
+				);
+		}
 
 		consteval static const auto unique_rules()
 		{
-			return //concatinate_tuples(
-					//constant_from_math_term<WholeMathematicalParserType>(), 
+			return concatinate_tuples(
+					constant_from_math_term<WholeMathematicalParserType>(), 
 					ctpg::rules(
 							constant_declaration_rule
 						)
-				//);
-			;
+				);
 		}
 
 		consteval static const auto rules()

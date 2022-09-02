@@ -43,11 +43,11 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 	NumericContexType context;
 	auto constant = runtime_parse<
 			NumericParserType, 
-			FixedString{"12"}, 
-			//FixedString{"let TheQuestion = 42;"}, 
-			NumericTypeTag::Whole
+			//FixedString{"12"}, 
+			FixedString{"let TheQuestion = 42;"}, 
+			//NumericTypeTag::Whole
 			//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
-			 //Declaration::Constant
+			 Declaration::Constant
 		>(debug);
 	//std::cout << "Value: " << retrieve_value<WholeType>(constant.value) << "\n";
 
