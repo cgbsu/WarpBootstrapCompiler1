@@ -24,7 +24,12 @@ namespace Warp::Parsing
 		// BaseConvert
 		// Solve
 		OpenPrioritization, 
-		ClosePrioritization
+		ClosePrioritization, 
+		Expression
+	};
+
+	struct Expression {
+		SyntaxNode node;
 	};
 
 
@@ -54,6 +59,12 @@ namespace Warp::Parsing
 					CharTerm, 
 					'-', 
 					ctpg::associativity::ltor
+				>, 
+			TypeTreeTerm<
+					MathematicalExpression::Expression, 
+					NonTerminalTerm, 
+					Expression, 
+					FixedString{"Expression"}
 				>
 		>::AddOnePriority<
 			TreeTerm<
@@ -232,15 +243,12 @@ namespace Warp::Parsing
 			}
 		};
 
-		struct Expression {
-			SyntaxNode node;
-		};
 
 		enum class TypeSpecificMathematicalExpressionTermTags
 		{
 			Sum, 
 			Term, 
-			Expression, 
+			//Expression, 
 			ParenthesisScope
 		};
 
@@ -250,12 +258,6 @@ namespace Warp::Parsing
 						NonTerminalTerm, 
 						Sum, 
 						FixedString{"Sum"}
-					>, 
-				TypeTreeTerm<
-						TypeSpecificMathematicalExpressionTermTags::Expression, 
-						NonTerminalTerm, 
-						Expression, 
-						FixedString{"Expression"}
 					>, 
 				TypeTreeTerm<
 						TypeSpecificMathematicalExpressionTermTags::ParenthesisScope, 
@@ -295,7 +297,7 @@ namespace Warp::Parsing
 		constexpr static const auto math_term
 				= term<TypeSpecificMathematicalExpressionTermTags::Term>;
 		constexpr static const auto expression 
-				= term<TypeSpecificMathematicalExpressionTermTags::Expression>;
+				= term<MathematicalExpression::Expression>;
 		constexpr static const auto parenthesis_scope
 				= term<TypeSpecificMathematicalExpressionTermTags::ParenthesisScope>;
 

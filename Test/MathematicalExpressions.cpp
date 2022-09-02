@@ -42,9 +42,9 @@ using WholeEnumType = WholeParserType::TypeSpecificMathematicalExpressionTermTag
 using IntegerEnumType = IntegerParserType::TypeSpecificMathematicalExpressionTermTags;
 using FixedEnumType = FixedParserType::TypeSpecificMathematicalExpressionTermTags;
 
-using WholeExpressionType = WholeParserType::Expression;
-using IntegerExpressionType = IntegerParserType::Expression;
-using FixedExpressionType = FixedParserType::Expression;
+using WholeExpressionType = Expression;
+using IntegerExpressionType = Expression;
+using FixedExpressionType = Expression;
 
 constexpr static const auto compare_value = [](auto left, auto right) {
 	return retrieve_value<typename NumericTagResolver<decltype(right)>::NumericType>(left.node) == right;
@@ -56,7 +56,7 @@ auto parse_whole(bool debug = false)
 	return runtime_parse<
 				WholeParserType, 
 				TestParameterConstant, 	
-				WholeEnumType::Expression
+				MathematicalExpression::Expression
 			>(debug);
 }
 
@@ -66,7 +66,7 @@ auto parse_integer(bool debug = false)
 	return runtime_parse<
 				IntegerParserType, 
 				TestParameterConstant, 	
-				IntegerEnumType::Expression
+				MathematicalExpression::Expression
 			>(debug);
 }
 
@@ -76,7 +76,7 @@ auto parse_fixed(bool debug = false)
 	return runtime_parse<
 			FixedParserType, 
 			TestParameterConstant, 	
-			FixedEnumType::Expression
+			MathematicalExpression::Expression
 		>(debug);
 }
 

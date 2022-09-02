@@ -1,3 +1,4 @@
+#include <Warp/Parsing/MathematicalExpressions.hpp>
 #include <Warp/Parsing/FunctionDeclarations.hpp>
 #include <Warp/Runtime/Compiler/SimpleExecutor.hpp>
 #include <CppUTest/TestHarness.h>
@@ -28,9 +29,11 @@ template struct FunctionDeclarationParser<
 	>;
 
 using NumericParserType = FunctionDeclarationParser<
-		FunctionDeclaritionTermsType, 
+		//FunctionDeclaritionTermsType, 
+		MathematicalExpressionTermsType, 
 		NumericTypeResolver, 
-		Construct::Constant, 
+		//Construct::Constant, 
+		MathematicalExpression::Expression, 
 		NumericTypeTag, 
 		NumericConstantType
 	>;
@@ -41,18 +44,42 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 {
 	const bool debug = true;
 	NumericContexType context;
-	auto constant = runtime_parse<
+	runtime_parse<
 			NumericParserType, 
-			//FixedString{"12"}, 
-			//FixedString{"let TheQuestion = 1u + 41u"}, 
-			FixedString{"let TheQuestion = 42u"}, 
-			//FixedString{"let TheQuestion ="},
+			//HomogenousMathematicalExpressionParser<
+			//		NumericTypeTag::Whole, 
+			//		MathematicalExpressionTermsType, 
+			//		NumericTypeResolver
+			//	>, 
+			//FixedString{"let TheQuestion = 2u * 21u"},
+			FixedString{"2u * 21u"},
 			//NumericTypeTag::Whole
-			//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
-			//Declaration::Constant
-			Construct::Constant
+			MathematicalExpression::Expression
+			//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Term
+			//Construct::Constant
 		>(debug);
-	//std::cout << "Value: " << retrieve_value<WholeType>(constant.value) << "\n";
-
+	//runtime_parse<
+	//		NumericParserType, 
+	//		//FixedString{"12"}, 
+	//		//FixedString{"let TheQuestion = 1u + 41u"}, 
+	//		FixedString{"let TheQuestion = 42u"}, 
+	//		//FixedString{"let TheQuestion ="},
+	//		//NumericTypeTag::Whole
+	//		//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
+	//		//Declaration::Constant
+	//		Construct::Constant
+	//	>(debug);
+	////std::cout << "Value: " << retrieve_value<WholeType>(constant.value) << "\n";
+	//runtime_parse<
+	//		NumericParserType, 
+	//		//FixedString{"12"}, 
+	//		//FixedString{"let TheQuestion = 1u + 41u"}, 
+	//		FixedString{"let TheQuestion = 2u * 21u"}, 
+	//		//FixedString{"let TheQuestion ="},
+	//		//NumericTypeTag::Whole
+	//		//NumericParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
+	//		//Declaration::Constant
+	//		Construct::Constant
+	//	>(debug);
 };
 
