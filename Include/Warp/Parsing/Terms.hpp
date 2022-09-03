@@ -271,9 +271,27 @@ namespace Warp::Parsing
 		template<AssociatedTemplateConcept... NewTermParameterTypes>
 		using AppendTerms = Terms<PreviousType, precedence, TermParameterTypes..., NewTermParameterTypes...>;
 
-		template<typename OtherPreviousParameterType, auto OtherPrecedenceParameterConstant, AssociatedTemplateConcept... NewTermParameterTypes>
-		constexpr static const auto append_terms(Terms<OtherPreviousParameterType, OtherPrecedenceParameterConstant, NewTermParameterTypes...>) {
-			return Terms<PreviousType, precedence, TermParameterTypes..., NewTermParameterTypes...>{};
+		template<
+				typename OtherPreviousParameterType, 
+				auto OtherPrecedenceParameterConstant, 
+				AssociatedTemplateConcept... NewTermParameterTypes, 
+				typename... NextToAppendParameterTypes
+			>
+		constexpr static const auto append_terms(
+				Terms<
+						OtherPreviousParameterType, 
+						OtherPrecedenceParameterConstant, 
+						NewTermParameterTypes...
+					>, 
+				NextToAppendParameterTypes... next
+			)
+		{
+			using NextType = Terms<PreviousType, precedence, TermParameterTypes..., NewTermParameterTypes...>;
+			if constexpr(sizeof...(NextToAppendParameterTypes) <= 0)
+				return NextType{};
+			else {
+				return NextType::append_terms(next...);
+			}
 		}
 
 		template<typename ToPrependParameterType>

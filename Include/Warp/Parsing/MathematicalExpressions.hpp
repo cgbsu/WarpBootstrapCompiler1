@@ -25,12 +25,9 @@ namespace Warp::Parsing
 		// Solve
 		OpenPrioritization, 
 		ClosePrioritization, 
-		Expression
+		//Expression
 	};
 
-	struct Expression {
-		SyntaxNode node;
-	};
 
 
 	using MathematicalExpressionTermsType = NumericLiteralTermsType
@@ -59,12 +56,6 @@ namespace Warp::Parsing
 					CharTerm, 
 					'-', 
 					ctpg::associativity::ltor
-				>, 
-			TypeTreeTerm<
-					MathematicalExpression::Expression, 
-					NonTerminalTerm, 
-					Expression, 
-					FixedString{"Expression"}
 				>
 		>::AddOnePriority<
 			TreeTerm<
@@ -87,7 +78,10 @@ namespace Warp::Parsing
 			typename TermsParameterType, 
 			template<auto> typename TypeResolverParameterTemplate, 
 			auto ReductionTagParameterConstant, 
-			auto InputTermTagParameterConstant
+			auto InputTermTagParameterConstant, 
+			auto TermTermNameParameterConstant = FixedString{"Term"},  
+			auto SumTermNameParameterConstant = FixedString{"Sum"}, 
+			auto ExpressionTermNameParameterConstant = FixedString{"Expression"}
 		>
 	requires
 			HasTypeConcept<TypeResolverParameterTemplate<ReductionTagParameterConstant>> 
@@ -122,6 +116,10 @@ namespace Warp::Parsing
 		//	ReduceTo, 
 		//	None
 		//};
+
+		struct Expression {
+			SyntaxNode node;
+		};
 
 		struct Term
 		{
@@ -248,8 +246,7 @@ namespace Warp::Parsing
 		{
 			Sum, 
 			Term, 
-			//Expression, 
-			ParenthesisScope
+			Expression
 		};
 
 		using UniqueTermsType = MakeTerms<
@@ -257,19 +254,19 @@ namespace Warp::Parsing
 						TypeSpecificMathematicalExpressionTermTags::Sum, 
 						NonTerminalTerm, 
 						Sum, 
-						FixedString{"Sum"}
-					>, 
-				TypeTreeTerm<
-						TypeSpecificMathematicalExpressionTermTags::ParenthesisScope, 
-						NonTerminalTerm, 
-						Term, 
-						FixedString{"ParenthesisScope"}
+						SumTermNameParameterConstant
 					>, 
 				TypeTreeTerm<
 						TypeSpecificMathematicalExpressionTermTags::Term, 
 						NonTerminalTerm, 
 						Term, 
-						FixedString{"Term"}
+						TermTermNameParameterConstant
+					>, 
+				TypeTreeTerm<
+						TypeSpecificMathematicalExpressionTermTags::Expression, 
+						NonTerminalTerm, 
+						Expression, 
+						ExpressionTermNameParameterConstant
 					>
 			>;
 
@@ -297,9 +294,7 @@ namespace Warp::Parsing
 		constexpr static const auto math_term
 				= term<TypeSpecificMathematicalExpressionTermTags::Term>;
 		constexpr static const auto expression 
-				= term<MathematicalExpression::Expression>;
-		constexpr static const auto parenthesis_scope
-				= term<TypeSpecificMathematicalExpressionTermTags::ParenthesisScope>;
+				= term<TypeSpecificMathematicalExpressionTermTags::Expression>;
 
 		constexpr static const auto unique_terms = ctpg::terms(
 					add, 
@@ -417,41 +412,42 @@ namespace Warp::Parsing
 
 		consteval static const auto unique_rules()
 		{
-			return concatinate_tuples(
-					basic_term_operation_rules<
-							[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right}; }, 
-							[](auto left, auto right) { return left + right; }
-						>(sum, add), 
-					basic_term_operation_rules<
-							[](auto left, auto right) { 
-								return Sum{
-										left, 
-										OperationHolder<NodeType::Subtract>{}, 
-										right
-									};
-								}, 
-							[](auto left, auto right) { return left - right; }
-						>(sum, subtract), 
-					term_operation_reduction<
-							[](auto left, auto right) { return left * right; }
-						>(math_term, multiply), 
-					term_operation_reduction<
-							[](auto left, auto right) { return left / right; }
-						>(math_term, divide), 
-					input_operation_rules<
-							[](auto left, auto right) { return left * right; }
-						>(math_term, multiply), 
-					input_operation_rules<
-							[](auto left, auto right) { return left / right; }
-						>(math_term, divide), 
-					from_parenthesis(), 
+			return //concatinate_tuples(
+					//basic_term_operation_rules<
+					//		[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right}; }, 
+					//		[](auto left, auto right) { return left + right; }
+					//	>(sum, add), 
+					//basic_term_operation_rules<
+					//		[](auto left, auto right) { 
+					//			return Sum{
+					//					left, 
+					//					OperationHolder<NodeType::Subtract>{}, 
+					//					right
+					//				};
+					//			}, 
+					//		[](auto left, auto right) { return left - right; }
+					//	>(sum, subtract), 
+					//term_operation_reduction<
+					//		[](auto left, auto right) { return left * right; }
+					//	>(math_term, multiply), 
+					//term_operation_reduction<
+					//		[](auto left, auto right) { return left / right; }
+					//	>(math_term, divide), 
+					//input_operation_rules<
+					//		[](auto left, auto right) { return left * right; }
+					//	>(math_term, multiply), 
+					//input_operation_rules<
+					//		[](auto left, auto right) { return left / right; }
+					//	>(math_term, divide), 
+					//from_parenthesis(), 
 					ctpg::rules(
 							input_to_math_term, 
 							negated_input_to_math_term, 
 							sum_to_expression, 
 							math_term_to_expression
 						)
-				);
+				//);
+				;
 		}
 
 		consteval static const auto rules()
@@ -514,14 +510,20 @@ namespace Warp::Parsing
 	template<
 			auto TypeTagParameterConstant, 
 			typename TermsParameterType, 
-			template<auto> typename TypeResolverParameterTemplate
+			template<auto> typename TypeResolverParameterTemplate, 
+			auto TermTermNameParameterConstant = FixedString{"Term"},  
+			auto SumTermNameParameterConstant = FixedString{"Sum"}, 
+			auto ExpressionTermNameParameterConstant = FixedString{"Expression"}
 		>
 	using HomogenousMathematicalExpressionParser 
 			= MathematicalExpressionParser<
 				TermsParameterType, 
 				TypeResolverParameterTemplate, 
 				TypeTagParameterConstant, 
-				TypeTagParameterConstant
+				TypeTagParameterConstant, 
+				TermTermNameParameterConstant, 
+				SumTermNameParameterConstant, 
+				ExpressionTermNameParameterConstant
 			>;
 }
 

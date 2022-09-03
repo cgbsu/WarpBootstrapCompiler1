@@ -102,45 +102,47 @@ namespace Warp::Parsing
 
 		using WholeMathematicalParserType = HomogenousMathematicalExpressionParser<
 				NumericTypeTag::Whole, 
-				MathematicalExpressionTermsType, 
-				//IntermediateTermsType, 
+				IntermediateTermsType, 
+				TypeResolverParameterTemplate, 
+				FixedString{"WholeTerm"}, 
+				FixedString{"WholeSum"}, 
+				FixedString{"WholeExpression"}
+			>;
+
+		using IntegerMathematicalParserType = HomogenousMathematicalExpressionParser<
+				NumericTypeTag::Integer, 
+				IntermediateTermsType, 
 				TypeResolverParameterTemplate
 			>;
 
-		//using WholeMathematicalParserType = MathematicalExpressionParser<
-		//		MathematicalExpressionTermsType, 
-		//		NumericTypeResolver, 
-		//		NumericTypeTag::Whole, 
-		//		NumericTypeTag::Whole
-		//	>;
-		//using IntegerMathematicalParserType = HomogenousMathematicalExpressionParser<
-		//		NumericTypeTag::Integer, 
-		//		MathematicalExpressionTermsType, 
-		//		TypeResolverParameterTemplate
-		//	>;
+		using FixedPointMathematicalParserType = HomogenousMathematicalExpressionParser<
+				NumericTypeTag::FixedPoint, 
+				IntermediateTermsType, 
+				TypeResolverParameterTemplate
+			>;
 
-		//using FixedPointMathematicalParserType = HomogenousMathematicalExpressionParser<
-		//		NumericTypeTag::FixedPoint, 
-		//		MathematicalExpressionTermsType, 
-		//		TypeResolverParameterTemplate
-		//	>;
+		using CharacterMathematicalParserType = HomogenousMathematicalExpressionParser<
+				NumericTypeTag::Character, 
+				IntermediateTermsType, 
+				TypeResolverParameterTemplate
+			>;
 
-		//using CharacterMathematicalParserType = HomogenousMathematicalExpressionParser<
-		//		NumericTypeTag::Character, 
-		//		MathematicalExpressionTermsType, 
-		//		TypeResolverParameterTemplate
-		//	>;
-
-		//using BoolMathematicalParserType = HomogenousMathematicalExpressionParser<
-		//		NumericTypeTag::Bool, 
-		//		MathematicalExpressionTermsType, 
-		//		TypeResolverParameterTemplate
-		//	>;
+		using BoolMathematicalParserType = HomogenousMathematicalExpressionParser<
+				NumericTypeTag::Bool, 
+				IntermediateTermsType, 
+				TypeResolverParameterTemplate
+			>;
 
 		//using TermsType = ThisTermsType;
-		using TermsType = decltype(IntermediateTermsType::append_terms(
-				typename WholeMathematicalParserType::UniqueTermsType{}
-			));
+		using TermsType = decltype(
+				IntermediateTermsType::append_terms(
+						typename WholeMathematicalParserType::UniqueTermsType{}, 
+						typename IntegerMathematicalParserType::UniqueTermsType{}, 
+						typename FixedPointMathematicalParserType::UniqueTermsType{}, 
+						typename CharacterMathematicalParserType::UniqueTermsType{}, 
+						typename BoolMathematicalParserType::UniqueTermsType{}
+				)
+			);
 
 		template<auto TermTagParameterConstant>
 		constexpr static const auto term = TermsType::template term<TermTagParameterConstant>;
@@ -156,15 +158,12 @@ namespace Warp::Parsing
 
 		constexpr static const auto whole_terms = WholeMathematicalParserType::terms;
 
-		//constexpr static const auto terms = whole_terms;
 		constexpr static const auto terms = concatinate_tuples(
-		//		whole_terms, 
-				WholeMathematicalParserType::terms, 
-		//		//WholeMathematicalParserType::unique_terms, 
-		//		//IntegerMathematicalParserType::unique_terms, 
-		//		//FixedPointMathematicalParserType::unique_terms, 
-		//		//CharacterMathematicalParserType::unique_terms, 
-		//		//BoolMathematicalParserType::unique_terms, 
+				WholeMathematicalParserType::terms, // Using this to include NumericLiteral/all previous terms
+				IntegerMathematicalParserType::unique_terms, 
+				FixedPointMathematicalParserType::unique_terms, 
+				CharacterMathematicalParserType::unique_terms, 
+				BoolMathematicalParserType::unique_terms, 
 				ctpg::terms(
 						let_keyword, 
 						equal, 
@@ -176,12 +175,12 @@ namespace Warp::Parsing
 			);
 
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
-				WholeMathematicalParserType::non_terminal_terms, 
-		//		//WholeMathematicalParserType::unique_non_terminal_terms, 
-		//		//IntegerMathematicalParserType::unique_non_terminal_terms, 
-		//		//FixedPointMathematicalParserType::unique_non_terminal_terms, 
-		//		//CharacterMathematicalParserType::unique_non_terminal_terms, 
-		//		//BoolMathematicalParserType::unique_non_terminal_terms, 
+				WholeMathematicalParserType::non_terminal_terms, /* Using this to include 
+						NumericLiteral/all previous non-terminal-terms */
+				IntegerMathematicalParserType::unique_non_terminal_terms, 
+				FixedPointMathematicalParserType::unique_non_terminal_terms, 
+				CharacterMathematicalParserType::unique_non_terminal_terms, 
+				BoolMathematicalParserType::unique_non_terminal_terms, 
 				ctpg::terms(
 						constant, 
 						context
@@ -196,7 +195,7 @@ namespace Warp::Parsing
 			constexpr const auto reduction_tag 
 					= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
 			constexpr const auto expression_term 
-					= MathematicalExpressionGeneratorParameterType::template term<MathematicalExpression::Expression>;
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
 			//		= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
 			constexpr const auto math_term_term 
 					= MathematicalExpressionGeneratorParameterType::template term<TagType::Term>;
@@ -238,7 +237,11 @@ namespace Warp::Parsing
 		consteval static const auto rules()
 		{
 			return concatinate_tuples( 
-					WholeMathematicalParserType::rules(), 
+					WholeMathematicalParserType::rules(), // Including NumericLiteral/all previous rules
+					//IntegerMathematicalParserType::unique_rules(), 
+					//FixedPointMathematicalParserType::unique_rules(), 
+					CharacterMathematicalParserType::unique_rules(), 
+					//BoolMathematicalParserType::unique_rules(), 
 					unique_rules()
 				);
 		}

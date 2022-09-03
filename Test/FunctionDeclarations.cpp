@@ -33,13 +33,19 @@ using NumericParserType = FunctionDeclarationParser<
 	>;
 
 template<auto TypeTagParameterConstant>
-auto retrieve_constant(const OptionalConcept auto& context, std::string name) {
-	return retrieve_value<WholeType>(context.value().constants.at(name).value);
+auto retrieve_constant(const OptionalConcept auto& context, std::string name)
+{
+	return retrieve_value<
+			typename NumericTypeResolver<TypeTagParameterConstant>::Type
+		>(context.value().constants.at(name).value);
 }
 
 template<auto TypeTagParameterConstant>
-auto retrieve_constant(const OptionalConcept auto& constant) {
-	return retrieve_value<WholeType>(constant.value().value);
+auto retrieve_constant(const OptionalConcept auto& constant)
+{
+	return retrieve_value<
+			typename NumericTypeResolver<TypeTagParameterConstant>::Type
+		>(constant.value().value);
 }
 template<auto TypeTagParameterConstant>
 auto print_constant(const OptionalConcept auto& context, std::string name, bool courtesy = true) {
@@ -118,14 +124,18 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 	//		FixedString{"let TheQuestion = 2u * 21u"}, 
 	//		Construct::Constant
 	//	>(debug);
-	auto context = runtime_parse<
-			NumericParserType, 
-			FixedString{"let TheQuestion = 2u * 20u +2u;"}, 
+	//auto context = runtime_parse<
+	//		NumericParserType, 
+	//		FixedString{"let TheQuestion = 2u * 20u +2u;"}, 
+	//		NumericParserType::UniqueProductions::Context
+	//	>(debug);
+	//print_constant<NumericTypeTag::Whole>(context, std::string{"TheQuestion"});
+	TestingParser<NumericParserType>::parser<
 			NumericParserType::UniqueProductions::Context
-		>(debug);
-	print_constant<NumericTypeTag::Whole>(context, std::string{"TheQuestion"});
+		>.write_diag_str(std::cerr);
 	check_contex_constant<
-			FixedString{"let TheAnswer = 2u * 20u + 2u;"}, 
+			//FixedString{"let TheAnswer = 2u * 20u + 2u;"}, 
+			FixedString{"let TheAnswer = 42u;"}, 
 			NumericTypeTag::Whole
 		>({"TheAnswer"}, std::vector{42u}, true);
 };
