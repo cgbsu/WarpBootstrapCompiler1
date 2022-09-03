@@ -242,6 +242,10 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					constant_from_math_term<WholeMathematicalParserType>(), 
+					constant_from_math_term<IntegerMathematicalParserType>(), 
+					constant_from_math_term<FixedPointMathematicalParserType>(), 
+					constant_from_math_term<CharacterMathematicalParserType>(), 
+					constant_from_math_term<BoolMathematicalParserType>(), 
 					to_context_rules(constant)
 				);
 		}

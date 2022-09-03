@@ -247,6 +247,21 @@ namespace Warp::Utilities
 		constexpr Zero(Type) noexcept {}
 	};
 
+    template<NumericTypeTag TermTagParameterConstant, typename ParameterType>
+	requires(TermTagParameterConstant != NumericTypeTag::Bool)
+    constexpr std::string to_string(NumericType<TermTagParameterConstant, ParameterType> to_stringify) {
+		return std::string{std::to_string(to_stringify.number)};
+	}
+
+    template<typename ParameterType>
+    constexpr std::string to_string(NumericType<NumericTypeTag::Bool, ParameterType> to_stringify)
+	{
+		if(to_stringify.number == WarpBool::True)
+			return std::string{"True"};
+		else
+			return std::string{"False"};
+	}
+
 }
 
 #endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__NUMERIC__TYPE__HPP

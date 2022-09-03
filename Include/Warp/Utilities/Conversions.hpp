@@ -105,7 +105,12 @@ namespace Warp::Utilities
 
     template<typename ParameterType>
     constexpr std::string to_string(ParameterType to_stringify) {
-        return std::string{std::string_view{to_stringify}.data()};
+        return std::string{std::string_view{to_stringify}};
+    }
+
+    constexpr std::string to_string(char to_stringify) {
+		char string[2] = {to_stringify, '\0'};
+        return std::string{std::string_view{string}};
     }
 
 	struct Characters {
