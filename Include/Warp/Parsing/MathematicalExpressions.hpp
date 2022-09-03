@@ -108,6 +108,10 @@ namespace Warp::Parsing
 
 		using BaseType = NumericLiteralParser<BaseTermsType, TypeResolverParameterTemplate>;
 
+		constexpr static const auto term_term_name = TermTermNameParameterConstant; 
+		constexpr static const auto sum_term_name = SumTermNameParameterConstant;
+		constexpr static const auto expression_term_name = ExpressionTermNameParameterConstant;
+
 		//enum class AlternativeTag
 		//{
 		//	Product, 
@@ -254,19 +258,22 @@ namespace Warp::Parsing
 						TypeSpecificMathematicalExpressionTermTags::Sum, 
 						NonTerminalTerm, 
 						Sum, 
-						SumTermNameParameterConstant
+						sum_term_name
+						//SumTermNameParameterConstant
 					>, 
 				TypeTreeTerm<
 						TypeSpecificMathematicalExpressionTermTags::Term, 
 						NonTerminalTerm, 
 						Term, 
-						TermTermNameParameterConstant
+						term_term_name
+						//TermTermNameParameterConstant
 					>, 
 				TypeTreeTerm<
 						TypeSpecificMathematicalExpressionTermTags::Expression, 
 						NonTerminalTerm, 
 						Expression, 
-						ExpressionTermNameParameterConstant
+						expression_term_name
+						//ExpressionTermNameParameterConstant
 					>
 			>;
 
@@ -300,13 +307,15 @@ namespace Warp::Parsing
 					add, 
 					subtract, 
 					multiply, 
-					divide, 
-					open_parenthesis, 
-					close_parenthesis
+					divide
 				);
 
 		constexpr static const auto terms = std::tuple_cat(
 				BaseType::terms, 
+				ctpg::terms(
+						open_parenthesis, 
+						close_parenthesis
+					), 
 				unique_terms
 			);
 
@@ -319,9 +328,6 @@ namespace Warp::Parsing
 		constexpr static const auto non_terminal_terms = std::tuple_cat(
 				BaseType::non_terminal_terms, 
 				unique_non_terminal_terms
-				//ctpg::nterms(
-				//		//reduce_to, 
-				//	)
 			);
 
 		template<auto OperateParameterConstant>
@@ -412,42 +418,41 @@ namespace Warp::Parsing
 
 		consteval static const auto unique_rules()
 		{
-			return //concatinate_tuples(
-					//basic_term_operation_rules<
-					//		[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right}; }, 
-					//		[](auto left, auto right) { return left + right; }
-					//	>(sum, add), 
-					//basic_term_operation_rules<
-					//		[](auto left, auto right) { 
-					//			return Sum{
-					//					left, 
-					//					OperationHolder<NodeType::Subtract>{}, 
-					//					right
-					//				};
-					//			}, 
-					//		[](auto left, auto right) { return left - right; }
-					//	>(sum, subtract), 
-					//term_operation_reduction<
-					//		[](auto left, auto right) { return left * right; }
-					//	>(math_term, multiply), 
-					//term_operation_reduction<
-					//		[](auto left, auto right) { return left / right; }
-					//	>(math_term, divide), 
-					//input_operation_rules<
-					//		[](auto left, auto right) { return left * right; }
-					//	>(math_term, multiply), 
-					//input_operation_rules<
-					//		[](auto left, auto right) { return left / right; }
-					//	>(math_term, divide), 
-					//from_parenthesis(), 
+			return concatinate_tuples(
+					basic_term_operation_rules<
+							[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right}; }, 
+							[](auto left, auto right) { return left + right; }
+						>(sum, add), 
+					basic_term_operation_rules<
+							[](auto left, auto right) { 
+								return Sum{
+										left, 
+										OperationHolder<NodeType::Subtract>{}, 
+										right
+									};
+								}, 
+							[](auto left, auto right) { return left - right; }
+						>(sum, subtract), 
+					term_operation_reduction<
+							[](auto left, auto right) { return left * right; }
+						>(math_term, multiply), 
+					term_operation_reduction<
+							[](auto left, auto right) { return left / right; }
+						>(math_term, divide), 
+					input_operation_rules<
+							[](auto left, auto right) { return left * right; }
+						>(math_term, multiply), 
+					input_operation_rules<
+							[](auto left, auto right) { return left / right; }
+						>(math_term, divide), 
+					from_parenthesis(), 
 					ctpg::rules(
 							input_to_math_term, 
 							negated_input_to_math_term, 
 							sum_to_expression, 
 							math_term_to_expression
 						)
-				//);
-				;
+				);
 		}
 
 		consteval static const auto rules()

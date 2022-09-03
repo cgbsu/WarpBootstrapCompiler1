@@ -112,25 +112,37 @@ namespace Warp::Parsing
 		using IntegerMathematicalParserType = HomogenousMathematicalExpressionParser<
 				NumericTypeTag::Integer, 
 				IntermediateTermsType, 
-				TypeResolverParameterTemplate
+				TypeResolverParameterTemplate, 
+				FixedString{"IntegerTerm"}, 
+				FixedString{"IntegerSum"}, 
+				FixedString{"IntegerExpression"}
 			>;
 
 		using FixedPointMathematicalParserType = HomogenousMathematicalExpressionParser<
 				NumericTypeTag::FixedPoint, 
 				IntermediateTermsType, 
-				TypeResolverParameterTemplate
+				TypeResolverParameterTemplate, 
+				FixedString{"FixedPointTerm"}, 
+				FixedString{"FixedPointSum"}, 
+				FixedString{"FixedPointExpression"}
 			>;
 
 		using CharacterMathematicalParserType = HomogenousMathematicalExpressionParser<
 				NumericTypeTag::Character, 
 				IntermediateTermsType, 
-				TypeResolverParameterTemplate
+				TypeResolverParameterTemplate, 
+				FixedString{"CharacterPointTerm"}, 
+				FixedString{"CharacterPointSum"}, 
+				FixedString{"CharacterPointExpression"}
 			>;
 
 		using BoolMathematicalParserType = HomogenousMathematicalExpressionParser<
 				NumericTypeTag::Bool, 
 				IntermediateTermsType, 
-				TypeResolverParameterTemplate
+				TypeResolverParameterTemplate, 
+				FixedString{"BoolPointTerm"}, 
+				FixedString{"BoolPointSum"}, 
+				FixedString{"BoolPointExpression"}
 			>;
 
 		//using TermsType = ThisTermsType;
@@ -238,10 +250,10 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples( 
 					WholeMathematicalParserType::rules(), // Including NumericLiteral/all previous rules
-					//IntegerMathematicalParserType::unique_rules(), 
-					//FixedPointMathematicalParserType::unique_rules(), 
+					IntegerMathematicalParserType::unique_rules(), 
+					FixedPointMathematicalParserType::unique_rules(), 
 					CharacterMathematicalParserType::unique_rules(), 
-					//BoolMathematicalParserType::unique_rules(), 
+					BoolMathematicalParserType::unique_rules(), 
 					unique_rules()
 				);
 		}
