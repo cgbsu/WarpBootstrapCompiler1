@@ -57,6 +57,14 @@ namespace Warp::Parsing
 					'-', 
 					ctpg::associativity::ltor
 				>
+		>::AddOnePriority< 
+			TreeTerm<
+					Identifier::Identifier, 
+					RegexTerm, 
+					FixedString{"[a-zA-Z_][a-zA-Z0-9_]+"}, 
+					FixedString{"Identifier"}, 
+					ctpg::associativity::no_assoc
+				>
 		>::AddOnePriority<
 			TreeTerm<
 					Brackets::OpenParenthesis, 
@@ -296,6 +304,8 @@ namespace Warp::Parsing
 		constexpr static const auto close_parenthesis 
 				= term<Brackets::CloseParenthesis>;
 
+		constexpr static const auto identifier = term<Identifier::Identifier>;
+
 		constexpr static const auto sum 
 				= term<TypeSpecificMathematicalExpressionTermTags::Sum>;
 		constexpr static const auto math_term
@@ -314,7 +324,8 @@ namespace Warp::Parsing
 				BaseType::terms, 
 				ctpg::terms(
 						open_parenthesis, 
-						close_parenthesis
+						close_parenthesis, 
+						identifier
 					), 
 				unique_terms
 			);

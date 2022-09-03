@@ -29,13 +29,6 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>, 
 			TreeTerm<
-					Identifier::Identifier, 
-					RegexTerm, 
-					FixedString{"[a-zA-Z_][a-zA-Z0-9_]+"}, 
-					FixedString{"Identifier"}, 
-					ctpg::associativity::no_assoc
-				>, 
-			TreeTerm<
 					Keyword::Let, 
 					StringTerm, 
 					FixedString{"let"}, 
@@ -168,7 +161,14 @@ namespace Warp::Parsing
 		constexpr static const auto constant = term<Construct::Constant>;
 		constexpr static const auto context = term<UniqueProductions::Context>;
 
-		constexpr static const auto whole_terms = WholeMathematicalParserType::terms;
+		constexpr static const auto unique_terms = ctpg::terms(
+				let_keyword, 
+				equal, 
+				identifier, 
+				//open_parenthesis, 
+				//close_parenthesis, 
+				semi_colon
+			); 
 
 		constexpr static const auto terms = concatinate_tuples(
 				WholeMathematicalParserType::terms, // Using this to include NumericLiteral/all previous terms
@@ -176,14 +176,12 @@ namespace Warp::Parsing
 				FixedPointMathematicalParserType::unique_terms, 
 				CharacterMathematicalParserType::unique_terms, 
 				BoolMathematicalParserType::unique_terms, 
-				ctpg::terms(
-						let_keyword, 
-						equal, 
-						identifier, 
-						//open_parenthesis, 
-						//close_parenthesis, 
-						semi_colon
-					)
+				unique_terms
+			);
+
+		constexpr static const auto unique_non_terminal_terms = ctpg::nterms(
+				constant, 
+				context
 			);
 
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
@@ -193,10 +191,7 @@ namespace Warp::Parsing
 				FixedPointMathematicalParserType::unique_non_terminal_terms, 
 				CharacterMathematicalParserType::unique_non_terminal_terms, 
 				BoolMathematicalParserType::unique_non_terminal_terms, 
-				ctpg::terms(
-						constant, 
-						context
-					)
+				unique_non_terminal_terms
 			);
 
 		template<typename MathematicalExpressionGeneratorParameterType>

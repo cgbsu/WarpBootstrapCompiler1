@@ -22,7 +22,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		LiteralCharacter, 
 		LiteralFixed, 
 		LiteralBool, 
-		Expression
+		Expression, 
+		ConstantCall
 	};
 
 	template<NodeType> struct Node {};
@@ -44,6 +45,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	template<> struct Node<NodeType::LiteralBool>;
 
 	template<> struct Node<NodeType::Expression>;
+
+	template<> struct Node<NodeType::ConstantCall>;
 }
 namespace Warp::Utilities
 {
@@ -59,7 +62,8 @@ namespace Warp::Utilities
 			Node<NodeType::LiteralInteger>, 
 			Node<NodeType::LiteralCharacter>, 
 			Node<NodeType::LiteralFixed>, 
-			Node<NodeType::LiteralBool>
+			Node<NodeType::LiteralBool>, 
+			Node<NodeType::ConstantCall>
 		>;
 }
 
@@ -79,24 +83,11 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 			Node<NodeType::LiteralInteger>, 
 			Node<NodeType::LiteralCharacter>, 
 			Node<NodeType::LiteralFixed>, 
-			Node<NodeType::LiteralBool>
+			Node<NodeType::LiteralBool>, 
+			Node<NodeType::ConstantCall>
 		>;
 
 	using SyntaxNodeVariant = NotSoUniquePointer<InternalSyntaxNodeVariant>;
-
-
-	//extern void auto_variant_delete(Node<NodeType::LiteralWhole>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::LiteralInteger>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::LiteralCharacter>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::LiteralFixed>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::LiteralBool>* to_delete);
-
-	//extern void auto_variant_delete(Node<NodeType::Multiply>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::Divide>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::Add>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::Subtract>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::Negation>* to_delete);
-	//extern void auto_variant_delete(Node<NodeType::Expression>* to_delete);
 
 	extern void auto_variant_delete_literal_whole(void* to_delete);
 	extern void auto_variant_delete_literal_integer(void* to_delete);
@@ -110,6 +101,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	extern void auto_variant_delete_subtract(void* to_delete);
 	extern void auto_variant_delete_negation(void* to_delete);
 	extern void auto_variant_delete_expression(void* to_delete);
+
+	extern void auto_variant_delete_constant_call(void* to_delete);
 
 	template<NodeType NodeTypeParameterConstant>
 	struct FindDeleter {};
@@ -133,6 +126,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	DEFINE_FIND_DELETER(Subtract, subtract);
 	DEFINE_FIND_DELETER(Negation, negation);
 	DEFINE_FIND_DELETER(Expression, expression);
+
+	DEFINE_FIND_DELETER(ConstantCall, constant_call);
 
 	#undef DEFINE_FIND_DELETER
 

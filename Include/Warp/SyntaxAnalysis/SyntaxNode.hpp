@@ -13,6 +13,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::FixedPoint>::Type value);
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Character>::Type value);
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Bool>::Type value);
+
+	SyntaxNode constant_call(std::string name);
 }
 
 #endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__NODE__HPP
