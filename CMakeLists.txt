@@ -7,8 +7,8 @@ set(MAKE_EXPORT_COMPILE_COMMANDS ON)
 #set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 
-# -time -save-temps 
-add_compile_options(-fconstexpr-ops-limit=3355443299 -fconstexpr-depth=1024 -fconcepts-diagnostics-depth=2 -ftemplate-depth=10000)#-g  -ggdb) #-fsanitize=leak) #-fsanitize=address)
+# -time -save-temps -fconstexpr-depth=2048
+add_compile_options(-fconstexpr-ops-limit=3355443299 -fconstexpr-depth=2048 -fconcepts-diagnostics-depth=2 -ftemplate-depth=10000)# -Wfatal-errors)#-g  -ggdb) #-fsanitize=leak) #-fsanitize=address)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 

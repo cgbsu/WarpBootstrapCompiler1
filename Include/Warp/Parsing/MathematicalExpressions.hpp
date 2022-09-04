@@ -57,11 +57,14 @@ namespace Warp::Parsing
 					'-', 
 					ctpg::associativity::ltor
 				>
-		>::AddOnePriority< 
+		>::Prepend<
 			TreeTerm<
 					Identifier::Identifier, 
 					RegexTerm, 
-					FixedString{"[a-zA-Z_][a-zA-Z0-9_]+"}, 
+					FixedString{
+							//"(?!(u|xp|i|c|bl)[0-9]+)
+							"[a-zA-Z_][a-zA-Z_0-9]*"
+						}, 
 					FixedString{"Identifier"}, 
 					ctpg::associativity::no_assoc
 				>
@@ -431,11 +434,19 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					basic_term_operation_rules<
-							[](auto left, auto right) { return Sum{left, OperationHolder<NodeType::Add>{}, right}; }, 
+							[](auto left, auto right)
+							{
+								return Sum{
+										left, 
+										OperationHolder<NodeType::Add>{}, 
+										right
+									}; 
+							}, 
 							[](auto left, auto right) { return left + right; }
 						>(sum, add), 
 					basic_term_operation_rules<
-							[](auto left, auto right) { 
+							[](auto left, auto right)
+							{ 
 								return Sum{
 										left, 
 										OperationHolder<NodeType::Subtract>{}, 

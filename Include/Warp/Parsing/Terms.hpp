@@ -233,6 +233,19 @@ namespace Warp::Parsing
 		}
 
 		template<auto TagParameterConstant>
+		consteval static auto get_term_precedence()
+		{
+			if constexpr(auto result = get_term_with_tag<
+						std::is_void_v<PreviousType> == false, 
+						TagParameterConstant, 
+						TermParameterTypes...
+					>(); std::is_same<decltype(result), std::nullopt_t>::value == false)
+				return precedence;
+			else
+				return PreviousType::template get_term_precedence<TagParameterConstant>();
+		}
+
+		template<auto TagParameterConstant>
 		using TermType = decltype(get_term<TagParameterConstant>())::Type;
 
 		template<auto TagParameterConstant>

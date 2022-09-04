@@ -47,7 +47,7 @@ using IntegerExpressionType = IntegerParserType::Expression;
 using FixedExpressionType = FixedParserType::Expression;
 
 constexpr static const auto compare_value = [](auto left, auto right) {
-	return retrieve_value<typename NumericTagResolver<decltype(right)>::NumericType>(left.node) == right;
+	return retrieve_value<typename NumericTagResolver<decltype(right)>::NumericType>(left.node).value() == right;
 };
 
 template<auto TestParameterConstant>
@@ -85,7 +85,9 @@ void print_whole(bool debug = false)
 {
 	const auto result = parse_whole<TestParameterConstant>(debug);
 	std::cout << "\nWhole Result: " << TestParameterConstant.string 
-			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Whole>::Type>(result.value().node) << "\n\n";
+			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Whole>::Type>(
+					result.value().node
+				).value() << "\n\n";
 }
 
 template<auto TestParameterConstant>
@@ -93,7 +95,9 @@ void print_integer(bool debug = false)
 {
 	const auto result = parse_integer<TestParameterConstant>(debug);
 	std::cout << "\nInteger Result: " << TestParameterConstant.string 
-			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Integer>::Type>(result.value().node) << "\n\n";
+			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Integer>::Type>(
+					result.value().node
+				).value() << "\n\n";
 }
 
 template<auto TestParameterConstant>
@@ -101,7 +105,9 @@ void print_fixed(bool debug = false)
 {
 	const auto result = parse_fixed<TestParameterConstant>(debug);
 	std::cout << "\nFixed Result: " << TestParameterConstant.string 
-			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::FixedPoint>::Type>(result.value().node) << "\n\n";
+			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::FixedPoint>::Type>(
+					result.value().node
+				).value() << "\n\n";
 }
 
 
@@ -140,17 +146,17 @@ void math_check(bool value) {
 TEST_GROUP(MathematicalExpressions) {};
 
 bool compare_fixed(const SyntaxNode& left, FixedType right) {
-	return retrieve_value<FixedType>(left) == right;
+	return retrieve_value<FixedType>(left).value() == right;
 }
 
 TEST(MathematicalExpressions, InputAddition)
 {
-	bool debug = false;
+	bool debug = true;
 	whole_test<FixedString{"1u + 1u"}>(2u, debug);
-	whole_test<FixedString{"1 + 1"}>(2u, debug);
-	whole_test<FixedString{"5 + 3"}>(8u, debug);
-	whole_test<FixedString{"5u8 + 3u8"}>(8u, debug);
-	integer_test<FixedString{"9i8 + 3i5"}>(12u, debug);
+	//whole_test<FixedString{"1 + 1"}>(2u, debug);
+	//whole_test<FixedString{"5 + 3"}>(8u, debug);
+	//whole_test<FixedString{"5u8 + 3u8"}>(8u, debug);
+	//integer_test<FixedString{"9i8 + 3i5"}>(12u, debug);
 	integer_test<FixedString{"9i8 + 3i8 + 10i"}>(22, debug);
 	fixed_test<FixedString{"16.16xp + 16.16xp"}>(FixedType{32, 32}, debug);
 };

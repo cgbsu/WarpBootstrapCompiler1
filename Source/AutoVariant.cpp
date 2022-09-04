@@ -14,7 +14,8 @@ namespace Warp::Utilities
 			Node<NodeType::LiteralInteger>, 
 			Node<NodeType::LiteralCharacter>, 
 			Node<NodeType::LiteralFixed>, 
-			Node<NodeType::LiteralBool>
+			Node<NodeType::LiteralBool>, 
+			Node<NodeType::ConstantCall>
 		>;
 }
 
