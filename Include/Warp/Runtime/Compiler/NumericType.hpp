@@ -247,21 +247,34 @@ namespace Warp::Utilities
 		constexpr Zero(Type) noexcept {}
 	};
 
-    template<NumericTypeTag TermTagParameterConstant, typename ParameterType>
-	requires(TermTagParameterConstant != NumericTypeTag::Bool)
-    constexpr std::string to_string(NumericType<TermTagParameterConstant, ParameterType> to_stringify) {
-		return std::string{std::to_string(to_stringify.number)};
-	}
-
-    template<typename ParameterType>
-    constexpr std::string to_string(NumericType<NumericTypeTag::Bool, ParameterType> to_stringify)
+    constexpr std::string to_string(Warp::Runtime::Compiler::WarpBool to_stringify)
 	{
-		if(to_stringify.number == WarpBool::True)
+		if(to_stringify == WarpBool::True)
 			return std::string{"True"};
 		else
 			return std::string{"False"};
 	}
 
+	template<
+			NumericTypeTag ParameterTypeConstant, 
+			size_t WholePartBitsParameterConstant, 
+			size_t DecimalPartBitsParameterConstant
+		>
+	constexpr std::string to_string(numeric::fixed<
+					WholePartBitsParameterConstant, 
+					DecimalPartBitsParameterConstant
+				> fixed) {
+		return std::to_string(fixed.to_double());
+	}
+
+    template<typename ParameterType>
+    constexpr std::string to_string(NumericType<NumericTypeTag::FixedPoint, ParameterType> to_stringify) {
+		return std::to_string(to_stringify.number.to_double());
+	}
+    template<NumericTypeTag TermTagParameterConstant, typename ParameterType>
+    constexpr std::string to_string(NumericType<TermTagParameterConstant, ParameterType> to_stringify) {
+			return to_string(to_stringify.number);
+	}
 }
 
 #endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__NUMERIC__TYPE__HPP

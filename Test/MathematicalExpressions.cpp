@@ -1,3 +1,4 @@
+#include <Warp/Runtime/Compiler/NumericType.hpp>
 #include <Warp/Parsing/NumericLiterals.hpp>
 #include <Warp/Parsing/MathematicalExpressions.hpp>
 #include <Warp/Utilities.hpp>
@@ -151,12 +152,12 @@ bool compare_fixed(const SyntaxNode& left, FixedType right) {
 
 TEST(MathematicalExpressions, InputAddition)
 {
-	bool debug = true;
+	bool debug = false;
 	whole_test<FixedString{"1u + 1u"}>(2u, debug);
-	//whole_test<FixedString{"1 + 1"}>(2u, debug);
-	//whole_test<FixedString{"5 + 3"}>(8u, debug);
-	//whole_test<FixedString{"5u8 + 3u8"}>(8u, debug);
-	//integer_test<FixedString{"9i8 + 3i5"}>(12u, debug);
+	whole_test<FixedString{"1 + 1"}>(2u, debug);
+	whole_test<FixedString{"5 + 3"}>(8u, debug);
+	whole_test<FixedString{"5u8 + 3u8"}>(8u, debug);
+	integer_test<FixedString{"9i8 + 3i5"}>(12u, debug);
 	integer_test<FixedString{"9i8 + 3i8 + 10i"}>(22, debug);
 	fixed_test<FixedString{"16.16xp + 16.16xp"}>(FixedType{32, 32}, debug);
 };

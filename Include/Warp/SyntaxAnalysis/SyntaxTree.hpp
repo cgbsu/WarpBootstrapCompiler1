@@ -26,6 +26,52 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		ConstantCall
 	};
 
+	static std::string to_string(NodeType node_type)
+	{
+		using enum NodeType;
+		switch(node_type)
+		{
+			case Multiply: {
+				return "Multiply";
+			}
+			case Divide: {
+				return "Divide";
+			}
+			case Add: {
+				return "Add";
+			}
+			case Subtract: {
+				return "Subtract";
+			}
+			case Negation: {
+				return "Negation";
+			}
+			case LiteralWhole: {
+				return "LiteralWhole";
+			}
+			case LiteralInteger: {
+				return "LiteralInteger";
+			}
+			case LiteralCharacter: {
+				return "LiteralCharacter";
+			}
+			case LiteralFixed: {
+				return "LiteralFixed";
+			}
+			case LiteralBool: {
+				return "LiteralBool";
+			}
+			case Expression: {
+				return "Expression";
+			}
+			case ConstantCall: {
+				return "ConstantCa";
+			}
+			default: 
+				return "ERROR_NO_NODE_WITH_THIS_TAG!!!";
+		}
+	}
+	
 	template<NodeType> struct Node {};
 
 	struct BaseNode {

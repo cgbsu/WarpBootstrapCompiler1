@@ -57,19 +57,20 @@ namespace Warp::Parsing
 					'-', 
 					ctpg::associativity::ltor
 				>
-		>::Prepend<
-			TreeTerm<
-					Identifier::Identifier, 
-					RegexTerm, 
-					FixedString{
-							//"(?!(u|xp|i|c|bl)[0-9]+)
-							"([a-zA-Z_]{3}[a-zA-Z_0-9]*)"
-							"|([a-zA-Z_]{2})"
-							"|([a-zA-Z_]{1})"
-						}, 
-					FixedString{"Identifier"}, 
-					ctpg::associativity::no_assoc
-				>
+		//>::Prepend<
+		//	TreeTerm<
+		//			Identifier::Identifier, 
+		//			RegexTerm, 
+		//			FixedString{
+		//					"[a-zA-Z_][a-zA-Z_0-9]+"
+		//					//"(?!(u|xp|i|c|bl)[0-9]+)
+		//					//"([a-zA-Z_]{3})[a-zA-Z_0-9]*"
+		//					//"|([a-zA-Z_]{2})"
+		//					//"|([a-zA-Z_]{1})"
+		//				}, 
+		//			FixedString{"Identifier"}, 
+		//			ctpg::associativity::no_assoc
+		//		>
 		>::AddOnePriority<
 			TreeTerm<
 					Brackets::OpenParenthesis, 
@@ -309,7 +310,7 @@ namespace Warp::Parsing
 		constexpr static const auto close_parenthesis 
 				= term<Brackets::CloseParenthesis>;
 
-		constexpr static const auto identifier = term<Identifier::Identifier>;
+		//constexpr static const auto identifier = term<Identifier::Identifier>;
 
 		constexpr static const auto sum 
 				= term<TypeSpecificMathematicalExpressionTermTags::Sum>;
@@ -329,8 +330,8 @@ namespace Warp::Parsing
 				BaseType::terms, 
 				ctpg::terms(
 						open_parenthesis, 
-						close_parenthesis, 
-						identifier
+						close_parenthesis//, 
+						//identifier
 					), 
 				unique_terms
 			);

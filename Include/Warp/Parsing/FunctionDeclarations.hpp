@@ -40,7 +40,21 @@ namespace Warp::Parsing
 					';', 
 					ctpg::associativity::no_assoc
 				> 
-		>;
+		>::Prepend< 
+			TreeTerm<
+					Identifier::Identifier, 
+					RegexTerm, 
+					FixedString{
+							"[a-zA-Z_][a-zA-Z_0-9]+"
+							//"(?!(u|xp|i|c|bl)[0-9]+)
+							//"([a-zA-Z_]{3})[a-zA-Z_0-9]*"
+							//"|([a-zA-Z_]{2})"
+							//"|([a-zA-Z_]{1})"
+						}, 
+					FixedString{"Identifier"}, 
+					ctpg::associativity::no_assoc
+				>
+			>;
 
 	template<
 			typename TermsParameterType, 

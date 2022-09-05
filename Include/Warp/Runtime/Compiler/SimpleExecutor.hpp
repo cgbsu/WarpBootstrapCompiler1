@@ -14,18 +14,22 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	struct Executor {};
 
 	template<typename ReduceToParameterType>
-	static auto retrieve_value(const auto& context, const SyntaxNode& node) 
+	static auto retrieve_value(const auto& context, const SyntaxNode node) 
 			-> std::optional<ReduceToParameterType>
 	{
+		const auto* pointer = node.data.get_pointer();
+		std::cout << "Got pointer, is null?: " << (pointer == nullptr) << "\n";
 		return visit<
 				[](auto node, const auto& context)
 				{ 
+					constexpr const auto tag = CleanType<decltype(node)>::tag;
+					std::cout << "Tag: " << to_string(tag) << "\n";
 					return Executor<
 							ReduceToParameterType, 
-							CleanType<decltype(node)>::tag
+							tag
 						>(context, *node).to_value(); 
 				}
-			>(*node.data.get_pointer(), context);
+			>(*pointer, context);
 	}
 
 	template<typename ReduceToParameterType>
@@ -50,25 +54,38 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 
 	#define LITERAL_NODE(LITERAL_TAG) \
 			template<typename ReduceToParameterType> \
-			struct Executor<ReduceToParameterType, NodeType:: LITERAL_TAG > \
+			struct Executor<ReduceToParameterType, NodeType :: LITERAL_TAG > \
 			{ \
+				constexpr static const auto tag = NodeType :: LITERAL_TAG ; \
 				using ReduceToType = ReduceToParameterType; \
 				using NumericType = Node<NodeType:: LITERAL_TAG >::NumericType; \
 				NumericType value; \
-				Executor(const Node<NodeType:: LITERAL_TAG >& node) : value(node.value) {} \
-				Executor(const auto& context, const Node<NodeType:: LITERAL_TAG >& node) : value(node.value) {} \
+				Executor(const Node<NodeType:: LITERAL_TAG >& node) : value(node.value) { std::cout << "NO CONTEXT CONSTRUCTOR\n"; } \
+				Executor(const auto& context, const Node<NodeType:: LITERAL_TAG >& node) : value(node.value) {std::cout << "Executing constructor.\n";} \
 				std::optional<ReduceToType> to_value() \
 				{ \
 					if constexpr(std::is_same_v<ReduceToType, NumericType> == true) \
+					{ \
+						std::cout << "Same value confirmed value: "; \
+						if constexpr(tag == NodeType::LiteralFixed || tag == NodeType::LiteralBool) \
+							std::cout << "FixedOrBool\n"; \
+						else { \
+							if constexpr(std::is_same_v<CleanType<decltype(value.number)>, WarpBool> == false) \
+								std::cout << to_string(value.number) << "\n"; \
+						} \
 						return value; \
-					else \
-						return decltype(Zero{std::declval<ReduceToType>()})::zero; \
+					} \
+					else {\
+						std::cout << "Not the same confirmed\n"; \
+						return std::nullopt; \
+					} \
 				} \
 				operator std::optional<ReduceToType>() { \
 					return to_value(); \
 				} \
 			}
 	
+						//return decltype(Zero{std::declval<ReduceToType>()})::zero;
 	LITERAL_NODE(LiteralWhole);
 	LITERAL_NODE(LiteralInteger);
 	LITERAL_NODE(LiteralCharacter);
@@ -89,10 +106,20 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 										OPERATOR retrieve_value<ReduceToParameterType>(node.right).value() \
 							) {} \
 				Executor(const auto& context, const Node<NodeType:: NODE_TYPE >& node) \
-						: value( \
-								retrieve_value<ReduceToParameterType>(context, node.left).value() \
-										OPERATOR retrieve_value<ReduceToParameterType>(context, node.right).value() \
-							) {} \
+				{ \
+					std::cout << "Retrieveing left...\n"; \
+					const auto left = retrieve_value<ReduceToParameterType>(context, node.left); \
+					std::cout << "Left success getting value...\n"; \
+					const auto left_ = left.value(); \
+					std::cout << "Success getting left value.\n"; \
+					std::cout << "Retrieveing right...\n"; \
+					const auto right = retrieve_value<ReduceToParameterType>(context, node.right); \
+					std::cout << "Right success getting value...\n"; \
+					const auto right_ = right.value(); \
+					std::cout << "Success getting rigt value.\n"; \
+					value = left_ OPERATOR right_; \
+					std::cout << "Value computed...\n"; \
+				} \
 				std::optional<ReduceToType> to_value() { \
 					return value; \
 				} \
@@ -101,6 +128,12 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				} \
 			}
 
+				//Executor(const auto& context, const Node<NodeType:: NODE_TYPE >& node) \
+				//		: value( \
+				//				retrieve_value<ReduceToParameterType>(context, &node.left).value() \
+				//						OPERATOR retrieve_value<ReduceToParameterType>(context, &node.right).value() \
+				//			) {} \
+				//			
 	BINARY_OPERATOR(Multiply, *);
 	BINARY_OPERATOR(Divide, /);
 	BINARY_OPERATOR(Add, +);
