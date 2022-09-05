@@ -10,6 +10,7 @@
 #include <Warp/Utilities/TemplateUtilities.hpp>
 #include <Warp/Utilities/NotSoUniquePointer.hpp>
 #include <Warp/Utilities/AutoVariant.hpp>
+#include <Warp/Utilities/VariantView.hpp>
 
 #ifndef WARP__UTILITIES__HEADER__HPP
 #define WARP__UTILITIES__HEADER__HPP

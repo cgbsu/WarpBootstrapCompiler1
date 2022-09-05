@@ -31,50 +31,69 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		using enum NodeType;
 		switch(node_type)
 		{
-			case Multiply: {
-				return "Multiply";
+			case Multiply : {
+				return "NodeType::Multiply";
 			}
-			case Divide: {
-				return "Divide";
+			case Divide : {
+				return "NodeType::Divide";
 			}
-			case Add: {
-				return "Add";
+			case Add : {
+				return "NodeType::Add";
 			}
-			case Subtract: {
-				return "Subtract";
+			case Subtract : {
+				return "NodeType::Subtract";
 			}
-			case Negation: {
-				return "Negation";
+			case Negation : {
+				return "NodeType::Negation";
 			}
-			case LiteralWhole: {
-				return "LiteralWhole";
+			case LiteralWhole : {
+				return "NodeType::LiteralWhole";
 			}
-			case LiteralInteger: {
-				return "LiteralInteger";
+			case LiteralInteger : {
+				return "NodeType::LiteralInteger";
 			}
-			case LiteralCharacter: {
-				return "LiteralCharacter";
+			case LiteralCharacter : {
+				return "NodeType::LiteralCharacter";
 			}
-			case LiteralFixed: {
-				return "LiteralFixed";
+			case LiteralFixed : {
+				return "NodeType::LiteralFixed";
 			}
-			case LiteralBool: {
-				return "LiteralBool";
+			case LiteralBool : {
+				return "NodeType::LiteralBool";
 			}
-			case Expression: {
-				return "Expression";
+			case Expression : {
+				return "NodeType::Expression";
 			}
-			case ConstantCall: {
-				return "ConstantCa";
+			case ConstantCall : {
+				return "NodeType::ConstantCa";
 			}
-			default: 
+			default : {
 				return "ERROR_NO_NODE_WITH_THIS_TAG!!!";
+			}
 		}
 	}
 	
 	template<NodeType> struct Node {};
 
-	struct BaseNode {
+	struct BaseNode
+	{
+		using ViewType = VariantView<
+				BaseNode, 
+				Node, 
+				NodeType::Multiply, 
+				NodeType::Divide, 
+				NodeType::Add, 
+				NodeType::Subtract, 
+				NodeType::Negation, 
+				NodeType::LiteralWhole, 
+				NodeType::LiteralInteger, 
+				NodeType::LiteralCharacter, 
+				NodeType::LiteralFixed, 
+				NodeType::LiteralBool, 
+				NodeType::Expression, 
+				NodeType::ConstantCall
+			>;
+		constexpr virtual ViewType to_view() const noexcept = 0;
 		constexpr virtual NodeType get_tag() const noexcept = 0;
 	};
 

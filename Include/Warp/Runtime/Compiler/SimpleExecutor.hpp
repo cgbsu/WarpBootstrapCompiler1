@@ -14,12 +14,11 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	struct Executor {};
 
 	template<typename ReduceToParameterType>
-	static auto retrieve_value(const auto& context, const SyntaxNode node) 
+	static auto retrieve_value(const auto& context, const BaseNode* node) 
 			-> std::optional<ReduceToParameterType>
 	{
-		const auto* pointer = node.data.get_pointer();
-		std::cout << "Got pointer, is null?: " << (pointer == nullptr) << "\n";
 		return visit<
+				ReduceToParameterType, 
 				[](auto node, const auto& context)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
@@ -29,11 +28,11 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 							tag
 						>(context, *node).to_value(); 
 				}
-			>(*pointer, context);
+			>(node->to_view(), context);
 	}
 
 	template<typename ReduceToParameterType>
-	static auto retrieve_value(const SyntaxNode& node) -> std::optional<ReduceToParameterType>
+	static auto retrieve_value(const BaseNode* node) -> std::optional<ReduceToParameterType>
 	{
 		return visit<
 				[](auto node)
@@ -49,7 +48,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 					else
 						return std::nullopt;
 				}
-			>(*node.data.get_pointer());
+			>(node->to_view);
 	}
 
 	#define LITERAL_NODE(LITERAL_TAG) \
@@ -60,25 +59,14 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				using ReduceToType = ReduceToParameterType; \
 				using NumericType = Node<NodeType:: LITERAL_TAG >::NumericType; \
 				NumericType value; \
-				Executor(const Node<NodeType:: LITERAL_TAG >& node) : value(node.value) { std::cout << "NO CONTEXT CONSTRUCTOR\n"; } \
-				Executor(const auto& context, const Node<NodeType:: LITERAL_TAG >& node) : value(node.value) {std::cout << "Executing constructor.\n";} \
+				Executor(const Node<NodeType :: LITERAL_TAG>* node) : value(node.value) { \
+				Executor(const auto& context, const Node<NodeType :: LITERAL_TAG>* node) : value(node->value) { \
 				std::optional<ReduceToType> to_value() \
 				{ \
 					if constexpr(std::is_same_v<ReduceToType, NumericType> == true) \
-					{ \
-						std::cout << "Same value confirmed value: "; \
-						if constexpr(tag == NodeType::LiteralFixed || tag == NodeType::LiteralBool) \
-							std::cout << "FixedOrBool\n"; \
-						else { \
-							if constexpr(std::is_same_v<CleanType<decltype(value.number)>, WarpBool> == false) \
-								std::cout << to_string(value.number) << "\n"; \
-						} \
 						return value; \
-					} \
-					else {\
-						std::cout << "Not the same confirmed\n"; \
+					else \
 						return std::nullopt; \
-					} \
 				} \
 				operator std::optional<ReduceToType>() { \
 					return to_value(); \
@@ -99,27 +87,23 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 			struct Executor<ReduceToParameterType, NodeType:: NODE_TYPE > \
 			{ \
 				using ReduceToType = ReduceToParameterType; \
-				std::optional<ReduceToType> value; \
+				std::optional<ReduceToType> left_value, right_value, value; \
 				Executor(const Node<NodeType:: NODE_TYPE >& node) \
-						: value( \
-								retrieve_value<ReduceToParameterType>(node.left).value() \
-										OPERATOR retrieve_value<ReduceToParameterType>(node.right).value() \
+						: left_value(retrieve_value<ReduceToParameterType>(node.left)), \
+						right_value(retrieve_value<ReduceToParameterType>(node.right)), \
+						value( \
+								(left_value.has_value() == true && right_value.has_value() == true) \
+								? left_value.value() * right_value.value() \
+								: std::nullopt \
 							) {} \
 				Executor(const auto& context, const Node<NodeType:: NODE_TYPE >& node) \
-				{ \
-					std::cout << "Retrieveing left...\n"; \
-					const auto left = retrieve_value<ReduceToParameterType>(context, node.left); \
-					std::cout << "Left success getting value...\n"; \
-					const auto left_ = left.value(); \
-					std::cout << "Success getting left value.\n"; \
-					std::cout << "Retrieveing right...\n"; \
-					const auto right = retrieve_value<ReduceToParameterType>(context, node.right); \
-					std::cout << "Right success getting value...\n"; \
-					const auto right_ = right.value(); \
-					std::cout << "Success getting rigt value.\n"; \
-					value = left_ OPERATOR right_; \
-					std::cout << "Value computed...\n"; \
-				} \
+						: left_value(retrieve_value<ReduceToParameterType>(context, node.left.get())), \
+						right_value(retrieve_value<ReduceToParameterType>(context, node.right.get())), \
+						value( \
+								(left_value.has_value() == true && right_value.has_value() == true) \
+								? left_value.value() * right_value.value() \
+								: std::nullopt \
+							) {} \
 				std::optional<ReduceToType> to_value() { \
 					return value; \
 				} \
@@ -146,10 +130,10 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	{
 		using ReduceToType = ReduceToParameterType;
 		std::optional<ReduceToType> value;
-		Executor(const Node<NodeType::Negation>& node) 
-				: value(-retrieve_value<ReduceToType>(node.negated).value()) {}
-		Executor(const auto& context, const Node<NodeType::Negation>& node) 
-				: value(-retrieve_value<ReduceToType>(context, node.negated).value()) {}
+		Executor(const Node<NodeType::Negation>* node) 
+				: value(-retrieve_value<ReduceToType>(node.negated.get()).to_value()) {}
+		Executor(const auto& context, const Node<NodeType::Negation>* node) 
+				: value(-retrieve_value<ReduceToType>(context, node.negated.get()).to_value()) {}
 		std::optional<ReduceToType> to_value() {
 			return value;
 		}
@@ -163,10 +147,10 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	{
 		using ReduceToType = ReduceToParameterType;
 		std::optional<ReduceToType> value;
-		Executor(const Node<NodeType::Expression>& node) 
-				: value(retrieve_value<ReduceToType>(node.root)) {}
-		Executor(const auto& context, const Node<NodeType::Expression>& node) 
-				: value(retrieve_value<ReduceToType>(context, node.root)) {}
+		Executor(const Node<NodeType::Expression>* node) 
+				: value(retrieve_value<ReduceToType>(node.root.get())) {}
+		Executor(const auto& context, const Node<NodeType::Expression>* node) 
+				: value(retrieve_value<ReduceToType>(context, node.root.get())) {}
 		std::optional<ReduceToType> to_value() {
 			return value;
 		}
@@ -180,9 +164,9 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	{
 		using ReduceToType = ReduceToParameterType;
 		std::optional<ReduceToType> value;
-		Executor(const Node<NodeType::ConstantCall>& node) = delete;
-		Executor(const auto& context, const Node<NodeType::ConstantCall>& node) 
-				: value(retrieve_value<ReduceToType>(context, context.constants.at(node.name).value)) {}
+		Executor(const Node<NodeType::ConstantCall>* node) = delete;
+		Executor(const auto& context, const Node<NodeType::ConstantCall>* node) 
+				: value(retrieve_value<ReduceToType>(context, context.constants.at(node.name).value.get())) {}
 		std::optional<ReduceToType> to_value() {
 			return value;
 		}

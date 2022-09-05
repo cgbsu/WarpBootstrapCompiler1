@@ -18,6 +18,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				constexpr Node& operator=(const Node& other) noexcept = default; \
 				Node& operator=(Node&& other) noexcept = default; \
 				explicit Node(SyntaxNode left, SyntaxNode right) noexcept : left(std::move(left)), right(std::move(right)) {} \
+				constexpr virtual BaseNode::ViewType to_view() const noexcept final { \
+					return BaseNode::ViewType(this); \
+				} \
 				constexpr virtual NodeType get_tag() const noexcept final { \
 					return tag; \
 				} \
@@ -43,6 +46,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		Node(SyntaxNode negated) noexcept : negated(std::move(negated)) {} \
 		Node& operator=(const Node& other) noexcept = default; \
 		Node& operator=(Node&& other) noexcept = default; \
+		constexpr virtual BaseNode::ViewType to_view() const noexcept final { \
+			return BaseNode::ViewType{this}; \
+		} \
 		constexpr virtual NodeType get_tag() const noexcept final {
 			return tag;
 		}
@@ -62,6 +68,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		Node(SyntaxNode root) noexcept : root(std::move(root)) {} \
 		Node& operator=(const Node& other) noexcept = default; \
 		Node& operator=(Node&& other) noexcept = default; \
+		constexpr virtual BaseNode::ViewType to_view() const noexcept final {
+			return BaseNode::ViewType{this};
+		}
 		constexpr virtual NodeType get_tag() const noexcept final {
 			return tag;
 		}

@@ -13,7 +13,7 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 			struct Node<NodeType:: NODE_TYPE > : public BaseNode \
 			{ \
 				constexpr static const auto tag = NodeType:: NODE_TYPE ; \
-				using NumericType =	typename NumericTypeResolver<NumericTypeTag:: SEARCH_TYPE >::Type; \
+				using NumericType =	typename NumericTypeResolver<NumericTypeTag :: SEARCH_TYPE>::Type; \
 				NumericType value; \
 				constexpr Node() noexcept = default; \
 				constexpr Node(const Node& other) noexcept = default; \
@@ -21,6 +21,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				constexpr Node& operator=(const Node& other) noexcept = default; \
 				Node& operator=(Node&& other) noexcept = default; \
 				constexpr Node(NumericType value) noexcept : value(value) {} \
+				constexpr virtual BaseNode::ViewType to_view() const noexcept final { \
+					return BaseNode::ViewType{this}; \
+				} \
 				constexpr virtual NodeType get_tag() const noexcept { \
 					return tag; \
 				} \

@@ -16,6 +16,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		constexpr Node& operator=(const Node& other) noexcept = default;
 		Node& operator=(Node&& other) noexcept = default;
 		constexpr Node(std::string name) noexcept : name(name) {}
+		constexpr virtual BaseNode::ViewType to_view() const noexcept final {
+			return BaseNode::ViewType{this};
+		}
 		constexpr virtual NodeType get_tag() const noexcept final {
 			return tag;
 		}

@@ -12,24 +12,51 @@ namespace Warp::Utilities
 	    >
 	struct VariantView
 	{
+		template<
+				auto CurrentIndexParameterConstant, 
+				auto TagParameterConstant, 
+				auto CurrentCanidateParameterConstant, 
+				auto... CanidateParamterConstants
+			>
+		constexpr static const size_t get_tag_index()
+		{
+			if constexpr(TagParameterConstant == CurrentCanidateParameterConstant)
+				return CurrentIndexParameterConstant;
+			else
+			{
+				return get_tag_index<
+						CurrentIndexParameterConstant + 1, 
+						TagParameterConstant, 
+						CanidateParamterConstants... 
+					>();
+			}
+		}
+		
+		template<auto TagParameterConstant>
+		constexpr static const size_t tag_index 
+				= get_tag_index<0, TagParameterConstant, AlternativeTagParameterConstants...>();
+
 		using BaseType = BaseParameterType;
-	    template<auto Tag>
-	    using ChildType = ChildParameterTemplate<Tag>;
-	    template<auto Tag>
-	    explicit VariantView(ChildParameterTemplate<Tag>* alternative) : alternative(alternative) {}
-	    std::any get_alternative_tag() const {
-	        return alternative_tag;
-	    }
-	    size_t get_alternative_index() const {
+
+	    template<auto TagParameterConstant>
+	    using ChildType = ChildParameterTemplate<TagParameterConstant>;
+
+	    template<auto TagParameterConstant>
+	    constexpr explicit VariantView(const ChildParameterTemplate<TagParameterConstant>* alternative) 
+			: alternative_index(tag_index<TagParameterConstant>), 
+			alternative(alternative) {}
+
+	    constexpr size_t get_alternative_index() const {
 	        return alternative_index;
 	    }
-	    const BaseType* const get_alternative() const {
+
+	    constexpr const BaseType* get_alternative() const {
 	        return alternative;
 	    }
+					
 	    protected: 
-	        std::any alternative_tag;
 	        size_t alternative_index;
-	        BaseType* alternative;
+	        const BaseType* alternative;
 	};
 	
 	template<
