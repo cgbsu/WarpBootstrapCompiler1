@@ -142,8 +142,11 @@ namespace Warp::Parsing
 		struct Term
 		{
 			SyntaxNode node;
-			constexpr Term(SyntaxNode&& node) noexcept : node(node) {}
-			constexpr Term(SyntaxNode& node) noexcept : node(node) {}
+			//constexpr Term(SyntaxNode&& node) noexcept : node(std::move(node)) {}
+			constexpr Term(SyntaxNode node) noexcept : node(std::move(node)) {}
+			//template<NodeType NodeTypeParameterConstant>
+			//constexpr Term(Node<NodeTypeParameterConstant> node) noexcept 
+			//		: node(std::make_unique<Node<NodeTypeParameterConstant>>(node)) {}
 			constexpr Term(InputType value) noexcept : node(literal_node(value)) {}
 			constexpr Term() noexcept = default;
 			constexpr Term(const Term& other) noexcept = default;
@@ -154,42 +157,43 @@ namespace Warp::Parsing
 
 			constexpr Term operator*(const InputType& other) const noexcept
 			{
-				return Term(Node<NodeType::Multiply>{
-						SyntaxNode{node}, 
+				BaseNode* node_ = node.get();
+				return Term(std::make_unique<Node<NodeType::Multiply>>(
+						node_, 
 						literal_node(other)
-					});
+					));
 				//return Term{value * absolute_value(other), is_negated(other)};
 			}
 			constexpr Term operator/(const InputType& other) const noexcept
 			{
-				return Term{Node<NodeType::Divide>{
-						SyntaxNode{node}, 
+				return Term(std::make_unique<Node<NodeType::Divide>>(
+						node, 
 						literal_node(other)
-					}};
+					));
 				//return Term{value / absolute_value(other), is_negated(other)};
 			}
 			constexpr Term operator*(const Term& other) const noexcept
 			{
-				return Term{Node<NodeType::Multiply>{
-						node, 
-						other.node
-					}};
+				return Term(std::make_unique<Node<NodeType::Multiply>>(
+						std::move(node), 
+						std::move(other.node)
+					));
 				//return Term{value * other.value, is_negated(other)};
 			}
 			constexpr Term operator/(const Term& other) const noexcept
 			{
-				return Term{Node<NodeType::Divide>{
-						node, 
-						other.node
-					}};
+				return Term(std::make_unique<Node<NodeType::Divide>>(
+						std::move(node), 
+						std::move(other.node)
+					));
 				//return Term{value / other.value, is_negated(other)};
 			}
 			constexpr Term operator-() const noexcept {
-				return Term{Node<NodeType::Negation>{node}};
+				return Term(std::make_unique<Node<NodeType::Negation>>(node));
 				//return Term{value, !negated};
 			}
 			constexpr Term as_negated() const noexcept {
-				return Term{Node<NodeType::Negation>{node}};
+				return Term(std::make_unique<Node<NodeType::Negation>>(node));
 				//return Term{value, !negated};
 			}
 		};
@@ -200,27 +204,30 @@ namespace Warp::Parsing
 		struct Sum
 		{
 			SyntaxNode node;
-			constexpr Sum(SyntaxNode node) noexcept : node(node) {}
+			constexpr Sum(SyntaxNode&& node) noexcept : node(std::move(node)) {}
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
 				: node(Node<OperateParameterConstant>{
-						literal_node(left), 
-						literal_node(right)
+						std::move(literal_node(left)), 
+						std::move(literal_node(right))
 					}) {}
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, Term right) noexcept 
 				: node(Node<OperateParameterConstant>{
-						literal_node(left), 
-						right.node
+						std::move(literal_node(left)), 
+						std::move(right.node)
 					}) {}
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(Term left, OperationHolder<OperateParameterConstant>, Term right) noexcept 
-				: node(Node<OperateParameterConstant>{left.node, right.node}) {}
+				: node(Node<OperateParameterConstant>{
+						std::move(left.node), 
+			   			std::move(right.node)
+					}) {}
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(Term left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
 				: node(Node<OperateParameterConstant>{
-						left.node, 
-						literal_node(right)
+						std::move(left.node), 
+						std::move(literal_node(right))
 					}) {}
 			constexpr Sum() noexcept = default;
 			constexpr Sum(const Sum& other) noexcept = default;
@@ -231,31 +238,31 @@ namespace Warp::Parsing
 
 			constexpr Sum operator+(const InputType& other) const noexcept
 			{
-				return Sum{Node<NodeType::Add>{
-						SyntaxNode{node}, 
-						literal_node(other)
-					}};
+				return Sum(std::make_unique<Node<NodeType::Add>>(
+						std::move(node), 
+						std::move(literal_node(other))
+					));
 			}
 			constexpr Sum operator-(const InputType& other) const noexcept
 			{
-				return Sum{Node<NodeType::Subtract>{
-						SyntaxNode{node}, 
-						literal_node(other)
-					}};
+				return Sum(std::make_unique<Node<NodeType::Subtract>>(
+						std::move(node), 
+						std::move(literal_node(other))
+					));
 			}
 			constexpr Sum operator+(const Term& other) const noexcept
 			{
-				return Sum{Node<NodeType::Add>{
-						SyntaxNode{node}, 
-						other.node
-					}};
+				return Sum(std::make_unique<Node<NodeType::Add>>(
+						std::move(node), 
+						std::move(other.node)
+					));
 			}
 			constexpr Sum operator-(const Term& other) const noexcept
 			{
-				return Sum{Node<NodeType::Subtract>{
-						SyntaxNode{node}, 
-						other.node
-					}};
+				return Sum(std::make_unique<Node<NodeType::Subtract>>(
+						std::move(node), 
+						std::move(other.node)
+					));
 			}
 		};
 
@@ -310,8 +317,6 @@ namespace Warp::Parsing
 		constexpr static const auto close_parenthesis 
 				= term<Brackets::CloseParenthesis>;
 
-		//constexpr static const auto identifier = term<Identifier::Identifier>;
-
 		constexpr static const auto sum 
 				= term<TypeSpecificMathematicalExpressionTermTags::Sum>;
 		constexpr static const auto math_term
@@ -324,69 +329,46 @@ namespace Warp::Parsing
 					subtract, 
 					multiply, 
 					divide
-				);
-
-		constexpr static const auto terms = std::tuple_cat(
+			); 
+		constexpr static const auto terms = std::tuple_cat( 
 				BaseType::terms, 
-				ctpg::terms(
+				ctpg::terms( 
 						open_parenthesis, 
-						close_parenthesis//, 
-						//identifier
+						close_parenthesis
 					), 
 				unique_terms
-			);
-
-		constexpr static const auto unique_non_terminal_terms = ctpg::nterms(
+			); 
+		constexpr static const auto unique_non_terminal_terms = ctpg::nterms( 
 				sum, 
 				math_term, 
 				expression
-			);
-
+			); 
 		constexpr static const auto non_terminal_terms = std::tuple_cat(
 				BaseType::non_terminal_terms, 
 				unique_non_terminal_terms
-			);
-
-		template<auto OperateParameterConstant>
-		consteval static const auto term_operation_reduction(
-				auto operation_term, 
-				auto operator_term
-			)
+			); 
+		template<auto OperateParameterConstant> 
+		consteval static const auto term_operation_reduction(auto operation_term, auto operator_term) {
+				return ctpg::rules(
+						operation_term(math_term, operator_term, math_term) 
+						>= [](auto left, auto, auto right) {
+							return OperateParameterConstant(left, right);
+						}
+					);
+			}
+		template< auto OperateParameterConstant, auto ProductOperateParameterConstant >
+		consteval static const auto basic_term_operation_rules(auto operation_term, auto operator_term)
 		{
-			return ctpg::rules(
-					operation_term(math_term, operator_term, math_term) 
-					>= [](auto left, auto, auto right) {
-						return OperateParameterConstant(left, right);
-					}
-				);
+				return concatinate_tuples(
+						term_operation_reduction<OperateParameterConstant>(operation_term, operator_term), 
+						ctpg::rules(
+								operation_term(operation_term, operator_term, math_term) 
+								>= [](auto left, auto, auto right) {
+									return ProductOperateParameterConstant(left, right);
+								}));
 		}
-
-		template<
-				auto OperateParameterConstant, 
-				auto ProductOperateParameterConstant
-			>
-		consteval static const auto basic_term_operation_rules(
-				auto operation_term, 
-				auto operator_term
-			)
-		{
-			return concatinate_tuples(
-					term_operation_reduction<OperateParameterConstant>(operation_term, operator_term), 
-					ctpg::rules(
-							operation_term(operation_term, operator_term, math_term) 
-							>= [](auto left, auto, auto right) {
-								return ProductOperateParameterConstant(left, right);
-							}
-						)
-				);
-		}
-
 		template<auto OperateParameterConstant>
-		consteval static const auto input_operation_rules(
-				auto operation_term, 
-				auto operator_term
-			)
-		{
+		consteval static const auto input_operation_rules(auto operation_term, auto operator_term) {
 			return ctpg::rules(
 					operation_term(operation_term, operator_term, input)
 					>= [](auto left, auto, auto right) {
@@ -394,43 +376,30 @@ namespace Warp::Parsing
 					}
 				);
 		}
-
 		consteval static const auto from_parenthesis()
 		{
 			return ctpg::rules(
 					math_term(open_parenthesis, math_term, close_parenthesis)
-					>= [](auto left, auto term, auto right) {
-						return term;
-					}, 
-					math_term(open_parenthesis, sum, close_parenthesis) 
-					>= [](auto left, auto sum, auto right) {
-						return Term{sum.node};
-					}
+					>= [](auto left, auto term, auto right) { return term; },
+					math_term(open_parenthesis, sum, close_parenthesis)
+					>= [](auto left, auto sum, auto right) { return Term{sum.node}; }
 				);
 		}
-
-		constexpr static const auto input_to_math_term
-				= math_term(input)
-				>= [](auto input_) {
-					return Term{input_};
-				}; 
-
-		constexpr static const auto negated_input_to_math_term
-				= math_term(subtract, input)
-				>= [](auto, auto input_) {
-					return Term{input_}.as_negated();//Node<NodeType::Negation>(literal_node(input_))};
-				}; 
+		constexpr static const auto input_to_math_term 
+				= math_term(input) >= [](auto input_) { return Term{input_}; };
+		constexpr static const auto negated_input_to_math_term 
+				= math_term(subtract, input) >= [](auto, auto input_) { return Term{input_}.as_negated(); }; 
 
 		constexpr static const auto sum_to_expression
 				= expression(sum)
 				>= [](auto sum_) {
-					return Expression{sum_.node};
+					return Expression{std::move(sum_.node)};
 				}; 
 		
 		constexpr static const auto math_term_to_expression
 				= expression(math_term)
 				>= [](auto math_term_) {
-					return Expression{math_term_.node};
+					return Expression{std::move(math_term_.node)};
 				}; 
 
 		consteval static const auto unique_rules()
