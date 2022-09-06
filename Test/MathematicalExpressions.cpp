@@ -47,38 +47,56 @@ using WholeExpressionType = WholeParserType::Expression;
 using IntegerExpressionType = IntegerParserType::Expression;
 using FixedExpressionType = FixedParserType::Expression;
 
-constexpr static const auto compare_value = [](const auto& left, const auto& right) {
-	return retrieve_value<typename NumericTagResolver<CleanType<decltype(right)>>::NumericType>(left.node.get()).value() == right;
+constexpr static const auto compare_value = [](const auto& left, const auto& right)
+{
+	const auto actual = retrieve_value<
+			typename NumericTagResolver<CleanType<decltype(right)>>::NumericType
+		>(true, left.node.get()).value();
+	bool result = (actual == right);
+	if(result == false) {
+		std::cout << "Comparision failure! With Actual: " << result 
+				<< " vs. Expected: " << right << "\n";
+	}
+	return result;
 };
 
 template<auto TestParameterConstant>
 auto parse_whole(bool debug = false)
 {
-	return runtime_parse<
+	auto result = runtime_parse<
 				WholeParserType, 
 				TestParameterConstant, 	
 				WholeParserType::TypeSpecificMathematicalExpressionTermTags::Expression
 			>(debug);
+	if(result.has_value() == false)
+		std::cout << "Failed to parse Whole with: " << TestParameterConstant.string << "\n";
+	return result;
 }
 
 template<auto TestParameterConstant>
 auto parse_integer(bool debug = false)
 {
-	return runtime_parse<
+	auto result = runtime_parse<
 				IntegerParserType, 
 				TestParameterConstant, 	
 				IntegerParserType::TypeSpecificMathematicalExpressionTermTags::Expression
 			>(debug);
+	if(result.has_value() == false)
+		std::cout << "Failed to parse Integer with: " << TestParameterConstant.string << "\n";
+	return result;
 }
 
 template<auto TestParameterConstant>
 auto parse_fixed(bool debug = false)
 {
-	return runtime_parse<
+	auto result = runtime_parse<
 			FixedParserType, 
 			TestParameterConstant, 	
 			FixedParserType::TypeSpecificMathematicalExpressionTermTags::Expression
 		>(debug);
+	if(result.has_value() == false)
+		std::cout << "Failed to parse FixedPoint with: " << TestParameterConstant.string << "\n";
+	return result;
 }
 
 template<auto TestParameterConstant>
@@ -87,7 +105,7 @@ void print_whole(bool debug = false)
 	const auto result = parse_whole<TestParameterConstant>(debug);
 	std::cout << "\nWhole Result: " << TestParameterConstant.string 
 			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Whole>::Type>(
-					result.value().node
+					true, result.value().node.get()
 				).value() << "\n\n";
 }
 
@@ -97,7 +115,7 @@ void print_integer(bool debug = false)
 	const auto result = parse_integer<TestParameterConstant>(debug);
 	std::cout << "\nInteger Result: " << TestParameterConstant.string 
 			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Integer>::Type>(
-					result.value().node
+					true, result.value().node
 				).value() << "\n\n";
 }
 
@@ -107,7 +125,7 @@ void print_fixed(bool debug = false)
 	const auto result = parse_fixed<TestParameterConstant>(debug);
 	std::cout << "\nFixed Result: " << TestParameterConstant.string 
 			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::FixedPoint>::Type>(
-					result.value().node
+					true, result.value().node
 				).value() << "\n\n";
 }
 
@@ -147,12 +165,13 @@ void math_check(bool value) {
 TEST_GROUP(MathematicalExpressions) {};
 
 bool compare_fixed(const SyntaxNode& left, FixedType right) {
-	return retrieve_value<FixedType>(left.get()).value() == right;
+	return retrieve_value<FixedType>(true, left.get()).value() == right;
 }
 
 TEST(MathematicalExpressions, InputAddition)
 {
-	bool debug = false;
+	bool debug = true;
+	print_whole<FixedString{"1u + 1u"}>(debug);
 	whole_test<FixedString{"1u + 1u"}>(2u, debug);
 	whole_test<FixedString{"1 + 1"}>(2u, debug);
 	whole_test<FixedString{"5 + 3"}>(8u, debug);

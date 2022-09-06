@@ -14,21 +14,22 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	struct Executor {};
 
 	template<typename ReduceToParameterType>
-	static auto retrieve_value(const auto& context, const BaseNode* node) 
+	static auto retrieve_value(const auto& context, const BaseNode* node, bool debug) 
 			-> std::optional<ReduceToParameterType>
 	{
 		return visit<
 				ReduceToParameterType, 
-				[](auto node, const auto& context)
+				[](auto node, const auto& context, bool debug)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
-					std::cout << "Tag: " << to_string(tag) << "\n";
+					if(debug == true)
+						std::cout << "Tag: " << to_string(tag) << "\n";
 					return Executor<
 							ReduceToParameterType, 
 							tag
-						>(context, node).to_value(); 
+						>(debug, context, node).to_value(); 
 				}
-			>(node->to_view(), context);
+			>(node->to_view(), context, debug);
 	}
 
 	//template<typename ReduceToParameterType>
@@ -38,29 +39,31 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	//}
 
 	template<typename ReduceToParameterType>
-	static auto retrieve_value(const BaseNode* node) -> std::optional<ReduceToParameterType>
+	static auto retrieve_value(bool debug, const BaseNode* node) -> std::optional<ReduceToParameterType>
 	{
 		return visit<
 				ReduceToParameterType, 
-				[](auto node)
+				[](auto node, bool debug)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
 					if constexpr(tag != NodeType::ConstantCall)
 					{
+						if(debug == true)
+							std::cout << "Tag: " << to_string(tag) << "\n";
 						return Executor<
 								ReduceToParameterType, 
 								tag
-							>(static_cast<std::remove_reference_t<decltype(node)>>(node)).to_value(); 
+							>(debug, static_cast<std::remove_reference_t<decltype(node)>>(debug, node)).to_value(); 
 					}
 					else
 						return std::nullopt;
 				}
-			>(node->to_view());
+			>(node->to_view(), debug);
 	}
 
 	//template<typename ReduceToParameterType>
 	//static auto retrieve_value(const SyntaxNode& node) -> std::optional<ReduceToParameterType> {
-	//	return retrieve_value<ReduceToParameterType>(node.get());
+	//	return retrieve_value<ReduceToParameterType>(debug, node.get());
 	//}
 
 	#define LITERAL_NODE(LITERAL_TAG) \
@@ -71,8 +74,14 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				using ReduceToType = ReduceToParameterType; \
 				using NumericType = Node<NodeType:: LITERAL_TAG >::NumericType; \
 				NumericType value; \
-				Executor(const Node<NodeType :: LITERAL_TAG>* node) : value(node->value) {} \
-				Executor(const auto& context, const Node<NodeType :: LITERAL_TAG>* node) : value(node->value) {} \
+				Executor(bool debug, const Node<NodeType :: LITERAL_TAG>* node) : value(node->value) { \
+					if(debug == true) \
+						std::cout << to_string(tag) << ":" << to_string(value) << "\n"; \
+				} \
+				Executor(bool debug, const auto& context, const Node<NodeType :: LITERAL_TAG>* node) : value(node->value) { \
+					if(debug == true) \
+						std::cout << to_string(tag) << ":" << to_string(value) << "\n"; \
+				} \
 				std::optional<ReduceToType> to_value() \
 				{ \
 					if constexpr(std::is_same_v<ReduceToType, NumericType> == true) \
@@ -100,22 +109,43 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 			{ \
 				using ReduceToType = ReduceToParameterType; \
 				std::optional<ReduceToType> left_value, right_value, value; \
-				Executor(const Node<NodeType:: NODE_TYPE >* node) \
-						: left_value(retrieve_value<ReduceToParameterType>(node->left.get())), \
-						right_value(retrieve_value<ReduceToParameterType>(node->right.get())), \
+				std::string debug_print_value(std::optional<ReduceToType>& value) { \
+						return std::string{"{HasValue?:"} + std::to_string(value.has_value()) + std::string{"}"}; \
+				} \
+				Executor(bool debug, const Node<NodeType:: NODE_TYPE >* node) \
+						: left_value(retrieve_value<ReduceToParameterType>(debug, node->left.get())), \
+						right_value(retrieve_value<ReduceToParameterType>(debug, node->right.get())), \
 						value( \
 								(left_value.has_value() == true && right_value.has_value() == true) \
-								? std::optional{left_value.value() * right_value.value()} \
+								? std::optional{left_value.value() OPERATOR right_value.value()} \
 								: std::nullopt \
-							) {} \
-				Executor(const auto& context, const Node<NodeType:: NODE_TYPE>* node) \
-						: left_value(retrieve_value<ReduceToParameterType>(context, node->left.get())), \
-						right_value(retrieve_value<ReduceToParameterType>(context, node->right.get())), \
+							) \
+				{ \
+					if(debug == true) \
+					{ \
+						std::cout << "Operator:" << #OPERATOR << "\n" \
+								<< "Left: " << debug_print_value(left_value) << "\n" \
+								<< "Right: " << debug_print_value(right_value) << "\n" \
+								<< "Value: " << debug_print_value(value) << "\n"; \
+					} \
+				} \
+				Executor(bool debug, const auto& context, const Node<NodeType:: NODE_TYPE>* node) \
+						: left_value(retrieve_value<ReduceToParameterType>(debug, context, node->left.get())), \
+						right_value(retrieve_value<ReduceToParameterType>(debug, context, node->right.get())), \
 						value( \
 								(left_value.has_value() == true && right_value.has_value() == true) \
-								? std::optional{left_value.value() * right_value.value()} \
+								? std::optional{left_value.value() OPERATOR right_value.value()} \
 								: std::nullopt \
-							) {} \
+							) \
+				{ \
+					if(debug == true) \
+					{ \
+						std::cout << "Operator:" << #OPERATOR << "\n" \
+								<< "Left: " << debug_print_value(std::cout, left_value) << "\n" \
+								<< "Right: " << debug_print_value(std::cout, right_value) << "\n" \
+								<< "Value: " << debug_print_value(std::cout, value) << "\n"; \
+					} \
+				} \
 				std::optional<ReduceToType> to_value() { \
 					return value; \
 				} \
@@ -126,8 +156,8 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 
 				//Executor(const auto& context, const Node<NodeType:: NODE_TYPE >& node) \
 				//		: value( \
-				//				retrieve_value<ReduceToParameterType>(context, &node.left).value() \
-				//						OPERATOR retrieve_value<ReduceToParameterType>(context, &node.right).value() \
+				//				retrieve_value<ReduceToParameterType>(debug, context, &node.left).value() \
+				//						OPERATOR retrieve_value<ReduceToParameterType>(debug, context, &node.right).value() \
 				//			) {} \
 				//			
 	BINARY_OPERATOR(Multiply, *);
@@ -142,20 +172,26 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	{
 		using ReduceToType = ReduceToParameterType;
 		std::optional<ReduceToType> value, absolute_value;
-		Executor(const Node<NodeType::Negation>* node) 
-				: absolute_value(retrieve_value<ReduceToType>(node->negated.get())), 
+		Executor(bool debug, const Node<NodeType::Negation>* node) 
+				: absolute_value(retrieve_value<ReduceToType>(debug, node->negated.get())), 
 				value(
 						absolute_value.has_value() == true
 						? std::optional{-absolute_value.value()}
 						: std::nullopt
-					) {}
-		Executor(const auto& context, const Node<NodeType::Negation>* node) 
-				: absolute_value(retrieve_value<ReduceToType>(context, node->negated.get())), 
+					) {
+				if(debug == true)
+					std::cout << "Negation, has value? " << absolute_value.has_value() << "\n";
+			}
+		Executor(bool debug, const auto& context, const Node<NodeType::Negation>* node) 
+				: absolute_value(retrieve_value<ReduceToType>(debug, context, node->negated.get())), 
 				value(
 						absolute_value.has_value() == true
 						? std::optional{-absolute_value.value()}
 						: std::nullopt
-					) {}
+					) {
+				if(debug == true)
+					std::cout << "Negation, has value? " << absolute_value.has_value() << "\n";
+			}
 		std::optional<ReduceToType> to_value() {
 			return value;
 		}
@@ -169,10 +205,16 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	{
 		using ReduceToType = ReduceToParameterType;
 		std::optional<ReduceToType> value;
-		Executor(const Node<NodeType::Expression>* node) 
-				: value(retrieve_value<ReduceToType>(node->root.get())) {}
-		Executor(const auto& context, const Node<NodeType::Expression>* node) 
-				: value(retrieve_value<ReduceToType>(context, node->root.get())) {}
+		Executor(bool debug, const Node<NodeType::Expression>* node) 
+				: value(retrieve_value<ReduceToType>(debug, node->root.get())) {
+			if(debug == true)
+				std::cout << "Expression, has value? " << value.has_value() << "\n";
+		}
+		Executor(bool debug, const auto& context, const Node<NodeType::Expression>* node) 
+				: value(retrieve_value<ReduceToType>(debug, context, node->root.get())) {
+			if(debug == true)
+				std::cout << "Expression, has value? " << value.has_value() << "\n";
+		}
 		std::optional<ReduceToType> to_value() {
 			return value;
 		}
@@ -186,9 +228,12 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	{
 		using ReduceToType = ReduceToParameterType;
 		std::optional<ReduceToType> value;
-		Executor(const Node<NodeType::ConstantCall>* node) = delete;
-		Executor(const auto& context, const Node<NodeType::ConstantCall>* node) 
-				: value(retrieve_value<ReduceToType>(context, context.constants.at(node->name).value.get())) {}
+		Executor(bool debug, const Node<NodeType::ConstantCall>* node) = delete;
+		Executor(bool debug, const auto& context, const Node<NodeType::ConstantCall>* node)
+				: value(retrieve_value<ReduceToType>(debug, context, context.constants.at(node->name).value.get())) {
+			if(debug == true)
+				std::cout << "Constant Call for " << node->name << " , has value? " << value.has_value() << "\n";
+		}
 		std::optional<ReduceToType> to_value() {
 			return value;
 		}

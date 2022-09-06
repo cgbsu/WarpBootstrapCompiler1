@@ -142,12 +142,11 @@ namespace Warp::Parsing
 		struct Term
 		{
 			SyntaxNode node;
-			//constexpr Term(SyntaxNode&& node) noexcept : node(std::move(node)) {}
 			constexpr Term(SyntaxNode node) noexcept : node(std::move(node)) {}
 			//template<NodeType NodeTypeParameterConstant>
 			//constexpr Term(Node<NodeTypeParameterConstant> node) noexcept 
 			//		: node(std::make_unique<Node<NodeTypeParameterConstant>>(node)) {}
-			constexpr Term(InputType value) noexcept : node(literal_node(value)) {}
+			Term(InputType value) noexcept : node(literal_node(value)) {}
 			constexpr Term() noexcept = default;
 			constexpr Term(Term& other) noexcept = default;
 			constexpr Term(Term&& other) noexcept = default;
@@ -203,28 +202,28 @@ namespace Warp::Parsing
 			constexpr Sum(SyntaxNode&& node) noexcept : node(std::move(node)) {}
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
-				: node(Node<OperateParameterConstant>{
+				: node(std::make_unique<Node<OperateParameterConstant>>(
 						literal_node(left), 
 						literal_node(right)
-					}) {}
+					)) {}
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, Term& right) noexcept 
-				: node(Node<OperateParameterConstant>{
+				: node(std::make_unique<Node<OperateParameterConstant>>(
 						literal_node(left), 
 						std::move(right.node)
-					}) {}
+					)) {}
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(Term& left, OperationHolder<OperateParameterConstant>, Term& right) noexcept 
-				: node(Node<OperateParameterConstant>{
+				: node(std::make_unique<Node<OperateParameterConstant>>(
 						std::move(left.node), 
 			   			std::move(right.node)
-					}) {}
+					)) {}
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(Term& left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
-				: node(Node<OperateParameterConstant>{
+				: node(std::make_unique<Node<OperateParameterConstant>>(
 						std::move(left.node), 
 						literal_node(right)
-					}) {}
+					)) {}
 			constexpr Sum() noexcept = default;
 			constexpr Sum(const Sum& other) noexcept = default;
 			constexpr Sum(Sum&& other) noexcept = default;
@@ -382,7 +381,9 @@ namespace Warp::Parsing
 				);
 		}
 		constexpr static const auto input_to_math_term 
-				= math_term(input) >= [](auto input_) { return Term{input_}; };
+				= math_term(input) >= [](auto input_) { 
+					return std::move(Term{input_});
+				};
 		constexpr static const auto negated_input_to_math_term 
 				= math_term(subtract, input) >= [](auto, auto input_) { return Term{input_}.as_negated(); }; 
 

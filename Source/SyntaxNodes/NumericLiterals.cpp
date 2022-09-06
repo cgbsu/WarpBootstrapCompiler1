@@ -7,19 +7,19 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	using namespace Warp::Runtime::Compiler;
 
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Whole>::Type value) {
-		return SyntaxNode(Node<NodeType::LiteralWhole>{value});
+		return SyntaxNode(std::make_unique<Node<NodeType::LiteralWhole>>(value));
 	}
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Integer>::Type value) {
-		return SyntaxNode(Node<NodeType::LiteralInteger>{value});
+		return SyntaxNode(std::make_unique<Node<NodeType::LiteralInteger>>(value));
 	}
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::FixedPoint>::Type value) {
-		return SyntaxNode(Node<NodeType::LiteralFixed>{value});
+		return SyntaxNode(std::make_unique<Node<NodeType::LiteralFixed>>(value));
 	}
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Character>::Type value) {
-		return SyntaxNode(Node<NodeType::LiteralCharacter>{value});
+		return SyntaxNode(std::make_unique<Node<NodeType::LiteralCharacter>>(value));
 	}
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Bool>::Type value) {
-		return SyntaxNode(Node<NodeType::LiteralBool>{value});
+		return SyntaxNode(std::make_unique<Node<NodeType::LiteralBool>>(value));
 	}
 
 	template struct Node<NodeType::LiteralWhole>;
