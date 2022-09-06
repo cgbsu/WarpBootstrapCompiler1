@@ -149,38 +149,34 @@ namespace Warp::Parsing
 			//		: node(std::make_unique<Node<NodeTypeParameterConstant>>(node)) {}
 			constexpr Term(InputType value) noexcept : node(literal_node(value)) {}
 			constexpr Term() noexcept = default;
-			constexpr Term(const Term& other) noexcept = default;
+			constexpr Term(Term& other) noexcept = default;
 			constexpr Term(Term&& other) noexcept = default;
 
 			constexpr Term& operator=(const Term& other) noexcept = default;
 			constexpr Term& operator=(Term&& other) noexcept = default;
 
-			constexpr Term operator*(const InputType& other) const noexcept
+			constexpr Term operator*(const InputType& other) noexcept
 			{
-				BaseNode* node_ = node.get();
 				return Term(std::make_unique<Node<NodeType::Multiply>>(
-						node_, 
+						std::move(node), 
 						literal_node(other)
 					));
-				//return Term{value * absolute_value(other), is_negated(other)};
 			}
-			constexpr Term operator/(const InputType& other) const noexcept
+			constexpr Term operator/(const InputType& other) noexcept
 			{
 				return Term(std::make_unique<Node<NodeType::Divide>>(
-						node, 
+						std::move(node), 
 						literal_node(other)
 					));
-				//return Term{value / absolute_value(other), is_negated(other)};
 			}
-			constexpr Term operator*(const Term& other) const noexcept
+			constexpr Term operator*(Term& other) noexcept
 			{
 				return Term(std::make_unique<Node<NodeType::Multiply>>(
 						std::move(node), 
 						std::move(other.node)
 					));
-				//return Term{value * other.value, is_negated(other)};
 			}
-			constexpr Term operator/(const Term& other) const noexcept
+			constexpr Term operator/(Term& other) noexcept
 			{
 				return Term(std::make_unique<Node<NodeType::Divide>>(
 						std::move(node), 
@@ -188,12 +184,12 @@ namespace Warp::Parsing
 					));
 				//return Term{value / other.value, is_negated(other)};
 			}
-			constexpr Term operator-() const noexcept {
-				return Term(std::make_unique<Node<NodeType::Negation>>(node));
+			constexpr Term operator-() noexcept {
+				return Term(std::make_unique<Node<NodeType::Negation>>(std::move(node)));
 				//return Term{value, !negated};
 			}
-			constexpr Term as_negated() const noexcept {
-				return Term(std::make_unique<Node<NodeType::Negation>>(node));
+			constexpr Term as_negated() noexcept {
+				return Term(std::make_unique<Node<NodeType::Negation>>(std::move(node)));
 				//return Term{value, !negated};
 			}
 		};
@@ -208,26 +204,26 @@ namespace Warp::Parsing
 			template<NodeType OperateParameterConstant>
 			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
 				: node(Node<OperateParameterConstant>{
-						std::move(literal_node(left)), 
-						std::move(literal_node(right))
+						literal_node(left), 
+						literal_node(right)
 					}) {}
 			template<NodeType OperateParameterConstant>
-			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, Term right) noexcept 
+			constexpr Sum(InputType left, OperationHolder<OperateParameterConstant>, Term& right) noexcept 
 				: node(Node<OperateParameterConstant>{
-						std::move(literal_node(left)), 
+						literal_node(left), 
 						std::move(right.node)
 					}) {}
 			template<NodeType OperateParameterConstant>
-			constexpr Sum(Term left, OperationHolder<OperateParameterConstant>, Term right) noexcept 
+			constexpr Sum(Term& left, OperationHolder<OperateParameterConstant>, Term& right) noexcept 
 				: node(Node<OperateParameterConstant>{
 						std::move(left.node), 
 			   			std::move(right.node)
 					}) {}
 			template<NodeType OperateParameterConstant>
-			constexpr Sum(Term left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
+			constexpr Sum(Term& left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
 				: node(Node<OperateParameterConstant>{
 						std::move(left.node), 
-						std::move(literal_node(right))
+						literal_node(right)
 					}) {}
 			constexpr Sum() noexcept = default;
 			constexpr Sum(const Sum& other) noexcept = default;
@@ -236,28 +232,28 @@ namespace Warp::Parsing
 			constexpr Sum& operator=(const Sum& other) noexcept = default;
 			constexpr Sum& operator=(Sum&& other) noexcept = default;
 
-			constexpr Sum operator+(const InputType& other) const noexcept
+			constexpr Sum operator+(const InputType& other) noexcept
 			{
 				return Sum(std::make_unique<Node<NodeType::Add>>(
 						std::move(node), 
-						std::move(literal_node(other))
+						literal_node(other)
 					));
 			}
-			constexpr Sum operator-(const InputType& other) const noexcept
+			constexpr Sum operator-(const InputType& other) noexcept
 			{
 				return Sum(std::make_unique<Node<NodeType::Subtract>>(
 						std::move(node), 
-						std::move(literal_node(other))
+						literal_node(other)
 					));
 			}
-			constexpr Sum operator+(const Term& other) const noexcept
+			constexpr Sum operator+(Term& other) noexcept
 			{
 				return Sum(std::make_unique<Node<NodeType::Add>>(
 						std::move(node), 
 						std::move(other.node)
 					));
 			}
-			constexpr Sum operator-(const Term& other) const noexcept
+			constexpr Sum operator-(Term& other) noexcept
 			{
 				return Sum(std::make_unique<Node<NodeType::Subtract>>(
 						std::move(node), 
@@ -380,9 +376,9 @@ namespace Warp::Parsing
 		{
 			return ctpg::rules(
 					math_term(open_parenthesis, math_term, close_parenthesis)
-					>= [](auto left, auto term, auto right) { return term; },
+					>= [](auto left, auto term, auto right) { return std::move(term); },
 					math_term(open_parenthesis, sum, close_parenthesis)
-					>= [](auto left, auto sum, auto right) { return Term{sum.node}; }
+					>= [](auto left, auto sum, auto right) { return Term{std::move(sum.node)}; }
 				);
 		}
 		constexpr static const auto input_to_math_term 
@@ -406,7 +402,7 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					basic_term_operation_rules<
-							[](auto left, auto right)
+							[](auto& left, auto& right)
 							{
 								return Sum{
 										left, 
@@ -414,10 +410,10 @@ namespace Warp::Parsing
 										right
 									}; 
 							}, 
-							[](auto left, auto right) { return left + right; }
+							[](auto& left, auto& right) { return left + right; }
 						>(sum, add), 
 					basic_term_operation_rules<
-							[](auto left, auto right)
+							[](auto& left, auto& right)
 							{ 
 								return Sum{
 										left, 
@@ -425,19 +421,19 @@ namespace Warp::Parsing
 										right
 									};
 								}, 
-							[](auto left, auto right) { return left - right; }
+							[](auto& left, auto& right) { return left - right; }
 						>(sum, subtract), 
 					term_operation_reduction<
-							[](auto left, auto right) { return left * right; }
+							[](auto& left, auto& right) { return left * right; }
 						>(math_term, multiply), 
 					term_operation_reduction<
-							[](auto left, auto right) { return left / right; }
+							[](auto& left, auto& right) { return left / right; }
 						>(math_term, divide), 
 					input_operation_rules<
-							[](auto left, auto right) { return left * right; }
+							[](auto& left, auto& right) { return left * right; }
 						>(math_term, multiply), 
 					input_operation_rules<
-							[](auto left, auto right) { return left / right; }
+							[](auto& left, auto& right) { return left / right; }
 						>(math_term, divide), 
 					from_parenthesis(), 
 					ctpg::rules(

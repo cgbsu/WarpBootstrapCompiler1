@@ -47,8 +47,8 @@ using WholeExpressionType = WholeParserType::Expression;
 using IntegerExpressionType = IntegerParserType::Expression;
 using FixedExpressionType = FixedParserType::Expression;
 
-constexpr static const auto compare_value = [](auto left, auto right) {
-	return retrieve_value<typename NumericTagResolver<decltype(right)>::NumericType>(left.node).value() == right;
+constexpr static const auto compare_value = [](const auto& left, const auto& right) {
+	return retrieve_value<typename NumericTagResolver<CleanType<decltype(right)>>::NumericType>(left.node.get()).value() == right;
 };
 
 template<auto TestParameterConstant>
@@ -147,7 +147,7 @@ void math_check(bool value) {
 TEST_GROUP(MathematicalExpressions) {};
 
 bool compare_fixed(const SyntaxNode& left, FixedType right) {
-	return retrieve_value<FixedType>(left).value() == right;
+	return retrieve_value<FixedType>(left.get()).value() == right;
 }
 
 TEST(MathematicalExpressions, InputAddition)

@@ -78,8 +78,8 @@ namespace Warp::Parsing
 		{
 			std::unordered_map<std::string, ConstantType> constants;
 			constexpr Context inject(ConstantType constant) {
-				constants.insert({constant.name, constant});
-				return *this;
+				constants.insert({constant.name, std::move(constant)});
+				return std::move(*this);
 			}
 		};
 

@@ -25,14 +25,14 @@ namespace Warp::Testing
 	#endif 
 	
 	constexpr static const auto equal 
-			= [](auto left, auto right) { return left == right; };
+			= [](const auto& left, const auto& right) { return left == right; };
 
 	static void check(bool value) {
 		WARP_CHECK(value);
 	}
 	
 	template<auto CompareParameterConstant = equal, auto CheckParameterConstant = check>
-	constexpr void check_parse(auto parse_result, auto expected_result)
+	constexpr void check_parse(const auto& parse_result, auto expected_result)
 	{
 		CheckParameterConstant(parse_result.has_value() == true);
 		WARP_CHECK((parse_result.has_value()));
