@@ -47,11 +47,13 @@ using WholeExpressionType = WholeParserType::Expression;
 using IntegerExpressionType = IntegerParserType::Expression;
 using FixedExpressionType = FixedParserType::Expression;
 
-constexpr static const auto compare_value = [](const auto& left, const auto& right)
+constexpr static const auto compare_value = [](const auto& left, const auto& right, bool debug)
 {
+	if(debug == true)
+		std::cout << "Start Retrieving Value, with Expected: " << right << "\n";
 	const auto actual = retrieve_value<
 			typename NumericTagResolver<CleanType<decltype(right)>>::NumericType
-		>(true, left.node.get()).value();
+		>(debug, left.node.get()).value();
 	bool result = (actual == right);
 	if(result == false) {
 		std::cout << "Comparision failure! With Actual: " << result 
@@ -135,7 +137,8 @@ void whole_test(UnderlyingWholeType expected, bool debug = false)
 {
 	check_parse<compare_value>(
 			parse_whole<TestParameterConstant>(debug) /*Actual*/, 
-			expected /*Expected*/
+			expected, /*Expected*/
+			debug
 		);
 }
 
@@ -145,7 +148,8 @@ void integer_test(UnderlyingIntegerType expected, bool debug = false)
 {
 	check_parse<compare_value>(
 			parse_integer<TestParameterConstant>(debug) /*Actual*/, 
-			expected /*Expected*/
+			expected, /*Expected*/
+			debug
 		);
 }
 
@@ -154,7 +158,8 @@ void fixed_test(UnderlyingFixedType expected, bool debug = false)
 { 
 		check_parse<compare_value>(
 			parse_fixed<TestParameterConstant>(debug) /*Actual*/, 
-			expected /*Expected*/
+			expected, /*Expected*/
+			debug
 		);
 }
 
@@ -164,13 +169,16 @@ void math_check(bool value) {
 
 TEST_GROUP(MathematicalExpressions) {};
 
-bool compare_fixed(const SyntaxNode& left, FixedType right) {
-	return retrieve_value<FixedType>(true, left.get()).value() == right;
+bool compare_fixed(const SyntaxNode& left, FixedType right, bool debug)
+{
+	if(debug == true)
+		std::cout << "Start Retrieving Value, with Expected: " << right.number.to_double() << "\n";
+	return retrieve_value<FixedType>(debug, left.get()).value() == right;
 }
 
 TEST(MathematicalExpressions, InputAddition)
 {
-	bool debug = true;
+	bool debug = false;
 	print_whole<FixedString{"1u + 1u"}>(debug);
 	whole_test<FixedString{"1u + 1u"}>(2u, debug);
 	whole_test<FixedString{"1 + 1"}>(2u, debug);
@@ -211,7 +219,7 @@ TEST(MathematicalExpressions, InputMultiplication)
 
 TEST(MathematicalExpressions, InputNegation)
 {
-	bool debug = false;
+	bool debug = true;
 	integer_test<FixedString{"-44i"}>(-44, debug);
 	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
 	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);

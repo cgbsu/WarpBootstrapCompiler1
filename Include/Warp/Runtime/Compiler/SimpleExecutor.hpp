@@ -171,23 +171,23 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	struct Executor<ReduceToParameterType, NodeType::Negation>
 	{
 		using ReduceToType = ReduceToParameterType;
-		std::optional<ReduceToType> value, absolute_value;
+		std::optional<ReduceToType> absolute_value, value;
 		Executor(bool debug, const Node<NodeType::Negation>* node) 
 				: absolute_value(retrieve_value<ReduceToType>(debug, node->negated.get())), 
 				value(
-						absolute_value.has_value() == true
-						? std::optional{-absolute_value.value()}
-						: std::nullopt
+						(absolute_value.has_value() == true)
+								? std::optional{-absolute_value.value()}
+								: std::nullopt
 					) {
 				if(debug == true)
-					std::cout << "Negation, has value? " << absolute_value.has_value() << "\n";
+					std::cout << "Negation, has value? " << value.has_value() << "\n";
 			}
 		Executor(bool debug, const auto& context, const Node<NodeType::Negation>* node) 
 				: absolute_value(retrieve_value<ReduceToType>(debug, context, node->negated.get())), 
 				value(
-						absolute_value.has_value() == true
-						? std::optional{-absolute_value.value()}
-						: std::nullopt
+						(absolute_value.has_value() == true)
+								? std::optional{-absolute_value.value()}
+								: std::nullopt
 					) {
 				if(debug == true)
 					std::cout << "Negation, has value? " << absolute_value.has_value() << "\n";
