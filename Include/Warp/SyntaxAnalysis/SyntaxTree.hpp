@@ -1,6 +1,6 @@
 #include <Warp/Common.hpp>
 #include <Warp/Runtime/Compiler/NumericType.hpp>
-#include <Warp/Utilities/AutoVariant.hpp>
+#include <Warp/Utilities.hpp>
 
 #ifndef WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__TREE__HPP
 #define WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__TREE__HPP
@@ -95,6 +95,7 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 			>;
 		constexpr virtual ViewType to_view() const noexcept = 0;
 		constexpr virtual NodeType get_tag() const noexcept = 0;
+		virtual ~BaseNode() = default;
 	};
 
 	using SyntaxNode = std::unique_ptr<BaseNode>;
