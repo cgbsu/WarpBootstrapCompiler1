@@ -39,22 +39,22 @@ namespace Warp::Parsing
 					CharTerm, 
 					';', 
 					ctpg::associativity::no_assoc
-				> 
-		>::Prepend< 
-			TreeTerm<
-					Identifier::Identifier, 
-					RegexTerm, 
-					FixedString{
-							"[a-zA-Z_][a-zA-Z_0-9]+"
-							//"(?!(u|xp|i|c|bl)[0-9]+)
-							//"([a-zA-Z_]{3})[a-zA-Z_0-9]*"
-							//"|([a-zA-Z_]{2})"
-							//"|([a-zA-Z_]{1})"
-						}, 
-					FixedString{"Identifier"}, 
-					ctpg::associativity::no_assoc
 				>
-			>;
+			//, 
+			//TreeTerm<
+			//		Identifier::Identifier, 
+			//		RegexTerm, 
+			//		FixedString{
+			//				//"(?!(u|xp|i|c|bl)[0-9]+)
+			//				"[a-zA-Z_][a-zA-Z_0-9]*"
+			//				//"([a-zA-Z_]{3}[a-zA-Z_0-9]*)"
+			//				//"|([a-zA-Z_]{2})"
+			//				//"|([a-zA-Z_]{1})"
+			//			}, 
+			//		FixedString{"Identifier"}, 
+			//		ctpg::associativity::no_assoc
+			//	>
+		>;
 
 	template<
 			typename TermsParameterType, 
@@ -178,7 +178,7 @@ namespace Warp::Parsing
 		constexpr static const auto unique_terms = ctpg::terms(
 				let_keyword, 
 				equal, 
-				identifier, 
+				//identifier, 
 				//open_parenthesis, 
 				//close_parenthesis, 
 				semi_colon

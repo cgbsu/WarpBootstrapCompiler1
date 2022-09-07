@@ -57,20 +57,22 @@ namespace Warp::Parsing
 					'-', 
 					ctpg::associativity::ltor
 				>
-		//>::Prepend<
-		//	TreeTerm<
-		//			Identifier::Identifier, 
-		//			RegexTerm, 
-		//			FixedString{
-		//					"[a-zA-Z_][a-zA-Z_0-9]+"
+		>::AddOnePriority<
+			TreeTerm<
+					Identifier::Identifier, 
+					RegexTerm, 
+					FixedString{
+							"[a-zA-Z_][a-zA-Z_0-9]+[a-zA-Z0-9_]"
 		//					//"(?!(u|xp|i|c|bl)[0-9]+)
-		//					//"([a-zA-Z_]{3})[a-zA-Z_0-9]*"
-		//					//"|([a-zA-Z_]{2})"
-		//					//"|([a-zA-Z_]{1})"
-		//				}, 
-		//			FixedString{"Identifier"}, 
-		//			ctpg::associativity::no_assoc
-		//		>
+		//					"[#$%^&@!]+"
+		//					//"var[a-zA-Z_][a-zA-Z_0-9]*"
+							//"([a-zA-Z_]{3}[a-zA-Z_0-9]*)"
+							//"|([a-zA-Z_]{2})"
+							//"|([a-zA-Z_]{1})"
+						}, 
+					FixedString{"Identifier"}, 
+					ctpg::associativity::no_assoc
+				>
 		>::AddOnePriority<
 			TreeTerm<
 					Brackets::OpenParenthesis, 
@@ -85,6 +87,21 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>
 		>;
+		//>::AddOnePriority< 
+		//	TreeTerm<
+		//			Identifier::Identifier, 
+		//			RegexTerm, 
+		//			FixedString{
+		//					//"[a-zA-Z_][a-zA-Z_0-9]+"
+		//					//"(?!(u|xp|i|c|bl)[0-9]+)
+		//					"([a-zA-Z_]{3})[a-zA-Z_0-9]+"
+		//					//"|([a-zA-Z_]{2})"
+		//					//"|([a-zA-Z_]{1})"
+		//				}, 
+		//			FixedString{"Identifier"}, 
+		//			ctpg::associativity::no_assoc
+		//		>
+		//	>;
 		
 
 
@@ -307,6 +324,8 @@ namespace Warp::Parsing
 		constexpr static const auto multiply = term<MathematicalExpression::Multiply>;
 		constexpr static const auto divide = term<MathematicalExpression::Divide>;
 
+		constexpr static const auto identifier = term<Identifier::Identifier>;
+
 		constexpr static const auto open_parenthesis 
 				= term<Brackets::OpenParenthesis>;
 		constexpr static const auto close_parenthesis 
@@ -326,6 +345,7 @@ namespace Warp::Parsing
 					divide
 			); 
 		constexpr static const auto terms = std::tuple_cat( 
+				ctpg::terms(identifier), 
 				BaseType::terms, 
 				ctpg::terms( 
 						open_parenthesis, 
@@ -351,7 +371,7 @@ namespace Warp::Parsing
 						}
 					);
 			}
-		template< auto OperateParameterConstant, auto ProductOperateParameterConstant >
+		template<auto OperateParameterConstant, auto ProductOperateParameterConstant>
 		consteval static const auto basic_term_operation_rules(auto operation_term, auto operator_term)
 		{
 				return concatinate_tuples(
