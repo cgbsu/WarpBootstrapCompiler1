@@ -62,13 +62,12 @@ namespace Warp::Parsing
 					Identifier::Identifier, 
 					RegexTerm, 
 					FixedString{
-							"[a-zA-Z_][a-zA-Z_0-9]+[a-zA-Z0-9_]"
+							//"[a-zA-Z_][a-zA-Z_0-9]+"
 		//					//"(?!(u|xp|i|c|bl)[0-9]+)
-		//					"[#$%^&@!]+"
-		//					//"var[a-zA-Z_][a-zA-Z_0-9]*"
-							//"([a-zA-Z_]{3}[a-zA-Z_0-9]*)"
-							//"|([a-zA-Z_]{2})"
-							//"|([a-zA-Z_]{1})"
+		//					//"[a-zA-Z_][a-zA-Z_0-9]*"
+							"([a-zA-Z_]{4}[a-zA-Z_0-9]*)"
+									//"|([a-zA-Z_]{2})"
+									//"|([a-zA-Z_]{1})"
 						}, 
 					FixedString{"Identifier"}, 
 					ctpg::associativity::no_assoc
@@ -345,11 +344,11 @@ namespace Warp::Parsing
 					divide
 			); 
 		constexpr static const auto terms = std::tuple_cat( 
-				ctpg::terms(identifier), 
 				BaseType::terms, 
 				ctpg::terms( 
 						open_parenthesis, 
-						close_parenthesis
+						close_parenthesis, 
+						identifier
 					), 
 				unique_terms
 			); 

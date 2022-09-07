@@ -47,7 +47,12 @@ using WholeExpressionType = WholeParserType::Expression;
 using IntegerExpressionType = IntegerParserType::Expression;
 using FixedExpressionType = FixedParserType::Expression;
 
-constexpr static const auto compare_value = [](const auto& left, const auto& right, bool debug)
+constexpr static const auto compare_value = [](
+		const auto& left, 
+		const auto& right, 
+		bool debug, 
+		std::source_location location
+	)
 {
 	if(debug == true)
 		std::cout << "Start Retrieving Value, with Expected: " << right << "\n";
@@ -56,48 +61,61 @@ constexpr static const auto compare_value = [](const auto& left, const auto& rig
 		>(left.node.get(), debug).value();
 	bool result = (actual == right);
 	if(result == false) {
-		std::cout << "Comparision failure! With Actual: " << result 
+		std::cout << location.file_name() << ": " << location.line() 
+				<< ": Comparision failure! With Actual: " << result 
 				<< " vs. Expected: " << right << "\n";
 	}
 	return result;
 };
 
 template<auto TestParameterConstant>
-auto parse_whole(bool debug = false)
+auto parse_whole(bool debug = false, std::source_location location = std::source_location::current())
 {
+	if(debug == true)
+		std::cout << "(Whole) Parsing: " << TestParameterConstant.string << "\n";
 	auto result = runtime_parse<
 				WholeParserType, 
 				TestParameterConstant, 	
 				WholeParserType::TypeSpecificMathematicalExpressionTermTags::Expression
 			>(debug);
-	if(result.has_value() == false)
-		std::cout << "Failed to parse Whole with: " << TestParameterConstant.string << "\n";
+	if(result.has_value() == false) {
+		std::cout << location.file_name() << ": " << location.line() 
+				<< ": Failed to parse Whole with: " << TestParameterConstant.string << "\n";
+	}
 	return result;
 }
 
 template<auto TestParameterConstant>
-auto parse_integer(bool debug = false)
+auto parse_integer(bool debug = false, std::source_location location = std::source_location::current())
 {
+	if(debug == true)
+		std::cout << "(Integer) Parsing: " << TestParameterConstant.string << "\n";
 	auto result = runtime_parse<
 				IntegerParserType, 
 				TestParameterConstant, 	
 				IntegerParserType::TypeSpecificMathematicalExpressionTermTags::Expression
 			>(debug);
-	if(result.has_value() == false)
-		std::cout << "Failed to parse Integer with: " << TestParameterConstant.string << "\n";
+	if(result.has_value() == false) {
+		std::cout << location.file_name() << ": " << location.line() 
+				<< ": Failed to parse Integer with: " << TestParameterConstant.string << "\n";
+	}
 	return result;
 }
 
 template<auto TestParameterConstant>
-auto parse_fixed(bool debug = false)
+auto parse_fixed(bool debug = false, std::source_location location = std::source_location::current())
 {
+	if(debug == true)
+		std::cout << "(Fixed) Parsing: " << TestParameterConstant.string << "\n";
 	auto result = runtime_parse<
 			FixedParserType, 
 			TestParameterConstant, 	
 			FixedParserType::TypeSpecificMathematicalExpressionTermTags::Expression
 		>(debug);
-	if(result.has_value() == false)
-		std::cout << "Failed to parse FixedPoint with: " << TestParameterConstant.string << "\n";
+	if(result.has_value() == false) {
+		std::cout << location.file_name() << ": " << location.line() 
+				<< ": Failed to parse FixedPoint with: " << TestParameterConstant.string << "\n";
+	}
 	return result;
 }
 
@@ -133,33 +151,48 @@ void print_fixed(bool debug = false)
 
 
 template<auto TestParameterConstant>
-void whole_test(UnderlyingWholeType expected, bool debug = false)
+void whole_test(
+		UnderlyingWholeType expected, 
+		bool debug = false, 
+		std::source_location location = std::source_location::current()
+	)
 {
 	check_parse<compare_value>(
-			parse_whole<TestParameterConstant>(debug) /*Actual*/, 
+			parse_whole<TestParameterConstant>(debug, location) /*Actual*/, 
 			expected, /*Expected*/
-			debug
+			debug, 
+			location
 		);
 }
 
 
 template<auto TestParameterConstant>
-void integer_test(UnderlyingIntegerType expected, bool debug = false)
+void integer_test(
+		UnderlyingIntegerType expected, 
+		bool debug = false, 
+		std::source_location location = std::source_location::current()
+	)
 {
 	check_parse<compare_value>(
-			parse_integer<TestParameterConstant>(debug) /*Actual*/, 
+			parse_integer<TestParameterConstant>(debug, location) /*Actual*/, 
 			expected, /*Expected*/
-			debug
+			debug, 
+			location
 		);
 }
 
 template<auto TestParameterConstant> 
-void fixed_test(UnderlyingFixedType expected, bool debug = false)
+void fixed_test(
+		UnderlyingFixedType expected, 
+		bool debug = false, 
+		std::source_location location = std::source_location::current()
+	)
 { 
 		check_parse<compare_value>(
-			parse_fixed<TestParameterConstant>(debug) /*Actual*/, 
+			parse_fixed<TestParameterConstant>(debug, location) /*Actual*/, 
 			expected, /*Expected*/
-			debug
+			debug, 
+			location
 		);
 }
 
@@ -169,10 +202,12 @@ void math_check(bool value) {
 
 TEST_GROUP(MathematicalExpressions) {};
 
-bool compare_fixed(const SyntaxNode& left, FixedType right, bool debug)
+bool compare_fixed(const SyntaxNode& left, FixedType right, bool debug, std::source_location location)
 {
-	if(debug == true)
-		std::cout << "Start Retrieving Value, with Expected: " << right.number.to_double() << "\n";
+	if(debug == true) {
+		std::cout << location.file_name() << ": " << location.line() 
+				<< ": Start Retrieving Value, with Expected: " << right.number.to_double() << "\n";
+	}
 	return retrieve_value<FixedType>(left.get(), debug).value() == right;
 }
 
@@ -251,7 +286,7 @@ TEST(MathematicalExpressions, MixingBasicSumsAndProducts)
 	whole_test<FixedString{"5u * 3u * 21u / 7u + 4u"}>(49, debug);
 };
 
-TEST(MathematicalExpressions, Parenthesis)
+TEST(MathematicalExpressions, BareParenthesis)
 {
 	bool debug = false;
 
@@ -259,7 +294,11 @@ TEST(MathematicalExpressions, Parenthesis)
 	whole_test<FixedString{"6u + 5u * 3u - (21u / 7u + 4u)"}>(14, debug);
 	whole_test<FixedString{"(6u + 5u) * 3u - 21u / 7u + 4u"}>(34, debug);
 	whole_test<FixedString{"(6u + 5u) * 3u - 33u / (7u + 4u)"}>(30, debug);
+	
 	integer_test<FixedString{"6i + (5i * 3i - 3102i) / 7i + 4i"}>(-431, debug);
+
+	//integer_test<FixedString{"6i + (5i * 3i - 3102i) / 7i + 4i"}>(-431, debug);
+	//
 	whole_test<FixedString{"5u * (3u * 21u / 7u) + 4u"}>(49, debug);
 	whole_test<FixedString{"5u * 3u * 21u / (7u + 4u + 10u)"}>(15, debug);
 };
