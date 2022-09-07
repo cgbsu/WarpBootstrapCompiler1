@@ -98,25 +98,14 @@ namespace Warp::Parsing
 					NonTerminalTerm, 
 					Context, 
 					FixedString{"Context"}
+				>, 
+			TypeTreeTerm<
+					Call::Constant, 
+					NonTerminalTerm, 
+					std::string, 
+					FixedString{"ConstantCall"}
 				>
 			>;
-		//>::AddOnePriority< 
-		//	TreeTerm<
-		//			Identifier::Identifier, 
-		//			RegexTerm, 
-		//			FixedString{
-		//					//"[a-zA-Z_][a-zA-Z_0-9]+"
-		//					//"(?!(u|xp|i|c|bl)[0-9]+)
-		//					"([a-zA-Z_]{3})[a-zA-Z_0-9]+"
-		//					//"|([a-zA-Z_]{2})"
-		//					//"|([a-zA-Z_]{1})"
-		//				}, 
-		//			FixedString{"Identifier"}, 
-		//			ctpg::associativity::no_assoc
-		//		>
-		//	>;
-		
-
 
 	template<
 			typename TermsParameterType, 
@@ -305,21 +294,18 @@ namespace Warp::Parsing
 						NonTerminalTerm, 
 						Sum, 
 						sum_term_name
-						//SumTermNameParameterConstant
 					>, 
 				TypeTreeTerm<
 						TypeSpecificMathematicalExpressionTermTags::Term, 
 						NonTerminalTerm, 
 						Term, 
 						term_term_name
-						//TermTermNameParameterConstant
 					>, 
 				TypeTreeTerm<
 						TypeSpecificMathematicalExpressionTermTags::Expression, 
 						NonTerminalTerm, 
 						Expression, 
 						expression_term_name
-						//ExpressionTermNameParameterConstant
 					>
 			>;
 
@@ -413,6 +399,15 @@ namespace Warp::Parsing
 					>= [](auto left, auto sum, auto right) { return Term{std::move(sum.node)}; }
 				);
 		}
+
+		constexpr static const auto identifier_to_math_term
+				= math_term(identifier) >= [](auto identifier)
+				{
+					return std::move(Term{std::move(
+							std::make_unique<Node<NodeType::ConstantCall>>(std::string{identifier})
+						)});
+				};
+
 		constexpr static const auto input_to_math_term 
 				= math_term(input) >= [](auto input_) { 
 					return std::move(Term{input_});
@@ -431,6 +426,8 @@ namespace Warp::Parsing
 				>= [](auto math_term_) {
 					return Expression{std::move(math_term_.node)};
 				}; 
+
+		//constexpr static const auto 
 
 		consteval static const auto unique_rules()
 		{
@@ -474,7 +471,8 @@ namespace Warp::Parsing
 							input_to_math_term, 
 							negated_input_to_math_term, 
 							sum_to_expression, 
-							math_term_to_expression
+							math_term_to_expression, 
+							identifier_to_math_term
 						)
 				);
 		}

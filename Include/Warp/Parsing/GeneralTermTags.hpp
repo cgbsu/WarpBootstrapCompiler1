@@ -38,6 +38,10 @@ namespace Warp::Parsing
 		Constant, 
 		Context
 	};
+
+	enum class Call {
+		Constant
+	};
 }
 #endif // WARP__PARSING__HEADER__PARSING__GENERAL__TERM__TAGS__HPP
 
