@@ -92,7 +92,7 @@ void check_context_constant(
 	auto context = runtime_parse<
 			ParserParameterType, 
 			TestParameterConstant, 
-			NumericParserType::UniqueProductions::Context
+			Construct::Context
 		>(debug);
 	if(const bool parse_success = (context.has_value() == true); parse_success == false)
 	{
@@ -331,5 +331,16 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 	//			}, 
 	//		NumericTypeTag::Character
 	//	>({"LetterOfTheDay"}, std::vector{'A'}, debug);
+};
+
+TEST(FunctionDeclarations, UseConstansInConstants)
+{
+	//check_context_constant<
+	//		FixedString{
+	//				"let Fourty = 2u * 20u;\n"
+	//				"let TheAnswer = Fourty + 2u;\n"
+	//			}, 
+	//		NumericTypeTag::Whole
+	//	>({"Fourty"}, std::vector{42u}, debug);
 };
 

@@ -4,6 +4,7 @@
 #include <Warp/Parsing/NumericLiterals.hpp>
 #include <Warp/SyntaxAnalysis.hpp>
 #include <Warp/Parsing/GeneralTermTags.hpp>
+#include <Warp/Runtime/Compiler/Constant.hpp>
 
 #ifndef WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
 #define WARP__PARSING__HEADER__PARSING__MATHEMATICAL__EXPRESSIONS__HPP
@@ -85,7 +86,20 @@ namespace Warp::Parsing
 					')', 
 					ctpg::associativity::no_assoc
 				>
-		>;
+		>::Prepend<
+			TypeTreeTerm<
+					Construct::Constant, 
+					NonTerminalTerm, 
+					ConstantType, 
+					FixedString{"Constant"}
+				>, 
+			TypeTreeTerm< 
+					Construct::Context, 
+					NonTerminalTerm, 
+					Context, 
+					FixedString{"Context"}
+				>
+			>;
 		//>::AddOnePriority< 
 		//	TreeTerm<
 		//			Identifier::Identifier, 

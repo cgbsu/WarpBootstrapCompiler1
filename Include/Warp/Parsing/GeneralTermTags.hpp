@@ -35,7 +35,8 @@ namespace Warp::Parsing
 	};
 
 	enum class Construct {
-		Constant
+		Constant, 
+		Context
 	};
 }
 #endif // WARP__PARSING__HEADER__PARSING__GENERAL__TERM__TAGS__HPP
