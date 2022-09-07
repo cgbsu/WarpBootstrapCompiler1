@@ -217,7 +217,6 @@ namespace Warp::Parsing
 					= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
 			constexpr const auto expression_term 
 					= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
-			//		= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
 			constexpr const auto math_term_term 
 					= MathematicalExpressionGeneratorParameterType::template term<TagType::Term>;
 			constexpr const auto sum_term 
@@ -226,8 +225,13 @@ namespace Warp::Parsing
 					= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
 			return ctpg::rules(
 					constant(let_keyword, identifier, equal, expression_term)
-					>=[](auto let_, auto name, auto equal_, auto expression) {
-						return ConstantType{std::string{name}, reduction_tag, expression.node};
+					>=[](auto let_, auto name, auto equal_, auto expression)
+					{
+						return ConstantType{
+								std::string{name}, 
+								reduction_tag, 
+								std::move(expression.node)
+							};
 					}
 				);
 		}
@@ -237,12 +241,12 @@ namespace Warp::Parsing
 			return ctpg::rules(
 					context(from_term, semi_colon)
 					>= [](auto new_object, auto semi_colon_) {
-						Context new_context{};
-						return new_context.inject(new_object);
+						Context new_context;
+						return new_context.inject(std::move(new_object));
 					}, 
 					context(context, from_term, semi_colon)
 					>= [](auto context, auto new_object, auto semi_colon_) {
-						return context.inject(new_object);
+						return context.inject(std::move(new_object));
 					}
 				);
 		}

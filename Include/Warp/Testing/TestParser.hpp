@@ -66,7 +66,7 @@ namespace Warp::Testing
 			FixedString StringParameterConstant, 
 			auto ReduceToTagParameterConstant
 		>
-	constexpr auto runtime_parse(bool debug = false)
+	/*constexpr*/ auto runtime_parse(bool debug = false)
 	{
 		return parser<ParserParameterType, ReduceToTagParameterConstant>.parse(
 				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
@@ -80,14 +80,14 @@ namespace Warp::Testing
 			FixedString StringParameterConstant, 
 			auto ReduceToTagParameterConstant
 		>
-	constexpr auto runtime_parse(auto& context, bool debug = false)
+	auto runtime_parse(auto& context, bool debug = false)
 	{
-		return parser<ParserParameterType, ReduceToTagParameterConstant>.context_parse(
+		return std::move(parser<ParserParameterType, ReduceToTagParameterConstant>.context_parse(
 				context, 
 				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
 				ctpg::buffers::string_buffer(StringParameterConstant.string), 
 				std::cerr
-			);
+			));
 	}
 
 	template<

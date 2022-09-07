@@ -53,7 +53,7 @@ constexpr static const auto compare_value = [](const auto& left, const auto& rig
 		std::cout << "Start Retrieving Value, with Expected: " << right << "\n";
 	const auto actual = retrieve_value<
 			typename NumericTagResolver<CleanType<decltype(right)>>::NumericType
-		>(debug, left.node.get()).value();
+		>(left.node.get(), debug).value();
 	bool result = (actual == right);
 	if(result == false) {
 		std::cout << "Comparision failure! With Actual: " << result 
@@ -107,7 +107,7 @@ void print_whole(bool debug = false)
 	const auto result = parse_whole<TestParameterConstant>(debug);
 	std::cout << "\nWhole Result: " << TestParameterConstant.string 
 			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Whole>::Type>(
-					true, result.value().node.get()
+					result.value().node.get(), debug
 				).value() << "\n\n";
 }
 
@@ -117,7 +117,7 @@ void print_integer(bool debug = false)
 	const auto result = parse_integer<TestParameterConstant>(debug);
 	std::cout << "\nInteger Result: " << TestParameterConstant.string 
 			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::Integer>::Type>(
-					true, result.value().node
+					result.value().node, debug
 				).value() << "\n\n";
 }
 
@@ -127,7 +127,7 @@ void print_fixed(bool debug = false)
 	const auto result = parse_fixed<TestParameterConstant>(debug);
 	std::cout << "\nFixed Result: " << TestParameterConstant.string 
 			<< " = " << retrieve_value<NumericTypeResolver<NumericTypeTag::FixedPoint>::Type>(
-					true, result.value().node
+					result.value().node, debug
 				).value() << "\n\n";
 }
 
@@ -173,7 +173,7 @@ bool compare_fixed(const SyntaxNode& left, FixedType right, bool debug)
 {
 	if(debug == true)
 		std::cout << "Start Retrieving Value, with Expected: " << right.number.to_double() << "\n";
-	return retrieve_value<FixedType>(debug, left.get()).value() == right;
+	return retrieve_value<FixedType>(left.get(), debug).value() == right;
 }
 
 TEST(MathematicalExpressions, InputAddition)
@@ -219,7 +219,7 @@ TEST(MathematicalExpressions, InputMultiplication)
 
 TEST(MathematicalExpressions, InputNegation)
 {
-	bool debug = true;
+	bool debug = false;
 	integer_test<FixedString{"-44i"}>(-44, debug);
 	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
 	integer_test<FixedString{"5i * -3i * -20i * 44i"}>(13200, debug);
