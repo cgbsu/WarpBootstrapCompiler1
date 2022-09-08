@@ -190,6 +190,17 @@ namespace Warp::Parsing
 				);
 		}
 
+		constexpr static const auto alias_value 
+				= constant(let_keyword, identifier, equal, identifier)
+				>= [](auto let_, auto name, auto equal_, auto value)
+				{
+					return ConstantType{
+							std::string{name}, 
+							OperationalValueTag::InferFromEvaluation, 
+							std::move(constant_call(std::string{std::string_view{value}.data()}))
+						};
+				};
+
 		consteval static const auto unique_rules()
 		{
 			return concatinate_tuples(
@@ -198,7 +209,10 @@ namespace Warp::Parsing
 					constant_from_math_term<FixedPointMathematicalParserType>(), 
 					constant_from_math_term<CharacterMathematicalParserType>(), 
 					constant_from_math_term<BoolMathematicalParserType>(), 
-					to_context_rules(constant)
+					to_context_rules(constant), 
+					ctpg::rules(
+							alias_value
+					)
 				);
 		}
 
@@ -223,25 +237,25 @@ namespace Warp::Parsing
 					
 	};
 
-		extern template class MathematicalExpressionParser<
-				FunctionDeclaritionTermsType, 
-				Warp::Runtime::Compiler::NumericTypeResolver, 
-				NumericTypeTag::Whole, 
-				NumericTypeTag::Whole, 
-				FixedString{"WholeTerm"}, 
-				FixedString{"WholeSum"}, 
-				FixedString{"WholeExpression"}
-			>;
+	extern template class MathematicalExpressionParser<
+			FunctionDeclaritionTermsType, 
+			Warp::Runtime::Compiler::NumericTypeResolver, 
+			NumericTypeTag::Whole, 
+			NumericTypeTag::Whole, 
+			FixedString{"WholeTerm"}, 
+			FixedString{"WholeSum"}, 
+			FixedString{"WholeExpression"}
+		>;
 
-		extern template class MathematicalExpressionParser<
-				FunctionDeclaritionTermsType, 
-				Warp::Runtime::Compiler::NumericTypeResolver, 
-				NumericTypeTag::Integer, 
-				NumericTypeTag::Integer, 
-				FixedString{"IntegerTerm"}, 
-				FixedString{"IntegerSum"}, 
-				FixedString{"IntegerExpression"}
-			>;
+	extern template class MathematicalExpressionParser<
+			FunctionDeclaritionTermsType, 
+			Warp::Runtime::Compiler::NumericTypeResolver, 
+			NumericTypeTag::Integer, 
+			NumericTypeTag::Integer, 
+			FixedString{"IntegerTerm"}, 
+			FixedString{"IntegerSum"}, 
+			FixedString{"IntegerExpression"}
+		>;
 
 	extern template class MathematicalExpressionParser<
 			FunctionDeclaritionTermsType, 

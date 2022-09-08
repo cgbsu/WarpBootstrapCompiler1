@@ -7,3 +7,15 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	}
 }
 
+namespace std
+{
+	using namespace Warp::SyntaxAnalysis::SyntaxTree;
+
+	template class std::unique_ptr<Node<NodeType::ConstantCall>>;
+
+	template std::unique_ptr<Node<NodeType::ConstantCall>> std::make_unique<
+			Node<NodeType::ConstantCall>
+		>(decltype(std::declval<std::string>()));
+
+}
+

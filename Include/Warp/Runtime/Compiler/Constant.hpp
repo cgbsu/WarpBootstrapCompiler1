@@ -9,6 +9,10 @@ namespace Warp::Runtime::Compiler
 {
 	using namespace Warp::SyntaxAnalysis::SyntaxTree;
 
+	enum class OperationalValueTag {
+		InferFromEvaluation
+	};
+
 	struct TypeTag
 	{
 		TypeTag(auto tag) : tag(std::in_place_type_t<CleanType<decltype(tag)>>{}, tag) {}

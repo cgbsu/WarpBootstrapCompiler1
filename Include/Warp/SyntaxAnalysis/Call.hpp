@@ -26,8 +26,19 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 			return SyntaxNode{*this};
 		}
 	};
+}
+
+namespace std
+{
+	using namespace Warp::SyntaxAnalysis::SyntaxTree;
 
 	extern template struct Node<NodeType::ConstantCall>;
+
+	extern template class std::unique_ptr<Node<NodeType::ConstantCall>>;
+
+	extern template std::unique_ptr<Node<NodeType::ConstantCall>> std::make_unique<
+			Node<NodeType::ConstantCall>
+		>(decltype(std::declval<std::string>()));
 }
 
 #endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__CALL__HPP
