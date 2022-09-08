@@ -197,7 +197,7 @@ namespace Warp::Parsing
 					return ConstantType{
 							std::string{name}, 
 							OperationalValueTag::InferFromEvaluation, 
-							std::move(constant_call(std::string{std::string_view{value}.data()}))
+							std::move(constant_call(std::string{std::string_view{value}}))
 						};
 				};
 
