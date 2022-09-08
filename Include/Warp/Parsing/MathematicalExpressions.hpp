@@ -218,15 +218,12 @@ namespace Warp::Parsing
 						std::move(node), 
 						std::move(other.node)
 					));
-				//return Term{value / other.value, is_negated(other)};
 			}
 			constexpr Term operator-() noexcept {
 				return Term(std::make_unique<Node<NodeType::Negation>>(std::move(node)));
-				//return Term{value, !negated};
 			}
 			constexpr Term as_negated() noexcept {
 				return Term(std::make_unique<Node<NodeType::Negation>>(std::move(node)));
-				//return Term{value, !negated};
 			}
 		};
 
@@ -462,7 +459,7 @@ namespace Warp::Parsing
 						auto call = constant_call(std::string{std::string_view{right}});
 						auto term = Term{std::move(call)};
 						return OperateParameterConstant(
-								left, 
+								std::move(left), 
 								std::move(term)
 							);
 					}
@@ -496,8 +493,8 @@ namespace Warp::Parsing
 						auto call = constant_call(std::string{std::string_view{left}});
 						auto term = Sum{std::move(call)};
 						return OperateParameterConstant(
-								term, 
-								right
+								std::move(term), 
+								std::move(right)
 							);
 					}
 				);
@@ -567,10 +564,10 @@ namespace Warp::Parsing
 							[](auto& left, auto& right) { return left - right; }
 						>(sum, subtract), 
 					right_identifier_operation_rules<
-							[](auto& left, auto right) { return left + right; }
+							[](auto left, auto right) { return left + right; }
 						>(sum, sum, add), 
 					right_identifier_operation_rules<
-							[](auto& left, auto right) { return left - right; }
+							[](auto left, auto right) { return left - right; }
 						>(sum, sum, subtract),
 					left_identifier_operation_rules<
 							Sum, 
@@ -580,33 +577,32 @@ namespace Warp::Parsing
 							Sum, 
 							[](auto left, auto right) { return left - right; }
 						>(sum, subtract), 
-					//left_identifier_term_operation_rules<
-					//		[](auto& left, auto right) { return left + right; }
-					//	>(sum, add), 
-					//left_identifier_term_operation_rules<
-					//		[](auto& left, auto right) { return left - right; }
-					//	>(sum, subtract), 
-				//
-					//right_identifier_operation_rules<
-					//		[](auto& left, auto& right)
-					//		{ 
-					//			return Sum{
-					//					left, 
-					//					OperationHolder<NodeType::Subtract>{}, 
-					//					right
-					//				};
-					//		}
-					//	>(sum, math_term, add), 
-					//right_identifier_operation_rules<
-					//		[](auto& left, auto& right)
-					//		{ 
-					//			return Sum{
-					//					left, 
-					//					OperationHolder<NodeType::Subtract>{}, 
-					//					right
-					//				};
-					//		}
-					//	>(sum, math_term, subtract), 
+					left_identifier_term_operation_rules<
+							[](auto left, auto right) { return left + right; }
+						>(sum, add), 
+					left_identifier_term_operation_rules<
+							[](auto left, auto right) { return left - right; }
+						>(sum, subtract), 
+					right_identifier_operation_rules<
+							[](auto left, auto right)
+							{ 
+								return Sum{
+										left, 
+										OperationHolder<NodeType::Add>{}, 
+										right
+									};
+							}
+						>(sum, math_term, add), 
+					right_identifier_operation_rules<
+							[](auto left, auto right)
+							{ 
+								return Sum{
+										left, 
+										OperationHolder<NodeType::Subtract>{}, 
+										right
+									};
+							}
+						>(sum, math_term, subtract), 
 					term_operation_reduction<
 							[](auto& left, auto& right) { return left * right; }
 						>(math_term, multiply), 
@@ -623,16 +619,16 @@ namespace Warp::Parsing
 							Term, 
 							[](auto left, auto right) { return left * right; }
 						>(math_term, multiply), 
-					//right_identifier_operation_rules<
-					//		[](auto& left, auto right) { return left * right; }
-					//	>(math_term, math_term, multiply), 
+					right_identifier_operation_rules<
+							[](auto left, auto right) { return left * right; }
+						>(math_term, math_term, multiply), 
 					left_identifier_operation_rules<
 							Term, 
 							[](auto left, auto right) { return left / right; }
 						>(math_term, divide), 
-					//right_identifier_operation_rules<
-					//		[](auto& left, auto right) { return left / right; }
-					//	>(math_term, math_term, divide), 
+					right_identifier_operation_rules<
+							[](auto left, auto right) { return left / right; }
+						>(math_term, math_term, divide), 
 					from_parenthesis(), 
 					ctpg::rules(
 							input_to_math_term, 

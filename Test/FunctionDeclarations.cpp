@@ -322,7 +322,7 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 
 TEST(FunctionDeclarations, UseConstansInConstants)
 {
-	bool debug = true;
+	bool debug = false;
 	//NumericParserType::parser.write_diag_str(std::cerr);
 	//check_context_constant<
 	//		FixedString{
@@ -338,6 +338,13 @@ TEST(FunctionDeclarations, UseConstansInConstants)
 	//			}, 
 	//		NumericTypeTag::Whole
 	//	>({"Fourty", "NotTheAnswer"}, std::vector{40u, 40u}, debug);
+	//
+	//
+	//
+	//
+	//
+	//
+	//
 	check_context_constant<
 			FixedString{
 					"let HalfAnswer = 21u;\n"
@@ -352,6 +359,7 @@ TEST(FunctionDeclarations, UseConstansInConstants)
 				}, 
 			NumericTypeTag::Whole
 		>({"TheAnswer", "HalfAnswer"}, std::vector{42u, 21u}, debug);
+	debug = true;
 	check_context_constant<
 			FixedString{
 					"let Fourty = 2u * 20u;\n"
@@ -362,7 +370,7 @@ TEST(FunctionDeclarations, UseConstansInConstants)
 	check_context_constant<
 			FixedString{
 					"let Fourty = 2u * 20u;\n"
-					"let TheAnswer = 2u + Fourty ;\n"
+					"let TheAnswer = 2u + Fourty;\n"
 				}, 
 			NumericTypeTag::Whole
 		>({"TheAnswer", "Fourty"}, std::vector{42u, 40u}, debug);

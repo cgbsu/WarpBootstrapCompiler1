@@ -92,13 +92,12 @@ namespace Warp::Parsing
 				FixedString{"BoolExpression"}
 			>;
 
-		//using TermsType = ThisTermsType;
 		using TermsType = decltype(
 				IntermediateTermsType::append_terms(
 						typename WholeMathematicalParserType::UniqueTermsType{}, 
-						//typename IntegerMathematicalParserType::UniqueTermsType{}, 
-						//typename FixedPointMathematicalParserType::UniqueTermsType{}, 
-						//typename CharacterMathematicalParserType::UniqueTermsType{}, 
+						typename IntegerMathematicalParserType::UniqueTermsType{}, 
+						typename FixedPointMathematicalParserType::UniqueTermsType{}, 
+						typename CharacterMathematicalParserType::UniqueTermsType{}, 
 						typename BoolMathematicalParserType::UniqueTermsType{}
 				)
 			);
@@ -126,9 +125,9 @@ namespace Warp::Parsing
 
 		constexpr static const auto terms = concatinate_tuples(
 				WholeMathematicalParserType::terms, // Using this to include NumericLiteral/all previous terms
-				//IntegerMathematicalParserType::unique_terms, 
-				//FixedPointMathematicalParserType::unique_terms, 
-				//CharacterMathematicalParserType::unique_terms, 
+				IntegerMathematicalParserType::unique_terms, 
+				FixedPointMathematicalParserType::unique_terms, 
+				CharacterMathematicalParserType::unique_terms, 
 				BoolMathematicalParserType::unique_terms, 
 				unique_terms
 			);
@@ -195,9 +194,9 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					constant_from_math_term<WholeMathematicalParserType>(), 
-					//constant_from_math_term<IntegerMathematicalParserType>(), 
-					//constant_from_math_term<FixedPointMathematicalParserType>(), 
-					//constant_from_math_term<CharacterMathematicalParserType>(), 
+					constant_from_math_term<IntegerMathematicalParserType>(), 
+					constant_from_math_term<FixedPointMathematicalParserType>(), 
+					constant_from_math_term<CharacterMathematicalParserType>(), 
 					constant_from_math_term<BoolMathematicalParserType>(), 
 					to_context_rules(constant)
 				);
@@ -207,9 +206,9 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples( 
 					WholeMathematicalParserType::rules(), // Including NumericLiteral/all previous rules
-					//IntegerMathematicalParserType::unique_rules(), 
-					//FixedPointMathematicalParserType::unique_rules(), 
-					//CharacterMathematicalParserType::unique_rules(), 
+					IntegerMathematicalParserType::unique_rules(), 
+					FixedPointMathematicalParserType::unique_rules(), 
+					CharacterMathematicalParserType::unique_rules(), 
 					BoolMathematicalParserType::unique_rules(), 
 					unique_rules()
 				);
@@ -223,6 +222,57 @@ namespace Warp::Parsing
 			);
 					
 	};
+
+		extern template class MathematicalExpressionParser<
+				FunctionDeclaritionTermsType, 
+				Warp::Runtime::Compiler::NumericTypeResolver, 
+				NumericTypeTag::Whole, 
+				NumericTypeTag::Whole, 
+				FixedString{"WholeTerm"}, 
+				FixedString{"WholeSum"}, 
+				FixedString{"WholeExpression"}
+			>;
+
+		extern template class MathematicalExpressionParser<
+				FunctionDeclaritionTermsType, 
+				Warp::Runtime::Compiler::NumericTypeResolver, 
+				NumericTypeTag::Integer, 
+				NumericTypeTag::Integer, 
+				FixedString{"IntegerTerm"}, 
+				FixedString{"IntegerSum"}, 
+				FixedString{"IntegerExpression"}
+			>;
+
+	extern template class MathematicalExpressionParser<
+			FunctionDeclaritionTermsType, 
+			Warp::Runtime::Compiler::NumericTypeResolver, 
+			NumericTypeTag::FixedPoint, 
+			NumericTypeTag::FixedPoint, 
+			FixedString{"FixedPointTerm"}, 
+			FixedString{"FixedPointSum"}, 
+			FixedString{"FixedPointExpression"}
+		>;
+
+	extern template class MathematicalExpressionParser<
+			FunctionDeclaritionTermsType, 
+			Warp::Runtime::Compiler::NumericTypeResolver, 
+			NumericTypeTag::Character, 
+			NumericTypeTag::Character, 
+			FixedString{"CharacterTerm"}, 
+			FixedString{"CharacterSum"}, 
+			FixedString{"CharacterExpression"}
+		>;
+
+	extern template class MathematicalExpressionParser<
+			FunctionDeclaritionTermsType, 
+			Warp::Runtime::Compiler::NumericTypeResolver, 
+			NumericTypeTag::Bool, 
+			NumericTypeTag::Bool, 
+			FixedString{"BoolTerm"}, 
+			FixedString{"BoolSum"}, 
+			FixedString{"BoolExpression"}
+		>;
+
 	extern template class FunctionDeclarationParser<
 			FunctionDeclaritionTermsType, 
 			NumericTypeResolver, 

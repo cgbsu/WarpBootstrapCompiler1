@@ -8,7 +8,11 @@ set(MAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 
 # -time -save-temps 
-add_compile_options(-fconstexpr-ops-limit=3355443299 -fconstexpr-depth=2048 -fconcepts-diagnostics-depth=2 -ftemplate-depth=10000
+add_compile_options(
+		-fconstexpr-ops-limit=3355443299 
+		-fconstexpr-depth=1280#2048 
+		-fconcepts-diagnostics-depth=2 
+		-ftemplate-depth=10000
 		-frounding-math # Required by boost::interval
 	)#-g  -ggdb) #-fsanitize=leak) #-fsanitize=address)
 
