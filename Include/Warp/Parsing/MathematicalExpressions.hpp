@@ -66,7 +66,7 @@ namespace Warp::Parsing
 							//"[a-zA-Z_][a-zA-Z_0-9]+"
 		//					//"(?!(u|xp|i|c|bl)[0-9]+)
 		//					//"[a-zA-Z_][a-zA-Z_0-9]*"
-							"([a-zA-Z_]{4}[a-zA-Z_0-9]*)"
+							"([a-zA-Z_]{5}[a-zA-Z_0-9]*)"
 									//"|([a-zA-Z_]{2})"
 									//"|([a-zA-Z_]{1})"
 						}, 
@@ -158,6 +158,10 @@ namespace Warp::Parsing
 			SyntaxNode node;
 		};
 
+		struct IdentifierWrapper { // Disambiguiator from std::string
+			std::string name;
+		};
+
 		struct Term
 		{
 			SyntaxNode node;
@@ -185,6 +189,20 @@ namespace Warp::Parsing
 				return Term(std::make_unique<Node<NodeType::Divide>>(
 						std::move(node), 
 						literal_node(other)
+					));
+			}
+			constexpr Term operator*(IdentifierWrapper other) noexcept
+			{
+				return Term(std::make_unique<Node<NodeType::Multiply>>(
+						std::move(node), 
+						constant_call(other.name)
+					));
+			}
+			constexpr Term operator/(IdentifierWrapper other) noexcept
+			{
+				return Term(std::make_unique<Node<NodeType::Divide>>(
+						std::move(node), 
+						constant_call(other.name)
 					));
 			}
 			constexpr Term operator*(Term& other) noexcept
@@ -238,9 +256,33 @@ namespace Warp::Parsing
 			   			std::move(right.node)
 					)) {}
 			template<NodeType OperateParameterConstant>
-			constexpr Sum(Term& left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
+			constexpr Sum(std::string left, OperationHolder<OperateParameterConstant>, std::string right) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						constant_call(left), 
+						constant_call(right)
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(std::string left, OperationHolder<OperateParameterConstant>, Term& right) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						constant_call(left), 
+						std::move(right.node)
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(Term& left, OperationHolder<OperateParameterConstant>, std::string right) noexcept 
 				: node(std::make_unique<Node<OperateParameterConstant>>(
 						std::move(left.node), 
+						constant_call(right)
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(InputType& left, OperationHolder<OperateParameterConstant>, std::string right) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						literal_node(left), 
+						constant_call(right)
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(std::string left, OperationHolder<OperateParameterConstant>, InputType right) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						constant_call(right), 
 						literal_node(right)
 					)) {}
 			constexpr Sum() noexcept = default;
@@ -262,6 +304,20 @@ namespace Warp::Parsing
 				return Sum(std::make_unique<Node<NodeType::Subtract>>(
 						std::move(node), 
 						literal_node(other)
+					));
+			}
+			constexpr Sum operator+(std::string other) noexcept
+			{
+				return Sum(std::make_unique<Node<NodeType::Add>>(
+						std::move(node), 
+						std::move(std::make_unique<Node<NodeType::ConstantCall>>(other))
+					));
+			}
+			constexpr Sum operator-(std::string other) noexcept
+			{
+				return Sum(std::make_unique<Node<NodeType::Subtract>>(
+						std::move(node), 
+						std::move(std::make_unique<Node<NodeType::ConstantCall>>(other))
 					));
 			}
 			constexpr Sum operator+(Term& other) noexcept
@@ -352,15 +408,18 @@ namespace Warp::Parsing
 					), 
 				unique_terms
 			); 
+
 		constexpr static const auto unique_non_terminal_terms = ctpg::nterms( 
 				sum, 
 				math_term, 
 				expression
 			); 
+
 		constexpr static const auto non_terminal_terms = std::tuple_cat(
 				BaseType::non_terminal_terms, 
 				unique_non_terminal_terms
 			); 
+
 		template<auto OperateParameterConstant> 
 		consteval static const auto term_operation_reduction(auto operation_term, auto operator_term) {
 				return ctpg::rules(
@@ -379,10 +438,12 @@ namespace Warp::Parsing
 								operation_term(operation_term, operator_term, math_term) 
 								>= [](auto left, auto, auto right) {
 									return ProductOperateParameterConstant(left, right);
-								}));
+								}
+							));
 		}
 		template<auto OperateParameterConstant>
-		consteval static const auto input_operation_rules(auto operation_term, auto operator_term) {
+		consteval static const auto input_operation_rules(auto operation_term, auto operator_term)
+		{
 			return ctpg::rules(
 					operation_term(operation_term, operator_term, input)
 					>= [](auto left, auto, auto right) {
@@ -390,22 +451,73 @@ namespace Warp::Parsing
 					}
 				);
 		}
+
+		template<auto OperateParameterConstant>
+		consteval static const auto right_identifier_operation_rules(auto to_term, auto from_term, auto operator_term)
+		{
+			return ctpg::rules(
+					to_term(from_term, operator_term, identifier)
+					>= [](auto left, auto, auto right)
+					{
+						auto call = constant_call(std::string{std::string_view{right}});
+						auto term = Term{std::move(call)};
+						return OperateParameterConstant(
+								left, 
+								std::move(term)
+							);
+					}
+				);
+		}
+
+		template<typename NodeConsumeParameterType, auto OperateParameterConstant>
+		consteval static const auto left_identifier_operation_rules(auto operation_term, auto operator_term)
+		{
+			return ctpg::rules(
+					operation_term(identifier, operator_term, input)
+					>= [](auto left, auto, auto right)
+					{
+						auto call = constant_call(std::string{std::string_view{left}});
+						auto term = NodeConsumeParameterType{std::move(call)};
+						return OperateParameterConstant(
+								std::move(term), 
+								std::move(right)
+							);
+					}
+				);
+		}
+
+		template<auto OperateParameterConstant>
+		consteval static const auto left_identifier_term_operation_rules(auto operation_term, auto operator_term)
+		{
+			return ctpg::rules(
+					operation_term(identifier, operator_term, math_term)
+					>= [](auto left, auto, auto right)
+					{
+						auto call = constant_call(std::string{std::string_view{left}});
+						auto term = Sum{std::move(call)};
+						return OperateParameterConstant(
+								term, 
+								right
+							);
+					}
+				);
+		}
+
 		consteval static const auto from_parenthesis()
 		{
 			return ctpg::rules(
 					math_term(open_parenthesis, math_term, close_parenthesis)
 					>= [](auto left, auto term, auto right) { return std::move(term); },
 					math_term(open_parenthesis, sum, close_parenthesis)
-					>= [](auto left, auto sum, auto right) { return Term{std::move(sum.node)}; }
+					>= [](auto left, auto sum, auto right) { return Term{std::move(sum.node)}; }, 
+					math_term(open_parenthesis, identifier, close_parenthesis)
+					>= [](auto left, auto sum, auto right) { return Term{std::move(constant_call(std::string{right}))}; }
 				);
 		}
 
 		constexpr static const auto identifier_to_math_term
-				= math_term(identifier) >= [](auto identifier)
-				{
-					return std::move(Term{std::move(
-							std::make_unique<Node<NodeType::ConstantCall>>(std::string{identifier})
-						)});
+				= math_term(identifier) >= [](auto identifier) {
+					return constant_call(std::string{identifier});
 				};
 
 		constexpr static const auto input_to_math_term 
@@ -451,9 +563,50 @@ namespace Warp::Parsing
 										OperationHolder<NodeType::Subtract>{}, 
 										right
 									};
-								}, 
+							}, 
 							[](auto& left, auto& right) { return left - right; }
 						>(sum, subtract), 
+					right_identifier_operation_rules<
+							[](auto& left, auto right) { return left + right; }
+						>(sum, sum, add), 
+					right_identifier_operation_rules<
+							[](auto& left, auto right) { return left - right; }
+						>(sum, sum, subtract),
+					left_identifier_operation_rules<
+							Sum, 
+							[](auto left, auto right) { return left + right; }
+						>(sum, add), 
+					left_identifier_operation_rules<
+							Sum, 
+							[](auto left, auto right) { return left - right; }
+						>(sum, subtract), 
+					//left_identifier_term_operation_rules<
+					//		[](auto& left, auto right) { return left + right; }
+					//	>(sum, add), 
+					//left_identifier_term_operation_rules<
+					//		[](auto& left, auto right) { return left - right; }
+					//	>(sum, subtract), 
+				//
+					//right_identifier_operation_rules<
+					//		[](auto& left, auto& right)
+					//		{ 
+					//			return Sum{
+					//					left, 
+					//					OperationHolder<NodeType::Subtract>{}, 
+					//					right
+					//				};
+					//		}
+					//	>(sum, math_term, add), 
+					//right_identifier_operation_rules<
+					//		[](auto& left, auto& right)
+					//		{ 
+					//			return Sum{
+					//					left, 
+					//					OperationHolder<NodeType::Subtract>{}, 
+					//					right
+					//				};
+					//		}
+					//	>(sum, math_term, subtract), 
 					term_operation_reduction<
 							[](auto& left, auto& right) { return left * right; }
 						>(math_term, multiply), 
@@ -466,13 +619,27 @@ namespace Warp::Parsing
 					input_operation_rules<
 							[](auto& left, auto& right) { return left / right; }
 						>(math_term, divide), 
+					left_identifier_operation_rules<
+							Term, 
+							[](auto left, auto right) { return left * right; }
+						>(math_term, multiply), 
+					//right_identifier_operation_rules<
+					//		[](auto& left, auto right) { return left * right; }
+					//	>(math_term, math_term, multiply), 
+					left_identifier_operation_rules<
+							Term, 
+							[](auto left, auto right) { return left / right; }
+						>(math_term, divide), 
+					//right_identifier_operation_rules<
+					//		[](auto& left, auto right) { return left / right; }
+					//	>(math_term, math_term, divide), 
 					from_parenthesis(), 
 					ctpg::rules(
 							input_to_math_term, 
 							negated_input_to_math_term, 
 							sum_to_expression, 
-							math_term_to_expression, 
-							identifier_to_math_term
+							math_term_to_expression//, 
+							//identifier_to_math_term
 						)
 				);
 		}

@@ -19,19 +19,6 @@ using BoolType = NumericTypeResolver<NumericTypeTag::Bool>::Type;
 using NumericConstantType = Constant<SyntaxNode, NumericTypeTag>;
 using NumericContexType = std::unordered_map<std::string, NumericConstantType>;
 
-// Test instantiation //
-template struct FunctionDeclarationParser<
-		FunctionDeclaritionTermsType, 
-		NumericTypeResolver, 
-		NumericTypeTag
-	>;
-
-using NumericParserType = FunctionDeclarationParser<
-		FunctionDeclaritionTermsType, 
-		NumericTypeResolver, 
-		NumericTypeTag
-	>;
-
 template<auto TypeTagParameterConstant>
 auto retrieve_constant(const OptionalConcept auto& context, std::string name, bool debug)
 {
@@ -335,12 +322,49 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 
 TEST(FunctionDeclarations, UseConstansInConstants)
 {
+	bool debug = true;
+	//NumericParserType::parser.write_diag_str(std::cerr);
 	//check_context_constant<
 	//		FixedString{
 	//				"let Fourty = 2u * 20u;\n"
-	//				"let TheAnswer = Fourty + 2u;\n"
+	//				"let NotTheAnswer = Fourty;\n"
 	//			}, 
 	//		NumericTypeTag::Whole
-	//	>({"Fourty"}, std::vector{42u}, debug);
+	//	>({"Fourty"}, std::vector{40u}, debug);
+	//check_context_constant<
+	//		FixedString{
+	//				"let Fourty = 2u * 20u;\n"
+	//				"let NotTheAnswer = Fourty;\n"
+	//			}, 
+	//		NumericTypeTag::Whole
+	//	>({"Fourty", "NotTheAnswer"}, std::vector{40u, 40u}, debug);
+	check_context_constant<
+			FixedString{
+					"let HalfAnswer = 21u;\n"
+					"let TheAnswer = 2u * HalfAnswer;\n"
+				}, 
+			NumericTypeTag::Whole
+		>({"TheAnswer", "HalfAnswer"}, std::vector{42u, 21u}, debug);
+	check_context_constant<
+			FixedString{
+					"let HalfAnswer = 21u;\n"
+					"let TheAnswer = HalfAnswer * 2u;\n"
+				}, 
+			NumericTypeTag::Whole
+		>({"TheAnswer", "HalfAnswer"}, std::vector{42u, 21u}, debug);
+	check_context_constant<
+			FixedString{
+					"let Fourty = 2u * 20u;\n"
+					"let TheAnswer = Fourty + 2u;\n"
+				}, 
+			NumericTypeTag::Whole
+		>({"TheAnswer", "Fourty"}, std::vector{42u, 40u}, debug);
+	check_context_constant<
+			FixedString{
+					"let Fourty = 2u * 20u;\n"
+					"let TheAnswer = 2u + Fourty ;\n"
+				}, 
+			NumericTypeTag::Whole
+		>({"TheAnswer", "Fourty"}, std::vector{42u, 40u}, debug);
 };
 
