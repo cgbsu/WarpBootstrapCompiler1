@@ -11,10 +11,12 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 	- [x] Mark bit precision of each variable
 	- [x] Make it so fixed-points do not have to specify their base after decimal
 	- [x] A few more ways to write fixed-points
- - [ ] Evaluate mathematical-expressions (in a type-safe way)
-	- [ ] Addition/Subtraction
-	- [ ] Muiltiplication/Division
-	- [ ] Parenthesis Prioritization
+ - [x] Evaluate mathematical-expressions (in a type-safe way)
+	- [x] Addition/Subtraction
+	- [x] Muiltiplication/Division
+	- [x] Parenthesis Prioritization
+	- [x] Constants (Functions of Zero Parameters)
+	- [ ] Function Calls
 	- [ ] Bitwise?
  - [ ] Evaluate boolean-expressions
  - [ ] Evaluate compile-time functions
@@ -25,17 +27,24 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 	- [x] Literals
 	- [ ] Mathematical Expressions
 		- [x] Negation (No Calls/Constants)
-		- [ ] Negation (Calls/Constants)
+		- [x] Negation (Constant Calls)
+		- [ ] Negation (Calls)
 		- [x] Addition/Subtraction (No Calls/Constants)
-		- [ ] Addition/Subtraction (Calls/Constants)
+		- [x] Addition/Subtraction (Constants Calls)
+		- [ ] Addition/Subtraction (Calls)
 		- [x] Multiplication/Division (No Calls/Constants)
-		- [ ] Multiplication/Division (Calls/Constants)
+		- [x] Multiplication/Division (Constant Calls)
+		- [ ] Multiplication/Division (Calls)
 		- [x] Parenthesis Prioritization
 		- [ ] Bitwise?
 	- [ ] Boolean expressions
 	- [ ] Functions
 		- [ ] Function calls
+		- [x] Declare constants (functions of zero parameters)
+		- [x] Constant calls
  - [ ] Compile Time evaluation
+		- [x] Up to current feature set
+		- [ ] Of Functions
  - [ ] Compilation
  - [ ] Interopability C/"C ABI"
  - [ ] Interopability C++
