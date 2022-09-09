@@ -148,6 +148,14 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	BINARY_OPERATOR(Add, +);
 	BINARY_OPERATOR(Subtract, -);
 
+	BINARY_OPERATOR(GreaterThan, >);
+	BINARY_OPERATOR(LessThan, <);
+	BINARY_OPERATOR(GreaterThanOrEqualTo, >=);
+	BINARY_OPERATOR(LessThankOrEqualTo, <=);
+	BINARY_OPERATOR(Equal, ==);
+	BINARY_OPERATOR(LogicalAnd, &&);
+	BINARY_OPERATOR(LogicalOr, ||);
+
 	#undef BINARY_OPERATOR
 
 	template<typename ReduceToParameterType>
@@ -207,6 +215,29 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	};
 
 	template<typename ReduceToParameterType>
+	struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
+	{
+		using ReduceToType = ReduceToParameterType;
+		std::optional<ReduceToType> value;
+		Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
+				: value(retrieve_value<ReduceToType>(node->root.get(), debug)) {
+			if(debug == true)
+				std::cout << "Logical Expression, has value? " << value.has_value() << "\n";
+		}
+		Executor(const auto* context, const Node<NodeType::LogicalExpression>* node, bool debug) 
+				: value(retrieve_value<ReduceToType>(context, node->root.get(), debug)) {
+			if(debug == true)
+				std::cout << "Logical Expression, has value? " << value.has_value() << "\n";
+		}
+		std::optional<ReduceToType> to_value() {
+			return value;
+		}
+		operator std::optional<ReduceToType>() {
+			return to_value();
+		}
+	};
+
+	template<typename ReduceToParameterType>
 	struct Executor<ReduceToParameterType, NodeType::ConstantCall>
 	{
 		using ReduceToType = ReduceToParameterType;
@@ -221,6 +252,39 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 			if(debug == true)
 				std::cout << "Constant Call for " << node->name << " , has value? " << value.has_value() << "\n";
 		}
+		std::optional<ReduceToType> to_value() {
+			return value;
+		}
+		operator std::optional<ReduceToType>() {
+			return to_value();
+		}
+	};
+
+	template<typename ReduceToParameterType>
+	struct Executor<ReduceToParameterType, NodeType::LogicalNot>
+	{
+		using ReduceToType = ReduceToParameterType;
+		std::optional<ReduceToType> absolute_value, value;
+		Executor(const Node<NodeType::LogicalNot>* node, bool debug) 
+				: absolute_value(retrieve_value<ReduceToType>(node->negated.get(), debug)), 
+				value(
+						(absolute_value.has_value() == true)
+								? std::optional{!absolute_value.value()}
+								: std::nullopt
+					) {
+				if(debug == true)
+					std::cout << "Negation, has value? " << value.has_value() << "\n";
+			}
+		Executor(const auto* context, const Node<NodeType::LogicalNot>* node, bool debug) 
+				: absolute_value(retrieve_value<ReduceToType>(context, node->negated.get(), debug)), 
+				value(
+						(absolute_value.has_value() == true)
+								? std::optional{!absolute_value.value()}
+								: std::nullopt
+					) {
+				if(debug == true)
+					std::cout << "Negation, has value? " << absolute_value.has_value() << "\n";
+			}
 		std::optional<ReduceToType> to_value() {
 			return value;
 		}

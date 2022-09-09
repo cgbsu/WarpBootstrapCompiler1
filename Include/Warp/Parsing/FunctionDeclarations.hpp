@@ -127,9 +127,6 @@ namespace Warp::Parsing
 		constexpr static const auto unique_terms = ctpg::terms(
 				let_keyword, 
 				equal, 
-				//identifier, 
-				//open_parenthesis, 
-				//close_parenthesis, 
 				semi_colon
 			); 
 
@@ -308,8 +305,8 @@ namespace Warp::Parsing
 			NumericTypeResolver, 
 			NumericTypeTag
 		>;
-
 }
+
 
 #endif // WARP__PARSING__HEADER__PARSING__FUNCTION__DECLARATIONS__HPP
 

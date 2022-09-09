@@ -1,5 +1,6 @@
 #include <Warp/SyntaxAnalysis/NumericLiterals.hpp>
 #include <Warp/SyntaxAnalysis/MathematicalExpressions.hpp>
+#include <Warp/SyntaxAnalysis/LogicalExpression.hpp>
 #include <Warp/SyntaxAnalysis/SyntaxTree.hpp>
 
 #ifndef WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__NODE__HPP
@@ -15,6 +16,14 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 	SyntaxNode literal_node(NumericTypeResolver<NumericTypeTag::Bool>::Type value);
 
 	SyntaxNode constant_call(std::string name);
+
+	template<NodeType NodeTypeParameterConstant>
+	SyntaxNode binary_node(SyntaxNode left, SyntaxNode right)
+	{
+		return std::make_unique<
+				Node<NodeTypeParameterConstant>
+			>(std::move(left), std::move(right));
+	}
 }
 
 #endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__NODE__HPP
