@@ -31,7 +31,7 @@ namespace Warp::Parsing
 
 
 
-	using MathematicalExpressionTermsType = NumericLiteralTermsType
+	using MathematicalExpressionTermsType_ = NumericLiteralTermsType
 		::Prepend<
 			TreeTerm<
 					MathematicalExpression::Multiply, 
@@ -106,6 +106,16 @@ namespace Warp::Parsing
 					FixedString{"ConstantCall"}
 				>
 			>;
+
+	template<>
+	struct TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms> {
+		using Type = MathematicalExpressionTermsType_;
+		Type terms;
+	};
+
+	extern template class TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms>;
+
+	using MathematicalExpressionTermsType = TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms>::Type;
 
 	template<
 			typename TermsParameterType, 

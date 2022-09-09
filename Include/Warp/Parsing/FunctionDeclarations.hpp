@@ -6,7 +6,7 @@
 namespace Warp::Parsing
 {
 
-	using FunctionDeclaritionTermsType = MathematicalExpressionTermsType
+	using FunctionDeclaritionTermsType_ = MathematicalExpressionTermsType
 		::Prepend<
 			TreeTerm<
 					MultiPurposeOperator::Equal, 
@@ -27,6 +27,16 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>
 		>;
+
+	template<>
+	struct TemplateInstantiator<TemplateInstantiationTag::FunctionDeclarationTerms> {
+		using Type = FunctionDeclaritionTermsType_;
+		Type terms;
+	};
+
+	extern template class TemplateInstantiator<TemplateInstantiationTag::FunctionDeclarationTerms>;
+
+	using FunctionDeclaritionTermsType = TemplateInstantiator<TemplateInstantiationTag::FunctionDeclarationTerms>::Type;
 
 	template<
 			typename TermsParameterType, 
@@ -298,6 +308,7 @@ namespace Warp::Parsing
 			NumericTypeResolver, 
 			NumericTypeTag
 		>;
+
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__FUNCTION__DECLARATIONS__HPP

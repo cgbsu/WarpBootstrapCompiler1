@@ -36,7 +36,7 @@ namespace Warp::Parsing
 	};
 	
 
-	using NumericLiteralTermsType = TypeTerms::FlatMerge<MakeTerms<
+	using NumericLiteralTermsType_ = TypeTerms::FlatMerge<MakeTerms<
 			TreeTerm<
 					NumericLiteral::Minus, 
 					CharTerm, 
@@ -154,6 +154,16 @@ namespace Warp::Parsing
 					ctpg::associativity::no_assoc
 				>
 			>>;
+	
+	template<>
+	struct TemplateInstantiator<TemplateInstantiationTag::NumericTerms> {
+		using Type = NumericLiteralTermsType_;
+		Type terms;
+	};
+
+	extern template class TemplateInstantiator<TemplateInstantiationTag::NumericTerms>;
+
+	using NumericLiteralTermsType = TemplateInstantiator<TemplateInstantiationTag::NumericTerms>::Type;
 
 	template<typename TermsParameterType = NumericLiteralTermsType, 
 			template<auto> typename TypeResolverParameterTemplate = NumericTypeResolver>
@@ -592,6 +602,7 @@ namespace Warp::Parsing
 				);
 		}
 	};
+
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__NUMERIC__LITERALS__HPP

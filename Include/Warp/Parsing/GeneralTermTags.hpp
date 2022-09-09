@@ -42,6 +42,27 @@ namespace Warp::Parsing
 	enum class Call {
 		Constant
 	};
+
+	enum class TemplateInstantiationTag
+	{
+		TypeTerms, 
+		NumericTerms, 
+		MathematicalExpressionTerms, 
+		FunctionDeclarationTerms,	
+		BooleanTerms
+	};
+
+	template<TemplateInstantiationTag TagParameterConstant>
+	struct TemplateInstantiator {
+		constexpr static const auto tag = TagParameterConstant;
+		constexpr static const bool has_value = false;
+	};
+
+	//extern template class TemplateInstantiator<TemplateInstantiationTag::TypeTerms>;
+	//extern template class TemplateInstantiator<TemplateInstantiationTag::NumericTerms>;
+	//extern template class TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms>;
+	//extern template class TemplateInstantiator<TemplateInstantiationTag::FunctionDeclarationTerms>;
+	//extern template class TemplateInstantiator<TemplateInstantiationTag::BooleanTerms>;
 }
 #endif // WARP__PARSING__HEADER__PARSING__GENERAL__TERM__TAGS__HPP
 

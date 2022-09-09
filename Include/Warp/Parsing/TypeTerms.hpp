@@ -2,14 +2,16 @@
 #include <Warp/Parsing/Terms.hpp>
 #include <Warp/Utilities.hpp>
 #include <Warp/Runtime/Compiler/NumericType.hpp>
+#include <Warp/Parsing/GeneralTermTags.hpp>
 
 #ifndef WARP__PARSING__HEADER__PARSING__TYPE__TERMS__HPP
 #define WARP__PARSING__HEADER__PARSING__TYPE__TERMS__HPP
 
 namespace Warp::Parsing
 {
+	
 	using namespace Warp::Runtime::Compiler;
-	using TypeTerms = MakeTerms<
+	using TypeTerms_ = MakeTerms<
 			TypeTreeTerm<
 					NumericTypeTag::FixedPoint, 
 					NonTerminalTerm, 
@@ -47,6 +49,16 @@ namespace Warp::Parsing
 					FixedString{"Bool"}
 				>
 		>;
+
+		template<>
+		struct TemplateInstantiator<TemplateInstantiationTag::TypeTerms> {
+			using Type = TypeTerms_;
+			Type terms;
+		};
+
+		extern template class TemplateInstantiator<TemplateInstantiationTag::TypeTerms>;
+		
+		using TypeTerms = TemplateInstantiator<TemplateInstantiationTag::TypeTerms>::Type;
 }
 
 #endif // WARP__PARSING__HEADER__PARSING__TYPE__TERMS__HPP

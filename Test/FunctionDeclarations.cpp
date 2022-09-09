@@ -119,6 +119,7 @@ TEST_GROUP(FunctionDeclarations) {};
 TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 {
 	bool debug = false;
+	// For postarity
 	//check_constant<
 	//		FixedString{"let TheQuestion = 42u"}, 
 	//		Construct::Constant

@@ -42,5 +42,7 @@ namespace Warp::Parsing
 					NumericTypeTag::Bool, 
 					NumericTypeTag::Bool
 			>;
+
+	template class TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms>;
 }
 
