@@ -41,7 +41,7 @@ namespace Warp::Runtime::Compiler
 
 
 		constexpr NumericType() noexcept 
-				: number(0), bits(default_bits) {}
+				: number(zero().number), bits(default_bits) {}
 		constexpr NumericType(const UnderylingType number, size_t bits = default_bits) noexcept 
 				: number(number), bits(bits) {}
 		constexpr NumericType(const std::string_view numeric_string_representation, size_t bits = default_bits) noexcept 
@@ -52,7 +52,7 @@ namespace Warp::Runtime::Compiler
 		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
 		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
 
-		constexpr static const auto zero() {
+		constexpr static const ThisType zero() {
 			return ThisType{UnderylingType{0}};
 		}
 
@@ -122,7 +122,7 @@ namespace Warp::Runtime::Compiler
 		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
 		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
 
-		constexpr static const auto zero() {
+		constexpr static const ThisType zero() {
 			return ThisType{0, 0};
 		}
 
@@ -183,6 +183,99 @@ namespace Warp::Runtime::Compiler
 		}
 	};
 
+	template<>
+	struct NumericType<NumericTypeTag::Bool, WarpBool>
+	{
+		using UnderylingType = WarpBool;
+		constexpr static const NumericTypeTag type = NumericTypeTag::Bool;
+		using ThisType = NumericType<type, UnderylingType>;
+
+		constexpr static const bool fixed_point_type = false;
+		constexpr static const size_t default_bits = sizeof(UnderylingType) * CHAR_BIT;
+
+		UnderylingType number; // This would be const, but CTPG requires it this object be writable. //
+		size_t bits = default_bits;
+
+
+		constexpr NumericType() noexcept 
+				: number(zero().number), bits(default_bits) {}
+		constexpr NumericType(const UnderylingType number, size_t bits = default_bits) noexcept 
+				: number(number), bits(bits) {}
+		constexpr NumericType(const bool number, size_t bits = default_bits) noexcept 
+				: number(to_warp_bool(number)), bits(bits) {}
+		constexpr NumericType(const std::string_view numeric_string_representation, size_t bits = default_bits) noexcept 
+				: number(to_warp_bool(to_bool(numeric_string_representation).value())), bits(bits) {}
+
+		constexpr NumericType(const NumericType& other) noexcept = default;
+		constexpr NumericType(NumericType&& other) noexcept = default;
+		constexpr NumericType& operator=(const NumericType& other) noexcept = default;
+		constexpr NumericType& operator=(NumericType&& other) noexcept = default;
+
+		constexpr static const ThisType zero() {
+			return ThisType{WarpBool::False};
+		}
+
+		constexpr std::strong_ordering operator<=>(
+				const UnderylingType& other) const noexcept {
+			return number <=> other;
+		}
+
+		constexpr operator UnderylingType() const noexcept {
+			return number;
+		}
+		constexpr static NumericType or_operation(
+				const NumericType& left, 
+				const NumericType& right
+			) noexcept
+		{
+			return ((left.number == WarpBool::True) || (right.number == WarpBool::True))
+					? WarpBool::True
+					: WarpBool::False;
+		}
+
+		constexpr static NumericType and_operation(
+				const NumericType& left, 
+				const NumericType& right
+			) noexcept
+		{
+			return ((left.number == WarpBool::True) && (right.number == WarpBool::True))
+					? WarpBool::True
+					: WarpBool::False;
+		}
+
+		constexpr static NumericType not_operation(
+				const NumericType& other) noexcept
+		{
+			return (other.number == WarpBool::True)
+					? WarpBool::False
+					: WarpBool::True;
+		}
+
+		constexpr NumericType operator||(const NumericType& other) const noexcept {
+			return or_operation(*this, other);
+		}
+		constexpr NumericType operator&&(const NumericType& other) const noexcept {
+			return and_operation(*this, other);
+		}
+		constexpr NumericType operator+(const NumericType& other) const noexcept {
+			return or_operation(*this, other);
+		}
+		constexpr NumericType operator*(const NumericType& other) const noexcept {
+			return and_operation(*this, other);
+		}
+		constexpr NumericType operator-(const NumericType& other) const noexcept {
+			return or_operation(*this, not_operation(other));
+		}
+		constexpr NumericType operator/(const NumericType& other) const noexcept {
+			return and_operation(*this, not_operation(other));
+		}
+		constexpr NumericType operator-() const noexcept {
+			return not_operation(*this);
+		}
+		constexpr NumericType operator!() const noexcept {
+			return not_operation(*this);
+		}
+	};
 	template<auto NumericalTypeTag>
 	struct NumericTypeResolver {};
 	
