@@ -284,15 +284,35 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
 	{
 		using ReduceToType = ReduceToParameterType;
-		using BoolType = NumericTypeResolver<NumericTypeTag::Bool>::Type;
 		std::optional<ReduceToType> value;
 		Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
-				: value(retrieve_value<BoolType>(node->root.get(), debug)) {
+				: value(std::nullopt) {
+			std::cerr << "LogicalExpression::Error: Attempt input non-bool into LogicalExpression\n";
+		}
+		Executor(const auto* context, const Node<NodeType::LogicalExpression>* node, bool debug) 
+				: value(std::nullopt) {
+			std::cerr << "LogicalExpression::Error: Attempt input non-bool into LogicalExpression\n";
+		}
+		std::optional<ReduceToType> to_value() {
+			return value;
+		}
+		operator std::optional<ReduceToType>() {
+			return to_value();
+		}
+	};
+
+	template<std::convertible_to<typename NumericTypeResolver<NumericTypeTag::Bool>::Type> ReduceToParameterType>
+	struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
+	{
+		using ReduceToType = ReduceToParameterType;
+		std::optional<ReduceToType> value;
+		Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
+				: value(retrieve_value<ReduceToType>(node->root.get(), debug)) {
 			if(debug == true)
 				std::cout << "Logical Expression, has value? " << value.has_value() << "\n";
 		}
 		Executor(const auto* context, const Node<NodeType::LogicalExpression>* node, bool debug) 
-				: value(retrieve_value<BoolType>(context, node->root.get(), debug)) {
+				: value(retrieve_value<ReduceToType>(context, node->root.get(), debug)) {
 			if(debug == true)
 				std::cout << "Logical Expression, has value? " << value.has_value() << "\n";
 		}
@@ -303,7 +323,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 			return to_value();
 		}
 	};
-
+	
 	template<typename ReduceToParameterType>
 	struct Executor<ReduceToParameterType, NodeType::ConstantCall>
 	{
