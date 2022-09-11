@@ -1,5 +1,7 @@
 #include <Warp/Parsing/MathematicalExpressions.hpp>
 
+
+#ifdef WARP__PARSING__ENABLE__TEMPLATE__CACHING
 namespace Warp::Parsing
 {
 	template class NumericTypeResolver<NumericTypeTag::Whole>;
@@ -45,4 +47,5 @@ namespace Warp::Parsing
 
 	template class TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms>;
 }
+#endif
 

@@ -1,5 +1,6 @@
 #include <Warp/Parsing/FunctionDeclarations.hpp>
 
+#ifdef WARP__PARSING__ENABLE__TEMPLATE__CACHING
 namespace Warp::Parsing
 {
 	template class MathematicalExpressionParser<
@@ -59,4 +60,5 @@ namespace Warp::Parsing
 		>;
 
 }
+#endif
 

@@ -161,7 +161,9 @@ namespace Warp::Parsing
 		Type terms;
 	};
 
-	extern template class TemplateInstantiator<TemplateInstantiationTag::NumericTerms>;
+	#ifdef WARP__PARSING__ENABLE__TEMPLATE__CACHING
+		extern template class TemplateInstantiator<TemplateInstantiationTag::NumericTerms>;
+	#endif
 
 	using NumericLiteralTermsType = TemplateInstantiator<TemplateInstantiationTag::NumericTerms>::Type;
 

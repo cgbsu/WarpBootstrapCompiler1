@@ -56,7 +56,9 @@ namespace Warp::Parsing
 			Type terms;
 		};
 
-		extern template class TemplateInstantiator<TemplateInstantiationTag::TypeTerms>;
+		#ifdef WARP__PARSING__ENABLE__TEMPLATE__CACHING
+			extern template class TemplateInstantiator<TemplateInstantiationTag::TypeTerms>;
+		#endif
 		
 		using TypeTerms = TemplateInstantiator<TemplateInstantiationTag::TypeTerms>::Type;
 }

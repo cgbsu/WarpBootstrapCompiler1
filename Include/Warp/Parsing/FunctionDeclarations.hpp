@@ -8,12 +8,12 @@ namespace Warp::Parsing
 
 	using FunctionDeclaritionTermsType_ = MathematicalExpressionTermsType
 		::Prepend<
-			TreeTerm<
-					MultiPurposeOperator::Equal, 
-					CharTerm, 
-					'=', 
-					ctpg::associativity::no_assoc
-				>, 
+				TreeTerm< // TEMPORARY !!!!!!!!!!!!!!!!!!!!!! //
+						MultiPurposeOperator::Equal, 
+						CharTerm, 
+						'=', 
+						ctpg::associativity::no_assoc
+					>, 
 			TreeTerm<
 					Keyword::Let, 
 					StringTerm, 
@@ -34,7 +34,9 @@ namespace Warp::Parsing
 		Type terms;
 	};
 
-	extern template class TemplateInstantiator<TemplateInstantiationTag::FunctionDeclarationTerms>;
+	#ifdef WARP__PARSING__ENABLE__TEMPLATE__CACHING
+		extern template class TemplateInstantiator<TemplateInstantiationTag::FunctionDeclarationTerms>;
+	#endif
 
 	using FunctionDeclaritionTermsType = TemplateInstantiator<TemplateInstantiationTag::FunctionDeclarationTerms>::Type;
 
@@ -244,61 +246,63 @@ namespace Warp::Parsing
 					
 	};
 
-	extern template class MathematicalExpressionParser<
-			FunctionDeclaritionTermsType, 
-			Warp::Runtime::Compiler::NumericTypeResolver, 
-			NumericTypeTag::Whole, 
-			NumericTypeTag::Whole, 
-			FixedString{"WholeTerm"}, 
-			FixedString{"WholeSum"}, 
-			FixedString{"WholeExpression"}
-		>;
+	#ifdef WARP__PARSING__ENABLE__TEMPLATE__CACHING
+		extern template class MathematicalExpressionParser<
+				FunctionDeclaritionTermsType, 
+				Warp::Runtime::Compiler::NumericTypeResolver, 
+				NumericTypeTag::Whole, 
+				NumericTypeTag::Whole, 
+				FixedString{"WholeTerm"}, 
+				FixedString{"WholeSum"}, 
+				FixedString{"WholeExpression"}
+			>;
 
-	extern template class MathematicalExpressionParser<
-			FunctionDeclaritionTermsType, 
-			Warp::Runtime::Compiler::NumericTypeResolver, 
-			NumericTypeTag::Integer, 
-			NumericTypeTag::Integer, 
-			FixedString{"IntegerTerm"}, 
-			FixedString{"IntegerSum"}, 
-			FixedString{"IntegerExpression"}
-		>;
+		extern template class MathematicalExpressionParser<
+				FunctionDeclaritionTermsType, 
+				Warp::Runtime::Compiler::NumericTypeResolver, 
+				NumericTypeTag::Integer, 
+				NumericTypeTag::Integer, 
+				FixedString{"IntegerTerm"}, 
+				FixedString{"IntegerSum"}, 
+				FixedString{"IntegerExpression"}
+			>;
 
-	extern template class MathematicalExpressionParser<
-			FunctionDeclaritionTermsType, 
-			Warp::Runtime::Compiler::NumericTypeResolver, 
-			NumericTypeTag::FixedPoint, 
-			NumericTypeTag::FixedPoint, 
-			FixedString{"FixedPointTerm"}, 
-			FixedString{"FixedPointSum"}, 
-			FixedString{"FixedPointExpression"}
-		>;
+		extern template class MathematicalExpressionParser<
+				FunctionDeclaritionTermsType, 
+				Warp::Runtime::Compiler::NumericTypeResolver, 
+				NumericTypeTag::FixedPoint, 
+				NumericTypeTag::FixedPoint, 
+				FixedString{"FixedPointTerm"}, 
+				FixedString{"FixedPointSum"}, 
+				FixedString{"FixedPointExpression"}
+			>;
 
-	extern template class MathematicalExpressionParser<
-			FunctionDeclaritionTermsType, 
-			Warp::Runtime::Compiler::NumericTypeResolver, 
-			NumericTypeTag::Character, 
-			NumericTypeTag::Character, 
-			FixedString{"CharacterTerm"}, 
-			FixedString{"CharacterSum"}, 
-			FixedString{"CharacterExpression"}
-		>;
+		extern template class MathematicalExpressionParser<
+				FunctionDeclaritionTermsType, 
+				Warp::Runtime::Compiler::NumericTypeResolver, 
+				NumericTypeTag::Character, 
+				NumericTypeTag::Character, 
+				FixedString{"CharacterTerm"}, 
+				FixedString{"CharacterSum"}, 
+				FixedString{"CharacterExpression"}
+			>;
 
-	extern template class MathematicalExpressionParser<
-			FunctionDeclaritionTermsType, 
-			Warp::Runtime::Compiler::NumericTypeResolver, 
-			NumericTypeTag::Bool, 
-			NumericTypeTag::Bool, 
-			FixedString{"BoolTerm"}, 
-			FixedString{"BoolSum"}, 
-			FixedString{"BoolExpression"}
-		>;
+		extern template class MathematicalExpressionParser<
+				FunctionDeclaritionTermsType, 
+				Warp::Runtime::Compiler::NumericTypeResolver, 
+				NumericTypeTag::Bool, 
+				NumericTypeTag::Bool, 
+				FixedString{"BoolTerm"}, 
+				FixedString{"BoolSum"}, 
+				FixedString{"BoolExpression"}
+			>;
 
-	extern template class FunctionDeclarationParser<
-			FunctionDeclaritionTermsType, 
-			NumericTypeResolver, 
-			NumericTypeTag
-		>;
+		extern template class FunctionDeclarationParser<
+				FunctionDeclaritionTermsType, 
+				NumericTypeResolver, 
+				NumericTypeTag
+			>;
+	#endif
 	
 	using NumericParserType = FunctionDeclarationParser<
 			FunctionDeclaritionTermsType, 

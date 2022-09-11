@@ -113,7 +113,9 @@ namespace Warp::Parsing
 		Type terms;
 	};
 
-	extern template class TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms>;
+	#ifdef WARP__PARSING__ENABLE__TEMPLATE__CACHING
+		extern template class TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms>;
+	#endif
 
 	using MathematicalExpressionTermsType = TemplateInstantiator<TemplateInstantiationTag::MathematicalExpressionTerms>::Type;
 
@@ -666,46 +668,48 @@ namespace Warp::Parsing
 			);
 	};
 
-	extern template class NumericTypeResolver<NumericTypeTag::Whole>;
-	extern template class NumericTypeResolver<NumericTypeTag::Integer>;
-	extern template class NumericTypeResolver<NumericTypeTag::FixedPoint>;
-	extern template class NumericTypeResolver<NumericTypeTag::Character>;
-	extern template class NumericTypeResolver<NumericTypeTag::Bool>;
-	
-	extern template class MathematicalExpressionParser<
-			MathematicalExpressionTermsType, 
-			NumericTypeResolver, 
-			NumericTypeTag::Whole, 
-			NumericTypeTag::Whole
-		>;
+	#ifdef WARP__PARSING__ENABLE__TEMPLATE__CACHING
+		extern template class NumericTypeResolver<NumericTypeTag::Whole>;
+		extern template class NumericTypeResolver<NumericTypeTag::Integer>;
+		extern template class NumericTypeResolver<NumericTypeTag::FixedPoint>;
+		extern template class NumericTypeResolver<NumericTypeTag::Character>;
+		extern template class NumericTypeResolver<NumericTypeTag::Bool>;
+		
+		extern template class MathematicalExpressionParser<
+				MathematicalExpressionTermsType, 
+				NumericTypeResolver, 
+				NumericTypeTag::Whole, 
+				NumericTypeTag::Whole
+			>;
 
-	extern template class MathematicalExpressionParser<
-			MathematicalExpressionTermsType, 
-			NumericTypeResolver, 
-			NumericTypeTag::Integer, 
-			NumericTypeTag::Integer
-		>;
+		extern template class MathematicalExpressionParser<
+				MathematicalExpressionTermsType, 
+				NumericTypeResolver, 
+				NumericTypeTag::Integer, 
+				NumericTypeTag::Integer
+			>;
 
-	extern template class MathematicalExpressionParser<
-			MathematicalExpressionTermsType, 
-			NumericTypeResolver, 
-			NumericTypeTag::FixedPoint, 
-			NumericTypeTag::FixedPoint
-		>;
+		extern template class MathematicalExpressionParser<
+				MathematicalExpressionTermsType, 
+				NumericTypeResolver, 
+				NumericTypeTag::FixedPoint, 
+				NumericTypeTag::FixedPoint
+			>;
 
-	extern template class MathematicalExpressionParser<
-			MathematicalExpressionTermsType, 
-			NumericTypeResolver, 
-			NumericTypeTag::Character, 
-			NumericTypeTag::Character
-		>;
+		extern template class MathematicalExpressionParser<
+				MathematicalExpressionTermsType, 
+				NumericTypeResolver, 
+				NumericTypeTag::Character, 
+				NumericTypeTag::Character
+			>;
 
-	extern template class MathematicalExpressionParser<
-			MathematicalExpressionTermsType, 
-			NumericTypeResolver, 
-			NumericTypeTag::Bool, 
-			NumericTypeTag::Bool
-		>;
+		extern template class MathematicalExpressionParser<
+				MathematicalExpressionTermsType, 
+				NumericTypeResolver, 
+				NumericTypeTag::Bool, 
+				NumericTypeTag::Bool
+			>;
+	#endif
 
 	template<
 			auto TypeTagParameterConstant, 

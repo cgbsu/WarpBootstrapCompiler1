@@ -220,7 +220,7 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 
 TEST(FunctionDeclarations, UseConstansInConstants)
 {
-	bool debug = true;
+	bool debug = false;
 	//NumericParserType::parser.write_diag_str(std::cerr);
 	check_context_constant<
 			FixedString{
