@@ -77,6 +77,7 @@ void bool_test(
 TEST_GROUP(BooleanExpressionTests) {};
 
 TEST(BooleanExpressionTests, Comparisons) {
-	bool_test<FixedString{"2u > 1u"}>(WarpBool::True);
+	bool debug = true;
+	bool_test<FixedString{"2u > 1u"}>(WarpBool::True, debug);
 };
 

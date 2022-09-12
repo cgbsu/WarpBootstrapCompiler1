@@ -15,6 +15,31 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	template<typename ReduceToParameterType, NodeType>
 	struct Executor {};
 
+	template<typename ReduceToParameterType, typename CurrentReduceToParameterType>
+	struct IntermediateReduction {
+		using ReduceToType = ReduceToParameterType;
+		using CurrentReduceToType = CurrentReduceToParameterType;
+	};
+
+	template<typename NodeParameterType, typename CanidateParameterType>
+	concept NoContextConstructibleConcept = requires(CanidateParameterType) {
+			CanidateParameterType(std::declval<NodeParameterType>(), false);
+	};
+
+	template<typename NodeParameterType, typename CanidateParameterType>
+	struct NoContextConstructibleHelper {
+		constexpr static const bool value = false;
+	};
+
+	template<typename NodeParameterType, NoContextConstructibleConcept<NodeParameterType> CanidateParameterType>
+	struct NoContextConstructibleHelper<NodeParameterType, CanidateParameterType> {
+		constexpr static const bool value = true;
+	};
+
+	template<typename NodeParameterType, typename CanidateParameterType>
+	constexpr static const auto no_context_constructible 
+			= NoContextConstructibleHelper<NodeParameterType, CanidateParameterType>::value;
+
 	template<typename ReduceToParameterType>
 	static auto retrieve_value(const auto* context, const BaseNode* node, bool debug) 
 			-> std::optional<ReduceToParameterType>
@@ -24,12 +49,21 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				[](auto node, const auto& context, bool debug)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
-					if(debug == true)
+					//if(debug == true)
 						std::cout << "Tag: " << to_string(tag) << "\n";
-					return Executor<
+					using ExecutorType = decltype(Executor<
 							ReduceToParameterType, 
 							tag
-						>(context, node, debug).to_value(); 
+						>(context, node, debug));
+					using ValueType = decltype(std::declval<ExecutorType>().to_value());
+					if constexpr(std::is_convertible_v<std::optional<ReduceToParameterType>, ValueType>)
+						return ExecutorType(context, node, debug).to_value(); 
+					else
+					{
+						//if(debug == true)
+							std::cerr << "retrieve_value(context): Type not convertable!\n";
+						return std::nullopt;
+					}
 				}
 			>(node->to_view(), context, debug);
 	}
@@ -42,19 +76,39 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				[](auto node, bool debug)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
-					if constexpr(tag != NodeType::ConstantCall)
+					//if(debug == true)
+						std::cout << "Tag: " << to_string(tag) << "\n";
+					if constexpr(tag != NodeType::ConstantCall)//(no_context_constructible<decltype(node), Executor<ReduceToParameterType, tag>> == true)
 					{
-						if(debug == true)
-							std::cout << "Tag: " << to_string(tag) << "\n";
-						return Executor<
+						using ExecutorType = decltype(Executor<
 								ReduceToParameterType, 
 								tag
-							>(node, debug).to_value(); 
+							>(node, debug));
+						using ValueType = decltype(std::declval<ExecutorType>().to_value());
+						if constexpr(std::is_convertible_v<std::optional<ReduceToParameterType>, ValueType>)
+							return ExecutorType(node, debug).to_value(); 
+						else
+						{
+							//if(debug == true)
+								std::cerr << "retrieve_value(no context): Type not convertable!\n";
+							return std::nullopt;
+						}
 					}
 					else
+					{
+						//if(debug == true)
+							std::cerr << "retrieve_value(no context): Not no context constructible!\n";
 						return std::nullopt;
+					}
 				}
 			>(node->to_view(), debug);
+	}
+
+	static std::optional<NumericValue> reduce_to_numeric_value(const BaseNode* node, bool debug) {
+		return retrieve_value<NumericValue>(node, debug);
+	}
+	static std::optional<NumericValue> reduce_to_numeric_value(const auto& context, const BaseNode* node, bool debug) {
+		return retrieve_value<NumericValue>(context, node, debug);
 	}
 
 	#define LITERAL_NODE(LITERAL_TAG) \
@@ -94,133 +148,123 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 
 	#undef LITERAL_NODE
 
-	#define BINARY_OPERATOR_DEFAULT_NO_CONTEXT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-				Executor(const Node<NodeType :: NODE_TYPE >* node, bool debug) \
-						: left_value(retrieve_value<ReduceToType>(node->left.get(), debug)), \
-						right_value(retrieve_value<ReduceToType>(node->right.get(), debug)), \
-						value( \
-								(left_value.has_value() == true && right_value.has_value() == true) \
-								? std::optional{left_value.value() OPERATOR right_value.value()} \
-								: std::nullopt \
-							) \
+		#define BINARY_OPERATOR_BODY_(NODE_TYPE, OPERATOR, PARSE, CONVERT) \
+			std::string debug_print_value(const auto& value) const { \
+					return std::string{"{HasValue?:"} + std::to_string(value.has_value()) + std::string{"}"}; \
+			} \
+			void debug_output(bool debug) const \
+			{ \
+				if(debug == true) \
 				{ \
-					if(debug == true) \
-					{ \
-						std::cout << "Operator:" << #OPERATOR << "\n" \
-								<< "Left: " << debug_print_value(left_value) << "\n" \
-								<< "Right: " << debug_print_value(right_value) << "\n" \
-								<< "Value: " << debug_print_value(value) << "\n"; \
-					} \
-				}
-	
-	#define BINARY_OPERATOR_DEFAULT_CONTEXT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-				Executor(const auto* context, const Node<NodeType :: NODE_TYPE>* node, bool debug) \
-						: left_value(retrieve_value<ReduceToType>(context, node->left.get(), debug)), \
-						right_value(retrieve_value<ReduceToType>(context, node->right.get(), debug)), \
-						value( \
-								(left_value.has_value() == true && right_value.has_value() == true) \
-								? std::optional{left_value.value() OPERATOR right_value.value()} \
-								: std::nullopt \
-							) \
-				{ \
-					if(debug == true) \
-					{ \
-						std::cout << "Operator:" << #OPERATOR << "\n" \
-								<< "Left: " << debug_print_value(left_value) << "\n" \
-								<< "Right: " << debug_print_value(right_value) << "\n" \
-								<< "Value: " << debug_print_value(value) << "\n"; \
-					} \
-				}
+					std::cout << "Operator:" << #OPERATOR << "\n" \
+							<< "Left: " << debug_print_value(left_value) << "\n" \
+							<< "Right: " << debug_print_value(right_value) << "\n" \
+							<< "Value: " << debug_print_value(value) << "\n"; \
+				} \
+			} \
+			Executor(const Node<NodeType :: NODE_TYPE >* node, bool debug) \
+					: left_value(PARSE(node->left.get(), debug)), \
+					right_value(PARSE(node->right.get(), debug)), \
+					value(CONVERT( \
+							(left_value.has_value() == true && right_value.has_value() == true) \
+							? std::optional{left_value.value() OPERATOR right_value.value()} \
+							: std::nullopt \
+						)) \
+			{ \
+				debug_output(debug); \
+			} \
+			Executor(const auto* context, const Node<NodeType :: NODE_TYPE>* node, bool debug) \
+					: left_value(PARSE(context, node->left.get(), debug)), \
+					right_value(PARSE(context, node->right.get(), debug)), \
+					value(CONVERT( \
+							(left_value.has_value() == true && right_value.has_value() == true) \
+							? std::optional{left_value.value() OPERATOR right_value.value()} \
+							: std::nullopt \
+						)) \
+			{ \
+				debug_output(debug); \
+			}
 
-	#define BINARY_OPERATOR_NO_CONTEXT_NULLOPT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-				Executor(const Node<NodeType :: NODE_TYPE >* node, bool debug) \
-						: left_value(std::nullopt), \
-						right_value(std::nullopt), \
-						value(std::nullopt) \
-				{ \
-					std::cerr << #NODE_TYPE << "::Error: cannot use specified type with: '" \
-							<< #OPERATOR << "' operator.\n"; \
-				}
+		#define BINARY_OPERATOR_BODY(NODE_TYPE, OPERATOR) \
+			BINARY_OPERATOR_BODY_(NODE_TYPE, OPERATOR, retrieve_value<ReduceToType>, static_cast<decltype(value)>)
 
-	#define BINARY_OPERATOR_CONTEXT_NULLOPT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-				Executor(const auto* context, const Node<NodeType :: NODE_TYPE >* node, bool debug) \
-						: left_value(std::nullopt), \
-						right_value(std::nullopt), \
-						value(std::nullopt) \
-				{ \
-					std::cerr << #NODE_TYPE << "::Error: cannot use specified type with: '" \
-							<< #OPERATOR << "' operator.\n"; \
-				}
-	
-	
-	#define BINARY_OPERATOR_DEFAULT_CONVERSION_FUNCTIONS \
+		#define BINARY_OPERATOR(NODE_TYPE, OPERATOR) \
+			template<typename ReduceToParameterType> \
+			struct Executor<ReduceToParameterType, NodeType :: NODE_TYPE > \
+			{ \
+				using ReduceToType = ReduceToParameterType; \
+				std::optional<ReduceToType> left_value, right_value, value; \
+				BINARY_OPERATOR_BODY(NODE_TYPE, OPERATOR) \
 				std::optional<ReduceToType> to_value() { \
 					return value; \
 				} \
 				operator std::optional<ReduceToType>() { \
 					return to_value(); \
+				} \
+			}
+
+		//template<typename CanidateParameterType>
+		//concept LogicalOperatableConcept = requires(CanidateParameterType canidate) {
+		//		canidate && canidate;
+		//		canidate || canidate;
+		//};
+
+		#define BOOLEAN_TO_VALUE \
+				std::optional<BoolType> to_value() { \
+					return value; \
+				} \
+				operator std::optional<BoolType>() { \
+					return to_value(); \
 				}
-
-	#define BEGIN_BINARY_OPERATOR(NODE_TYPE, OPERATOR, TEMPLATE, VALUE_TYPE) \
-			TEMPLATE \
-			struct Executor<VALUE_TYPE, NodeType :: NODE_TYPE > \
+		
+		template<typename ToParameterType>
+		static auto optional_to(std::optional<NumericValue> numeric_value)
+		{
+			return numeric_value.transform([&](const NumericValue& value)
+					{
+						auto optional = value.to<ToParameterType>();
+						return optional.value();
+					});
+		}
+					
+		#define COMPARISON_BINARY_OPERATOR(NODE_TYPE, OPERATOR) \
+			template<typename ReduceToParameterType> \
+			struct Executor<ReduceToParameterType, NodeType :: NODE_TYPE > \
 			{ \
-				using ReduceToType = VALUE_TYPE; \
-				std::optional<ReduceToType> left_value, right_value, value; \
-				std::string debug_print_value(std::optional<ReduceToType>& value) { \
-						return std::string{"{HasValue?:"} + std::to_string(value.has_value()) + std::string{"}"}; \
-				} 
-
-	#define END_BINARY_OPERATOR };
-
-	#define BINARY_OPERATOR(NODE_TYPE, OPERATOR) \
-		BEGIN_BINARY_OPERATOR(NODE_TYPE, OPERATOR, template<typename ReduceToParameterType>, ReduceToParameterType) \
-			BINARY_OPERATOR_DEFAULT_NO_CONTEXT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-			BINARY_OPERATOR_DEFAULT_CONTEXT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-			BINARY_OPERATOR_DEFAULT_CONVERSION_FUNCTIONS \
-		END_BINARY_OPERATOR
-
-	#define BINARY_OPERATOR_ERROR_ON_TYPE(NODE_TYPE, VALUE_TYPE_TAG, OPERATOR) \
-			BEGIN_BINARY_OPERATOR(NODE_TYPE, OPERATOR, template<> , typename NumericTypeResolver<VALUE_TYPE_TAG>::Type) \
-				BINARY_OPERATOR_NO_CONTEXT_NULLOPT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-				BINARY_OPERATOR_CONTEXT_NULLOPT_CONSTRUCT(NODE_TYPE, OPEARTOR) \
-				BINARY_OPERATOR_DEFAULT_CONVERSION_FUNCTIONS \
-			END_BINARY_OPERATOR
+				using ReduceToType = ReduceToParameterType; \
+				std::optional<NumericValue> left_value, right_value; \
+				std::optional<BoolType> value; \
+				BINARY_OPERATOR_BODY_(NODE_TYPE, OPERATOR, reduce_to_numeric_value, optional_to<WarpBool>) \
+				BOOLEAN_TO_VALUE \
+			}
+//, reduce_to_numeric_value) \
 	
-	#define BINARY_OPERATOR_ERROR_BY_DEFAULT_ON_TYPE(NODE_TYPE, OPERATOR) \
-			BEGIN_BINARY_OPERATOR(NODE_TYPE, OPERATOR, template<typename ReduceToParameterType>, ReduceToParameterType) \
-				BINARY_OPERATOR_NO_CONTEXT_NULLOPT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-				BINARY_OPERATOR_CONTEXT_NULLOPT_CONSTRUCT(NODE_TYPE, OPEARTOR) \
-				BINARY_OPERATOR_DEFAULT_CONVERSION_FUNCTIONS \
-			END_BINARY_OPERATOR
+		#define LOGICAL_BINARY_OPERATOR(NODE_TYPE, OPERATOR) \
+			template<typename ReduceToParameterType> \
+			struct Executor<ReduceToParameterType, NodeType :: NODE_TYPE > \
+			{ \
+				using ReduceToType = WarpBool; \
+				std::optional<BoolType> left_value, right_value; \
+				std::optional<BoolType> value; \
+				BINARY_OPERATOR_BODY_(NODE_TYPE, OPERATOR, retrieve_value<BoolType>, static_cast<decltype(value)>) \
+				BOOLEAN_TO_VALUE \
+			}
 
-	#define BINARY_OPERATOR_CONSTRUCT_ON_TYPE(NODE_TYPE, OPERATOR) \
-		BEGIN_BINARY_OPERATOR(NODE_TYPE, OPERATOR, template<std::convertible_to< \
-					typename NumericTypeResolver<NumericTypeTag::Bool>::Type> \
-				 ReduceToParameterType>, ReduceToParameterType) \
-			BINARY_OPERATOR_DEFAULT_NO_CONTEXT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-			BINARY_OPERATOR_DEFAULT_CONTEXT_CONSTRUCT(NODE_TYPE, OPERATOR) \
-			BINARY_OPERATOR_DEFAULT_CONVERSION_FUNCTIONS \
-		END_BINARY_OPERATOR
+//, reduce_to_numeric_value) \
+//
+	BINARY_OPERATOR(Multiply, *);
+	BINARY_OPERATOR(Divide, /);
+	BINARY_OPERATOR(Add, +);
+	BINARY_OPERATOR(Subtract, -);
 
+	COMPARISON_BINARY_OPERATOR(GreaterThan, >);
+	COMPARISON_BINARY_OPERATOR(LessThan, <);
+	COMPARISON_BINARY_OPERATOR(GreaterThanOrEqualTo, >=);
+	COMPARISON_BINARY_OPERATOR(LessThankOrEqualTo, <=);
+	COMPARISON_BINARY_OPERATOR(Equal, ==);
 
-	BINARY_OPERATOR(Multiply, *)
-	BINARY_OPERATOR(Divide, /)
-	BINARY_OPERATOR(Add, +)
-	BINARY_OPERATOR(Subtract, -)
-
-	BINARY_OPERATOR(GreaterThan, >);
-	BINARY_OPERATOR(LessThan, <);
-	BINARY_OPERATOR(GreaterThanOrEqualTo, >=);
-	BINARY_OPERATOR(LessThankOrEqualTo, <=);
-	BINARY_OPERATOR(Equal, ==);
-
-	#define LOGICAL_BINARY_OPERATOR(NODE_TYPE, OPERATOR) \
-		BINARY_OPERATOR_ERROR_BY_DEFAULT_ON_TYPE(NODE_TYPE, OPERATOR) \
-		BINARY_OPERATOR_CONSTRUCT_ON_TYPE(NODE_TYPE, OPERATOR)
-
-	LOGICAL_BINARY_OPERATOR(LogicalAnd, &&)
-	LOGICAL_BINARY_OPERATOR(LogicalOr, ||)
+	LOGICAL_BINARY_OPERATOR(LogicalAnd, &&);
+	LOGICAL_BINARY_OPERATOR(LogicalOr, ||);
 
 	#undef BINARY_OPERATOR
 
@@ -280,31 +324,33 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		}
 	};
 
+	//template<typename ReduceToParameterType>
+	//struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
+	//{
+	//	using ReduceToType = ReduceToParameterType;
+	//	std::optional<ReduceToType> value;
+	//	Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
+	//			: value(std::nullopt) {
+	//		std::cerr << "LogicalExpression::Error: Attempt input non-bool into LogicalExpression\n";
+	//	}
+	//	Executor(const auto* context, const Node<NodeType::LogicalExpression>* node, bool debug) 
+	//			: value(std::nullopt) {
+	//		std::cerr << "LogicalExpression::Error: Attempt input non-bool into LogicalExpression\n";
+	//	}
+	//	std::optional<ReduceToType> to_value() {
+	//		return value;
+	//	}
+	//	operator std::optional<ReduceToType>() {
+	//		return to_value();
+	//	}
+	//};
+
+	//template<std::convertible_to<typename NumericTypeResolver<NumericTypeTag::Bool>::Type> ReduceToParameterType>
 	template<typename ReduceToParameterType>
 	struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
 	{
 		using ReduceToType = ReduceToParameterType;
-		std::optional<ReduceToType> value;
-		Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
-				: value(std::nullopt) {
-			std::cerr << "LogicalExpression::Error: Attempt input non-bool into LogicalExpression\n";
-		}
-		Executor(const auto* context, const Node<NodeType::LogicalExpression>* node, bool debug) 
-				: value(std::nullopt) {
-			std::cerr << "LogicalExpression::Error: Attempt input non-bool into LogicalExpression\n";
-		}
-		std::optional<ReduceToType> to_value() {
-			return value;
-		}
-		operator std::optional<ReduceToType>() {
-			return to_value();
-		}
-	};
-
-	template<std::convertible_to<typename NumericTypeResolver<NumericTypeTag::Bool>::Type> ReduceToParameterType>
-	struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
-	{
-		using ReduceToType = ReduceToParameterType;
+		//using ReduceToType = typename NumericTypeResolver<NumericTypeTag::Bool>::Type;
 		std::optional<ReduceToType> value;
 		Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
 				: value(retrieve_value<ReduceToType>(node->root.get(), debug)) {
@@ -374,10 +420,10 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::FixedPoint);
 	LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::Character);
 
-	template<>
-	struct Executor<NumericTypeResolver<NumericTypeTag::Bool>::Type, NodeType::LogicalNot>
+	template<typename ReduceToParameterType>
+	struct Executor<ReduceToParameterType, NodeType::LogicalNot>//NumericTypeResolver<NumericTypeTag::Bool>::Type, NodeType::LogicalNot>
 	{
-		using ReduceToType = NumericTypeResolver<NumericTypeTag::Bool>::Type;
+		using ReduceToType = ReduceToParameterType;//NumericTypeResolver<NumericTypeTag::Bool>::Type;
 		std::optional<ReduceToType> absolute_value, value;
 		Executor(const Node<NodeType::LogicalNot>* node, bool debug) 
 				: absolute_value(retrieve_value<ReduceToType>(node->negated.get(), debug)), 

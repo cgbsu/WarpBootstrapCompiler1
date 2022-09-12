@@ -22,6 +22,18 @@ namespace Warp::Runtime::Compiler
 		False = 0 
 	};
 
+	static WarpBool operator&&(const WarpBool& left, const WarpBool& right) {
+		return (left == WarpBool::True && right == WarpBool::True)
+				? WarpBool::True
+				: WarpBool::False;
+	}
+
+	static WarpBool operator||(const WarpBool& left, const WarpBool& right) {
+		return (left == WarpBool::True || right == WarpBool::True)
+				? WarpBool::True
+				: WarpBool::False;
+	}
+
 	constexpr WarpBool to_warp_bool(const bool from) {
 		return from == true ? WarpBool::True : WarpBool::False;
 	}
@@ -78,6 +90,15 @@ namespace Warp::Runtime::Compiler
 		constexpr NumericType operator-() const noexcept {
 			//static_assert(std::is_unsigned_v<UnderylingType> == true);
 			return -number;
+		}
+		constexpr NumericType operator||(const NumericType& other) const noexcept {
+			return (*this + other);
+		}
+		constexpr NumericType operator&&(const NumericType& other) const noexcept {
+			return (*this * other);
+		}
+		constexpr NumericType operator!() const noexcept {
+			return ThisType{-number};
 		}
 	};
 
@@ -181,6 +202,15 @@ namespace Warp::Runtime::Compiler
 		constexpr NumericType operator-() const noexcept {
 			return ThisType{-number};
 		}
+		constexpr NumericType operator||(const NumericType& other) const noexcept {
+			return (*this + other);
+		}
+		constexpr NumericType operator&&(const NumericType& other) const noexcept {
+			return (*this * other);
+		}
+		constexpr NumericType operator!() const noexcept {
+			return ThisType{-number};
+		}
 	};
 
 	template<>
@@ -199,10 +229,10 @@ namespace Warp::Runtime::Compiler
 
 		constexpr NumericType() noexcept 
 				: number(zero().number), bits(default_bits) {}
-		constexpr NumericType(const UnderylingType number, size_t bits = default_bits) noexcept 
-				: number(number), bits(bits) {}
 		constexpr NumericType(const bool number, size_t bits = default_bits) noexcept 
 				: number(to_warp_bool(number)), bits(bits) {}
+		constexpr NumericType(WarpBool number) noexcept 
+				: number(number), bits(default_bits) {}
 		constexpr NumericType(const std::string_view numeric_string_representation, size_t bits = default_bits) noexcept 
 				: number(to_warp_bool(to_bool(numeric_string_representation).value())), bits(bits) {}
 
@@ -324,6 +354,199 @@ namespace Warp::Runtime::Compiler
 	TAG_RESOLVER(Bool);
 
 	#undef TAG_RESOLVER
+
+	using WholeType = NumericTypeResolver<NumericTypeTag::Whole>::Type;
+	using IntegerType = NumericTypeResolver<NumericTypeTag::Integer>::Type;
+	using CharacterType = NumericTypeResolver<NumericTypeTag::Character>::Type;
+	using FixedPointType = NumericTypeResolver<NumericTypeTag::FixedPoint>::Type;
+	using BoolType = NumericTypeResolver<NumericTypeTag::Bool>::Type;
+
+	using NumericVariantType = std::variant<
+			WholeType, 
+			IntegerType, 
+			CharacterType, 
+			FixedPointType, 
+			BoolType
+		>;
+
+	struct NumericValue
+	{
+		std::optional<NumericVariantType> number;
+
+		constexpr NumericValue() noexcept : number(std::nullopt) {}
+		constexpr NumericValue(NumericVariantType number) noexcept : number(std::optional{number}) {}
+		constexpr NumericValue(std::optional<NumericVariantType> number) noexcept : number(number) {}
+
+		//template<NumericTypeTag NumericTypeParameterConstant>
+		//constexpr NumericValue(NumericTypeResolver<NumericTypeParameterConstant>::Type number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+
+		NumericValue(WholeType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		NumericValue(IntegerType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		NumericValue(CharacterType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		NumericValue(FixedPointType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		NumericValue(BoolType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+
+		constexpr NumericValue(const NumericValue& other) noexcept = default;
+		constexpr NumericValue(NumericValue&& other) noexcept = default;
+		constexpr NumericValue& operator=(const NumericValue& other) noexcept = default;
+		constexpr NumericValue& operator=(NumericValue&& other) noexcept = default;
+		constexpr NumericValue& operator=(NumericVariantType other) noexcept {
+			number = std::optional{other};
+			return *this;
+		}
+		constexpr NumericValue& operator=(std::optional<NumericVariantType> other) noexcept {
+			number = other;
+			return *this;
+		}
+		NumericValue& operator=(WholeType other) noexcept {
+			number = std::optional{other};
+			return *this;
+		}
+		NumericValue& operator=(IntegerType other) noexcept {
+			number = std::optional{other};
+			return *this;
+		}
+		NumericValue& operator=(CharacterType other) noexcept {
+			number = std::optional{other};
+			return *this;
+		}
+		NumericValue& operator=(FixedPointType other) noexcept {
+			number = std::optional{other};
+			return *this;
+		}
+		NumericValue& operator=(BoolType other) noexcept {
+			number = std::optional{other};
+			return *this;
+		}
+
+		template<typename ReduceToParameterType>
+		auto to() const -> std::optional<ReduceToParameterType>
+		{
+			if(number.has_value() == true)
+			{
+				return std::visit([&](const auto& number_concrete)
+				{
+					using ConcreteType = typename NumericTypeResolver<CleanType<decltype(number_concrete)>::type>::Type;
+					using ToType = CleanType<ReduceToParameterType>;
+					if constexpr(std::is_convertible_v<ToType, ConcreteType> == true)
+						return std::optional<ToType>{static_cast<ToType>(number_concrete)};
+					else
+						return std::optional<ToType>{std::nullopt};
+				}, number.value());
+			}
+			return std::nullopt;
+		}
+		
+		template<auto OperationParameterConstant, bool BooleanParameterConstant = false>
+		NumericValue operate(const NumericValue& other) const
+		{
+			if(number.has_value() == true && other.number.has_value() == true)
+			{
+				return std::visit([&](const auto& number_concrete)
+				{
+					return std::visit([&](const auto& other_concrete)
+					{
+						using ConcreteType = typename NumericTypeResolver<CleanType<decltype(number_concrete)>::type>::Type;
+						using OtherConcreteType = typename NumericTypeResolver<CleanType<decltype(other_concrete)>::type>::Type;
+						if constexpr(BooleanParameterConstant == false)
+						{
+							if constexpr(std::is_convertible_v<ConcreteType, OtherConcreteType> == true)
+							{
+								const auto& other_concrete_converted = static_cast<ConcreteType>(other_concrete);
+								return NumericValue{NumericVariantType{ConcreteType(
+										OperationParameterConstant(number_concrete, other_concrete_converted)
+									 )}};
+							}
+							else
+								return NumericValue{std::nullopt};
+						}
+						else if constexpr(std::is_same_v<ConcreteType, OtherConcreteType> == true)
+						{
+							using BoolType = typename NumericTypeResolver<NumericTypeTag::Bool>::Type;
+							return NumericValue{NumericVariantType{BoolType(
+									OperationParameterConstant(number_concrete, other_concrete)
+							  )}};
+						}
+						else
+						   return NumericValue{std::nullopt};
+					}, other.number.value());
+				}, number.value());
+			}
+			return NumericValue{std::nullopt};
+		}
+
+		template<auto OperationParameterConstant, bool NegatingOperationConstant = false>
+		NumericValue operate() const
+		{
+			if(number.has_value() == true)
+			{
+				return std::visit([&](const auto& number_concrete)
+				{
+					using ConcreteType = typename NumericTypeResolver<CleanType<decltype(number_concrete)>::type>::Type;
+					if constexpr(NegatingOperationConstant == true && 
+							  (std::is_unsigned_v<typename ConcreteType::UnderylingType> == true
+									|| std::is_same_v<typename ConcreteType::UnderylingType, WarpBool> == false))
+						return NumericValue{std::nullopt};
+					else
+					{
+						return NumericValue{std::optional{NumericVariantType{ConcreteType(
+								OperationParameterConstant(number_concrete)
+						  )}}};
+					}
+				}, number.value());
+			}
+			return *this;
+		}
+
+		NumericValue operator*(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return left * right; }>(other);
+		}
+		NumericValue operator/(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return left / right; }>(other);
+		}
+		NumericValue operator+(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return left + right; }>(other);
+		}
+		NumericValue operator-(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return left - right; }>(other);
+		}
+		NumericValue operator>(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left > right); }, true>(other);
+		}
+		NumericValue operator<(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left < right); }, true>(other);
+		}
+		NumericValue operator<=(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left <= right); }, true>(other);
+		}
+		NumericValue operator>=(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left >= right); }, true>(other);
+		}
+		NumericValue operator==(const NumericValue& other) const {
+			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left == right); }, true>(other);
+		}
+		NumericValue operator-() const {
+			return operate<[](const auto& value) { return -value; }, true>();
+		}
+		NumericValue operator!() const {
+			return operate<[](const auto& value) { return !value; }, true>();
+		}
+		operator std::optional<WholeType>() const {
+			return to<WholeType>();
+		}
+		operator std::optional<IntegerType>() const {
+			return to<IntegerType>();
+		}
+		operator std::optional<FixedPointType>() const {
+			return to<FixedPointType>();
+		}
+		operator std::optional<CharacterType>() const {
+			return to<CharacterType>();
+		}
+		operator std::optional<BoolType>() const {
+			return to<BoolType>();
+		}
+	};
 
 }
 

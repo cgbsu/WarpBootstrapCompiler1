@@ -15,6 +15,7 @@ namespace Warp::Parsing
 		GreaterThanOrEqualTo, 
 		LessThankOrEqualTo, 
 		Comparison, 
+		LogicalOperation, 
 		Expression
 	};
 
@@ -75,6 +76,12 @@ namespace Warp::Parsing
 							NonTerminalTerm,  
 							SyntaxNode,  
 							FixedString{"Comparison"} 
+						>, 
+					TypeTreeTerm< 
+							BooleanExpression::LogicalOperation, 
+							NonTerminalTerm,  
+							SyntaxNode,  
+							FixedString{"LogicalOperation"} 
 						>, 
 					TypeTreeTerm< 
 							BooleanExpression::Expression, 
@@ -166,6 +173,7 @@ namespace Warp::Parsing
 		constexpr static const auto less_than = term<BooleanExpression::LessThan>;
 		constexpr static const auto greater_than_or_equal_to = term<BooleanExpression::GreaterThanOrEqualTo>;
 		constexpr static const auto less_than_or_equal_to = term<BooleanExpression::LessThankOrEqualTo>;
+		constexpr static const auto comparison = term<BooleanExpression::Comparison>;
 		constexpr static const auto boolean_expression = term<BooleanExpression::Expression>;
 		constexpr static const auto equal = term<MultiPurposeOperator::Equal>;
 
@@ -181,7 +189,7 @@ namespace Warp::Parsing
 		
 		constexpr static const auto terms = concatinate_tuples(
 				WholeMathematicalParserType::terms, // Using this to include NumericLiteral/all previous terms
-		//		IntegerMathematicalParserType::unique_terms, 
+				IntegerMathematicalParserType::unique_terms, 
 		//		//FixedPointMathematicalParserType::unique_terms, 
 		//		//CharacterMathematicalParserType::unique_terms, 
 		//		//BoolMathematicalParserType::unique_terms, 
@@ -192,6 +200,7 @@ namespace Warp::Parsing
 		constexpr static const auto unique_non_terminal_terms = ctpg::nterms(
 				less_than_or_equal_to, 
 				greater_than_or_equal_to, 
+				comparison, 
 				boolean_expression
 			);
 
@@ -201,68 +210,81 @@ namespace Warp::Parsing
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
 				WholeMathematicalParserType::non_terminal_terms, /* Using this to include 
 						NumericLiteral/all previous non-terminal-terms */
-				//IntegerMathematicalParserType::unique_non_terminal_terms, 
+				IntegerMathematicalParserType::unique_non_terminal_terms, 
 				//FixedPointMathematicalParserType::unique_non_terminal_terms, 
 				//CharacterMathematicalParserType::unique_non_terminal_terms, 
 				//BoolMathematicalParserType::unique_non_terminal_terms, 
 				unique_non_terminal_terms
 			);
 
-		//template<NodeType ComparisonParameterConstant, typename MathematicalExpressionGeneratorParameterType>
-		//constexpr static const auto subsume_algebraic_expression_to_comparison(auto comparison_operator)
-		//{
-		//	using TagType = MathematicalExpressionGeneratorParameterType
-		//			::TypeSpecificMathematicalExpressionTermTags;
-		//	constexpr const auto reduction_tag 
-		//			= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
-		//	constexpr const auto expression_term 
-		//			= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
-		//	constexpr const auto math_term_term 
-		//			= MathematicalExpressionGeneratorParameterType::template term<TagType::Term>;
-		//	constexpr const auto sum_term 
-		//			= MathematicalExpressionGeneratorParameterType::template term<TagType::Sum>;
-		//	constexpr const auto reduce_to_term
-		//			= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
-		//	return ctpg::rules(
-		//			boolean_expression(expression_term, comparison_operator, expression_term)
-		//			>=[](auto left, auto operator_, auto right) {
-		//				return binary_node(std::move(left), std::move(right));
-		//			}
-		//		);
-		//}
+		constexpr static const auto to_logical_expression(auto from)
+		{
+			return ctpg::rules(
+					boolean_expression(from)
+					>=[](auto from) {
+						return std::move(from);
+					}
+				);
+		}
+
+		template<NodeType ComparisonParameterConstant, typename MathematicalExpressionGeneratorParameterType>
+		constexpr static const auto subsume_algebraic_expression_to_comparison(auto comparison_operator)
+		{
+			using TagType = MathematicalExpressionGeneratorParameterType
+					::TypeSpecificMathematicalExpressionTermTags;
+			constexpr const auto reduction_tag 
+					= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
+			constexpr const auto expression_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
+			constexpr const auto math_term_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Term>;
+			constexpr const auto sum_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Sum>;
+			constexpr const auto reduce_to_term
+					= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
+			return ctpg::rules(
+					comparison(expression_term, comparison_operator, expression_term)
+					>=[](auto left, auto operator_, auto right)
+					{
+						return binary_node<
+								ComparisonParameterConstant
+							>(std::move(left.node), std::move(right.node));
+					} 
+				);
+		}
 
 
-		//template<typename MathematicalExpressionGeneratorParameterType>
-		//constexpr static const auto mathematical_parser_unique_rules()
-		//{
-		//	return ctpg::rules(
-		//			subsume_algebraic_expression_to_comparison<
-		//					NodeType::GreaterThan, 
-		//					MathematicalExpressionGeneratorParameterType
-		//				>(greater_than)
-		//		);
-		//}
+		template<typename MathematicalExpressionGeneratorParameterType>
+		constexpr static const auto mathematical_parser_unique_rules()
+		{
+			return subsume_algebraic_expression_to_comparison<
+						NodeType::GreaterThan, 
+						MathematicalExpressionGeneratorParameterType
+				>(greater_than);
+		}
 
-		//constexpr static const auto unique_rules()
-		//{
-		//	return concatinate_tuples(
-		//			mathematical_parser_unique_rules<WholeMathematicalParserType>(), 
-		//			mathematical_parser_unique_rules<IntegerMathematicalParserType>()
-		//		);
-		//}
+
+		constexpr static const auto unique_rules()
+		{
+			return concatinate_tuples(
+					mathematical_parser_unique_rules<WholeMathematicalParserType>(), 
+					mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
+					to_logical_expression(comparison)
+				);
+		}
 
 		consteval static const auto rules()
 		{
 
-			return WholeMathematicalParserType::rules();
-			//return concatinate_tuples(
-			//		WholeMathematicalParserType::rules(), 
-			//		IntegerMathematicalParserType::unique_rules(), 
-			//		//FixedPointMathematicalParserType::unique_rules(), 
-			//		//CharacterMathematicalParserType::unique_rules(), 
-			//		//BoolMathematicalParserType::unique_rules(), 
-			//		unique_rules()
-			//	);
+			//return WholeMathematicalParserType::rules();
+			return concatinate_tuples(
+					WholeMathematicalParserType::rules(), 
+					IntegerMathematicalParserType::unique_rules(), //, 
+					//FixedPointMathematicalParserType::unique_rules(), 
+					//CharacterMathematicalParserType::unique_rules(), 
+					//BoolMathematicalParserType::unique_rules(), 
+					unique_rules()
+				);
 		}
 	};
 
