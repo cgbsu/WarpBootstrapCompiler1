@@ -24,7 +24,7 @@ constexpr static const bool from_warp_bool(WarpBool from) {
 constexpr static const auto compare_value = [](
 		const auto& left, 
 		const auto& right, 
-		bool debug, 
+		bool debug = true, 
 		std::source_location location
 	)
 {

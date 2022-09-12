@@ -49,7 +49,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				[](auto node, const auto& context, bool debug)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
-					//if(debug == true)
+					if(debug == true)
 						std::cout << "Tag: " << to_string(tag) << "\n";
 					using ExecutorType = decltype(Executor<
 							ReduceToParameterType, 
@@ -60,7 +60,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 						return ExecutorType(context, node, debug).to_value(); 
 					else
 					{
-						//if(debug == true)
+						if(debug == true)
 							std::cerr << "retrieve_value(context): Type not convertable!\n";
 						return std::nullopt;
 					}
@@ -76,7 +76,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				[](auto node, bool debug)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
-					//if(debug == true)
+					if(debug == true)
 						std::cout << "Tag: " << to_string(tag) << "\n";
 					if constexpr(tag != NodeType::ConstantCall)//(no_context_constructible<decltype(node), Executor<ReduceToParameterType, tag>> == true)
 					{
@@ -89,14 +89,14 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 							return ExecutorType(node, debug).to_value(); 
 						else
 						{
-							//if(debug == true)
+							if(debug == true)
 								std::cerr << "retrieve_value(no context): Type not convertable!\n";
 							return std::nullopt;
 						}
 					}
 					else
 					{
-						//if(debug == true)
+						if(debug == true)
 							std::cerr << "retrieve_value(no context): Not no context constructible!\n";
 						return std::nullopt;
 					}
@@ -105,9 +105,11 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	}
 
 	static std::optional<NumericValue> reduce_to_numeric_value(const BaseNode* node, bool debug) {
+		std::cout << "Reduce Value\n";
 		return retrieve_value<NumericValue>(node, debug);
 	}
 	static std::optional<NumericValue> reduce_to_numeric_value(const auto& context, const BaseNode* node, bool debug) {
+		std::cout << "Reduce Value (Ctx)\n";
 		return retrieve_value<NumericValue>(context, node, debug);
 	}
 
@@ -130,6 +132,8 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				std::optional<ReduceToType> to_value() \
 				{ \
 					if constexpr(std::is_same_v<ReduceToType, NumericType> == true) \
+						return value; \
+					if constexpr(std::is_same_v<ReduceToType, NumericValue> == true) \
 						return value; \
 					else \
 						return std::nullopt; \
@@ -349,7 +353,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	template<typename ReduceToParameterType>
 	struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
 	{
-		using ReduceToType = ReduceToParameterType;
+		using ReduceToType = BoolType;//ReduceToParameterType;
 		//using ReduceToType = typename NumericTypeResolver<NumericTypeTag::Bool>::Type;
 		std::optional<ReduceToType> value;
 		Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
