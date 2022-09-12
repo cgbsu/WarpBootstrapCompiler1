@@ -214,7 +214,6 @@ bool compare_fixed(const SyntaxNode& left, FixedType right, bool debug, std::sou
 TEST(MathematicalExpressions, InputAddition)
 {
 	bool debug = false;
-	print_whole<FixedString{"1u + 1u"}>(debug);
 	whole_test<FixedString{"1u + 1u"}>(2u, debug);
 	whole_test<FixedString{"1 + 1"}>(2u, debug);
 	whole_test<FixedString{"5 + 3"}>(8u, debug);

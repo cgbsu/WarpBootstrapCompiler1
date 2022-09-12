@@ -373,55 +373,48 @@ namespace Warp::Runtime::Compiler
 	{
 		std::optional<NumericVariantType> number;
 
-		NumericValue() noexcept : number(std::nullopt) { std::cout << "0\n"; }
-		NumericValue(NumericVariantType number) noexcept : number(std::optional{number}) {std::cout << "0\n";}
-		NumericValue(std::optional<NumericVariantType> number) noexcept : number(number) {std::cout << "1\n";}
+		NumericValue() noexcept : number(std::nullopt) {}
+		NumericValue(NumericVariantType number) noexcept : number(std::optional{number}) {}
+		NumericValue(std::optional<NumericVariantType> number) noexcept : number(number) {}
 
 		//template<NumericTypeTag NumericTypeParameterConstant>
 		//constexpr NumericValue(NumericTypeResolver<NumericTypeParameterConstant>::Type number) noexcept : number(std::optional{NumericVariantType{number}}) {}
 
-		NumericValue(WholeType number) noexcept : number(std::optional{NumericVariantType{number}}) {std::cout << "2\n";}
-		NumericValue(IntegerType number) noexcept : number(std::optional{NumericVariantType{number}}) {std::cout << "3\n";}
-		NumericValue(CharacterType number) noexcept : number(std::optional{NumericVariantType{number}}) {std::cout << "4\n";}
-		NumericValue(FixedPointType number) noexcept : number(std::optional{NumericVariantType{number}}) {std::cout << "5\n";}
-		NumericValue(BoolType number) noexcept : number(std::optional{NumericVariantType{number}}) {std::cout << "6\n";}
+		NumericValue(WholeType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		NumericValue(IntegerType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		NumericValue(CharacterType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		NumericValue(FixedPointType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		NumericValue(BoolType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
 
 		NumericValue(const NumericValue& other) noexcept = default;
 		NumericValue(NumericValue&& other) noexcept = default;
 		NumericValue& operator=(const NumericValue& other) noexcept = default;
 		NumericValue& operator=(NumericValue&& other) noexcept = default;
 		NumericValue& operator=(NumericVariantType other) noexcept {
-			std::cout << "op=0\n";
 			number = std::optional{other};
 			return *this;
 		}
 		NumericValue& operator=(std::optional<NumericVariantType> other) noexcept {
-			std::cout << "op=1\n";
 			number = other;
 			return *this;
 		}
 		NumericValue& operator=(WholeType other) noexcept {
-			std::cout << "op=2\n";
 			number = std::optional{other};
 			return *this;
 		}
 		NumericValue& operator=(IntegerType other) noexcept {
-			std::cout << "op=3\n";
 			number = std::optional{other};
 			return *this;
 		}
 		NumericValue& operator=(CharacterType other) noexcept {
-			std::cout << "op=4\n";
 			number = std::optional{other};
 			return *this;
 		}
 		NumericValue& operator=(FixedPointType other) noexcept {
-			std::cout << "op=5\n";
 			number = std::optional{other};
 			return *this;
 		}
 		NumericValue& operator=(BoolType other) noexcept {
-			std::cout << "op=6\n";
 			number = std::optional{other};
 			return *this;
 		}
@@ -429,7 +422,6 @@ namespace Warp::Runtime::Compiler
 		template<typename ReduceToParameterType>
 		auto to() const -> std::optional<ReduceToParameterType>
 		{
-			std::cout << "From NumericValue\n";
 			if(number.has_value() == true)
 			{
 				return std::visit([&](const auto& number_concrete)
@@ -438,13 +430,10 @@ namespace Warp::Runtime::Compiler
 					using ToType = CleanType<ReduceToParameterType>;
 					if constexpr(std::is_convertible_v<ToType, ConcreteType> == true)
 						return std::optional<ToType>{static_cast<ToType>(number_concrete)};
-					else {
-						std::cout << "to(): Not convertible!!\n";
+					else
 						return std::optional<ToType>{std::nullopt};
-					}
 				}, number.value());
 			}
-			std::cout << "Failed to convert from numeric value\n";
 			return std::nullopt;
 		}
 		
@@ -465,29 +454,23 @@ namespace Warp::Runtime::Compiler
 						{
 							if constexpr(std::is_convertible_v<ConcreteType, OtherConcreteType> == true)
 							{
-								std::cout << "Non boolean success.\n";
 								const auto& other_concrete_converted = static_cast<ConcreteType>(other_concrete);
 								return NumericValue{NumericVariantType{ConcreteType(
 										OperationParameterConstant(number_concrete, other_concrete_converted)
 									 )}};
 							}
-							else {
-								std::cout << "NOT CONVERTABLE " << static_cast<int>(number_tag) << " : " << static_cast<int>(other_tag) << "\n";
+							else
 								return NumericValue{std::nullopt};
-							}
 						}
 						else if constexpr(std::is_same_v<ConcreteType, OtherConcreteType> == true)
 						{
-							std::cout << "Boolean success\n";
 							using BoolType = typename NumericTypeResolver<NumericTypeTag::Bool>::Type;
 							return NumericValue{NumericVariantType{BoolType(
 									OperationParameterConstant(number_concrete, other_concrete)
 							  )}};
 						}
-						else {
-							std::cout << "Boolean with differnt types: " << static_cast<int>(number_tag) << " : " << static_cast<int>(other_tag) << "\n";
+						else
 						   return NumericValue{std::nullopt};
-						}
 					}, other.number.value());
 				}, number.value());
 			}

@@ -104,12 +104,16 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 			>(node->to_view(), debug);
 	}
 
-	static std::optional<NumericValue> reduce_to_numeric_value(const BaseNode* node, bool debug) {
-		std::cout << "Reduce Value\n";
+	static std::optional<NumericValue> reduce_to_numeric_value(const BaseNode* node, bool debug)
+	{
+		if(debug == true)
+			std::cout << "Reduce Value\n";
 		return retrieve_value<NumericValue>(node, debug);
 	}
-	static std::optional<NumericValue> reduce_to_numeric_value(const auto& context, const BaseNode* node, bool debug) {
-		std::cout << "Reduce Value (Ctx)\n";
+	static std::optional<NumericValue> reduce_to_numeric_value(const auto& context, const BaseNode* node, bool debug)
+	{
+		if(debug == true)
+			std::cout << "Reduce Value (context)\n";
 		return retrieve_value<NumericValue>(context, node, debug);
 	}
 
@@ -143,7 +147,6 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				} \
 			}
 	
-						//return decltype(Zero{std::declval<ReduceToType>()})::zero;
 	LITERAL_NODE(LiteralWhole);
 	LITERAL_NODE(LiteralInteger);
 	LITERAL_NODE(LiteralCharacter);
@@ -207,12 +210,6 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				} \
 			}
 
-		//template<typename CanidateParameterType>
-		//concept LogicalOperatableConcept = requires(CanidateParameterType canidate) {
-		//		canidate && canidate;
-		//		canidate || canidate;
-		//};
-
 		#define BOOLEAN_TO_VALUE \
 				std::optional<BoolType> to_value() { \
 					return value; \
@@ -241,7 +238,6 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				BINARY_OPERATOR_BODY_(NODE_TYPE, OPERATOR, reduce_to_numeric_value, optional_to<WarpBool>) \
 				BOOLEAN_TO_VALUE \
 			}
-//, reduce_to_numeric_value) \
 	
 		#define LOGICAL_BINARY_OPERATOR(NODE_TYPE, OPERATOR) \
 			template<typename ReduceToParameterType> \
@@ -254,8 +250,6 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				BOOLEAN_TO_VALUE \
 			}
 
-//, reduce_to_numeric_value) \
-//
 	BINARY_OPERATOR(Multiply, *);
 	BINARY_OPERATOR(Divide, /);
 	BINARY_OPERATOR(Add, +);
@@ -328,33 +322,10 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		}
 	};
 
-	//template<typename ReduceToParameterType>
-	//struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
-	//{
-	//	using ReduceToType = ReduceToParameterType;
-	//	std::optional<ReduceToType> value;
-	//	Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
-	//			: value(std::nullopt) {
-	//		std::cerr << "LogicalExpression::Error: Attempt input non-bool into LogicalExpression\n";
-	//	}
-	//	Executor(const auto* context, const Node<NodeType::LogicalExpression>* node, bool debug) 
-	//			: value(std::nullopt) {
-	//		std::cerr << "LogicalExpression::Error: Attempt input non-bool into LogicalExpression\n";
-	//	}
-	//	std::optional<ReduceToType> to_value() {
-	//		return value;
-	//	}
-	//	operator std::optional<ReduceToType>() {
-	//		return to_value();
-	//	}
-	//};
-
-	//template<std::convertible_to<typename NumericTypeResolver<NumericTypeTag::Bool>::Type> ReduceToParameterType>
 	template<typename ReduceToParameterType>
 	struct Executor<ReduceToParameterType, NodeType::LogicalExpression>
 	{
-		using ReduceToType = BoolType;//ReduceToParameterType;
-		//using ReduceToType = typename NumericTypeResolver<NumericTypeTag::Bool>::Type;
+		using ReduceToType = BoolType;
 		std::optional<ReduceToType> value;
 		Executor(const Node<NodeType::LogicalExpression>* node, bool debug) 
 				: value(retrieve_value<ReduceToType>(node->root.get(), debug)) {
@@ -425,9 +396,9 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::Character);
 
 	template<typename ReduceToParameterType>
-	struct Executor<ReduceToParameterType, NodeType::LogicalNot>//NumericTypeResolver<NumericTypeTag::Bool>::Type, NodeType::LogicalNot>
+	struct Executor<ReduceToParameterType, NodeType::LogicalNot>
 	{
-		using ReduceToType = ReduceToParameterType;//NumericTypeResolver<NumericTypeTag::Bool>::Type;
+		using ReduceToType = ReduceToParameterType;
 		std::optional<ReduceToType> absolute_value, value;
 		Executor(const Node<NodeType::LogicalNot>* node, bool debug) 
 				: absolute_value(retrieve_value<ReduceToType>(node->negated.get(), debug)), 

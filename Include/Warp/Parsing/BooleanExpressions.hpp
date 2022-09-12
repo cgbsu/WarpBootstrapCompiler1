@@ -62,13 +62,13 @@ namespace Warp::Parsing
 					TypeTreeTerm< 
 							BooleanExpression::GreaterThanOrEqualTo, 
 							NonTerminalTerm,  
-							SyntaxNode,  
+							BooleanExpression, 
 							FixedString{"GreaterThanOrEqualTo"} 
 						>, 
 					TypeTreeTerm< 
 							BooleanExpression::LessThankOrEqualTo, 
 							NonTerminalTerm,  
-							SyntaxNode,  
+							BooleanExpression, 
 							FixedString{"LessThankOrEqualTo"} 
 						>, 
 					TypeTreeTerm< 
@@ -182,7 +182,8 @@ namespace Warp::Parsing
 				logical_or, 
 				logical_not,
 				less_than, 
-				greater_than
+				greater_than, 
+				equal
 			); 
 
 		//constexpr static const auto terms = WholeMathematicalParserType::terms;
@@ -242,31 +243,63 @@ namespace Warp::Parsing
 					= MathematicalExpressionGeneratorParameterType::template term<TagType::Sum>;
 			constexpr const auto reduce_to_term
 					= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
-			return ctpg::rules(
-					comparison(expression_term, comparison_operator, expression_term)
+			return comparison(expression_term, comparison_operator, expression_term)
 					>=[](auto left, auto operator_, auto right)
 					{
 						return binary_node<
 								ComparisonParameterConstant
 							>(std::move(left.node), std::move(right.node));
-					} 
-				);
+					};
 		}
 
+		template<BooleanExpression ComparisonParameterConstant>
+		constexpr static const auto or_equal_to_operator(auto comparison_operator, auto resulting_operator)
+		{
+			return resulting_operator(comparison_operator, equal)
+					>=[](auto comparison, auto equal_) {
+							return ComparisonParameterConstant; // It has to return something...
+					};
+		}
 
 		template<typename MathematicalExpressionGeneratorParameterType>
 		constexpr static const auto mathematical_parser_unique_rules()
 		{
-			return subsume_algebraic_expression_to_comparison<
-						NodeType::GreaterThan, 
-						MathematicalExpressionGeneratorParameterType
-				>(greater_than);
+			return ctpg::rules(
+					subsume_algebraic_expression_to_comparison<
+								NodeType::GreaterThan, 
+								MathematicalExpressionGeneratorParameterType
+						>(greater_than), 
+					subsume_algebraic_expression_to_comparison<
+								NodeType::LessThan, 
+								MathematicalExpressionGeneratorParameterType
+						>(less_than), 
+					subsume_algebraic_expression_to_comparison<
+								NodeType::GreaterThanOrEqualTo, 
+								MathematicalExpressionGeneratorParameterType
+						>(greater_than_or_equal_to), 
+					subsume_algebraic_expression_to_comparison<
+								NodeType::LessThankOrEqualTo, 
+								MathematicalExpressionGeneratorParameterType
+						>(less_than_or_equal_to), 
+					subsume_algebraic_expression_to_comparison<
+								NodeType::Equal, 
+								MathematicalExpressionGeneratorParameterType
+						>(equal)
+				);
 		}
 
+		constexpr static const auto or_equal_to_operators()
+		{
+			return ctpg::rules(
+					or_equal_to_operator<BooleanExpression::LessThankOrEqualTo>(less_than, less_than_or_equal_to), 
+					or_equal_to_operator<BooleanExpression::GreaterThanOrEqualTo>(greater_than, greater_than_or_equal_to)
+				);
+		}
 
 		constexpr static const auto unique_rules()
 		{
 			return concatinate_tuples(
+					or_equal_to_operators(), 
 					mathematical_parser_unique_rules<WholeMathematicalParserType>(), 
 					mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
 					to_logical_expression(comparison)

@@ -24,7 +24,7 @@ constexpr static const bool from_warp_bool(WarpBool from) {
 constexpr static const auto compare_value = [](
 		const auto& left, 
 		const auto& right, 
-		bool debug = true, 
+		bool debug, 
 		std::source_location location
 	)
 {
@@ -76,8 +76,33 @@ void bool_test(
 
 TEST_GROUP(BooleanExpressionTests) {};
 
-TEST(BooleanExpressionTests, Comparisons) {
-	bool debug = true;
+TEST(BooleanExpressionTests, Comparisons)
+{
+	bool debug = false;
 	bool_test<FixedString{"2u > 1u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2u < 1u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"2u <= 1u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"1u <= 1u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2u >= 1u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2u >= 2u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2u > 2u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"2u < 2u"}>(WarpBool::False, debug);
+
+	bool_test<FixedString{"200u > 5498u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5498u > 200u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"1232u < 4895u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"424u <= 212u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"212u <= 212u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2131u <= 12131u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2131u <= 2131u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"5462u >= 5783u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5462u >= 5462u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2765456u >= 221397u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"23947u > 23947u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"248u < 248u"}>(WarpBool::False, debug);
+
+	bool_test<FixedString{"23809u = 23809u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"23809u = 38890u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"38890u = 23809u"}>(WarpBool::False, debug);
 };
 
