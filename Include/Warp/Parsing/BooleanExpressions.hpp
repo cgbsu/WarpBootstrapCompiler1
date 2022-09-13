@@ -174,8 +174,11 @@ namespace Warp::Parsing
 		constexpr static const auto greater_than_or_equal_to = term<BooleanExpression::GreaterThanOrEqualTo>;
 		constexpr static const auto less_than_or_equal_to = term<BooleanExpression::LessThankOrEqualTo>;
 		constexpr static const auto comparison = term<BooleanExpression::Comparison>;
-		constexpr static const auto boolean_expression = term<BooleanExpression::Expression>;
+		constexpr static const auto logical_expression = term<BooleanExpression::Expression>;
 		constexpr static const auto equal = term<MultiPurposeOperator::Equal>;
+
+		constexpr static const auto open_parenthesis = term<Brackets::OpenParenthesis>;
+		constexpr static const auto close_parenthesis = term<Brackets::CloseParenthesis>;
 
 		constexpr static const auto unique_terms = ctpg::terms(
 				logical_and, 
@@ -193,7 +196,7 @@ namespace Warp::Parsing
 				IntegerMathematicalParserType::unique_terms, 
 		//		//FixedPointMathematicalParserType::unique_terms, 
 		//		//CharacterMathematicalParserType::unique_terms, 
-		//		//BoolMathematicalParserType::unique_terms, 
+				BoolMathematicalParserType::unique_terms, 
 
 				unique_terms
 			);
@@ -202,7 +205,8 @@ namespace Warp::Parsing
 				less_than_or_equal_to, 
 				greater_than_or_equal_to, 
 				comparison, 
-				boolean_expression
+				logical_operation, 
+				logical_expression
 			);
 
 
@@ -214,16 +218,86 @@ namespace Warp::Parsing
 				IntegerMathematicalParserType::unique_non_terminal_terms, 
 				//FixedPointMathematicalParserType::unique_non_terminal_terms, 
 				//CharacterMathematicalParserType::unique_non_terminal_terms, 
-				//BoolMathematicalParserType::unique_non_terminal_terms, 
+				BoolMathematicalParserType::unique_non_terminal_terms, 
 				unique_non_terminal_terms
 			);
 
 		constexpr static const auto to_logical_expression(auto from)
 		{
 			return ctpg::rules(
-					boolean_expression(from)
+					logical_expression(from)
 					>=[](auto from) {
 						return std::move(from);
+					}
+				);
+		}
+
+		template<NodeType LogicalOperatorParameterConstant>
+		constexpr static const auto make_logical_operator(auto logical_operator)
+		{
+			using TagType = BoolMathematicalParserType
+					::TypeSpecificMathematicalExpressionTermTags;
+			constexpr const auto expression_term 
+					= BoolMathematicalParserType::template term<TagType::Expression>;
+			return ctpg::rules(
+					logical_operator(comparison, logical_operator, comparison)
+					>=[](auto left, auto operator_, auto right)
+					{
+						return binary_node<
+								LogicalOperatorParameterConstant
+							>(std::move(left), std::move(right));
+					}, 
+					logical_operator(expression_term, logical_operator, comparison)
+					>=[](auto left, auto operator_, auto right)
+					{
+						return binary_node<
+								LogicalOperatorParameterConstant
+							>(std::move(left.node), std::move(right));
+					}, 
+					logical_operation(expression_term, logical_operator, expression_term)
+					>=[](auto left, auto operator_, auto right)
+					{
+						return binary_node<
+								LogicalOperatorParameterConstant
+							>(std::move(left.node), std::move(right.node));
+					}, 
+					logical_opeartion(comparison, logical_operator, expression_term)
+					>=[](auto left, auto operator_, auto right)
+					{
+						return binary_node<
+								LogicalOperatorParameterConstant
+							>(std::move(left), std::move(right.node));
+					}
+				);
+		}
+
+		constexpr static const auto negate_rules()
+		{
+			using TagType = BoolMathematicalParserType
+					::TypeSpecificMathematicalExpressionTermTags;
+			constexpr const auto expression_term 
+					= BoolMathematicalParserType::template term<TagType::Expression>;
+			return ctpg::rules(
+					logical_expression(logical_not, comparison)
+					>=[](auto operator_, auto operand)
+					{
+						return unary_node<
+								NodeType::LogicalNot
+							>(std::move(operand));
+					}, 
+					logical_expression(logical_not, logical_expression)
+					>=[](auto operator_, auto operand)
+					{
+						return unary_node<
+								NodeType::LogicalNot
+							>(std::move(operand));
+					}, 
+					logical_expression(logical_not, expression_term)
+					>=[](auto operator_, auto operand)
+					{
+						return unary_node<
+								NodeType::LogicalNot
+							>(std::move(operand.node));
 					}
 				);
 		}
@@ -302,20 +376,23 @@ namespace Warp::Parsing
 					or_equal_to_operators(), 
 					mathematical_parser_unique_rules<WholeMathematicalParserType>(), 
 					mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
-					to_logical_expression(comparison)
+					mathematical_parser_unique_rules<BoolMathematicalParserType>(), 
+					make_logical_operator<NodeType::LogicalOr>(logical_or), 
+					make_logical_operator<NodeType::LogicalAnd>(logical_and), 
+					negate_rules(), 
+					to_logical_expression(comparison), 
+					to_logical_expression(logical_operation)
 				);
 		}
 
 		consteval static const auto rules()
 		{
-
-			//return WholeMathematicalParserType::rules();
 			return concatinate_tuples(
 					WholeMathematicalParserType::rules(), 
 					IntegerMathematicalParserType::unique_rules(), //, 
 					//FixedPointMathematicalParserType::unique_rules(), 
 					//CharacterMathematicalParserType::unique_rules(), 
-					//BoolMathematicalParserType::unique_rules(), 
+					BoolMathematicalParserType::unique_rules(), 
 					unique_rules()
 				);
 		}

@@ -106,3 +106,38 @@ TEST(BooleanExpressionTests, Comparisons)
 	bool_test<FixedString{"38890u = 23809u"}>(WarpBool::False, debug);
 };
 
+TEST(BooleanExpressionTests, LogicalOperatorsWithComparsions)
+{
+	bool debug = false;
+	bool_test<FixedString{"5u > 4u && 3u > 2u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"5u > 4u || 3u > 2u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"5u < 4u || 3u < 2u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u > 4u || 3u < 2u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"5u < 4u || 3u > 2u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"5u < 4u && 3u > 2u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u < 4u && 3u > 2u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u > 4u && 3u < 2u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u > 4u && 3u > 2u"}>(WarpBool::True, debug);
+	//bool_test<FixedString{"!5u > 4u && 3u > 2u"}>(WarpBool::False, true);
+};
+
+TEST(BooleanExpressionTests, BoolArithmaticWithLogicalExpressions)
+{
+	bool debug = false;
+	bool_test<FixedString{"true && true"}>(WarpBool::True, debug);
+	bool_test<FixedString{"false && true"}>(WarpBool::False, debug);
+	bool_test<FixedString{"true && false"}>(WarpBool::False, debug);
+	bool_test<FixedString{"false && false"}>(WarpBool::False, debug);
+
+	bool_test<FixedString{"true || true"}>(WarpBool::True, debug);
+	bool_test<FixedString{"false || true"}>(WarpBool::True, debug);
+	bool_test<FixedString{"true || false"}>(WarpBool::True, debug);
+	bool_test<FixedString{"false || false"}>(WarpBool::False, debug);
+
+	bool_test<FixedString{"!true"}>(WarpBool::False, debug);
+	bool_test<FixedString{"!false"}>(WarpBool::True, debug);
+
+
+	bool_test<FixedString{"!false || false"}>(WarpBool::True, debug);
+};
+

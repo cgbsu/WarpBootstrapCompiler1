@@ -24,6 +24,14 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				Node<NodeTypeParameterConstant>
 			>(std::move(left), std::move(right));
 	}
+
+	template<NodeType NodeTypeParameterConstant>
+	SyntaxNode unary_node(SyntaxNode child)
+	{
+		return std::make_unique<
+				Node<NodeTypeParameterConstant>
+			>(std::move(child));
+	}
 }
 
 #endif // WARP__PARSING__HEADER__SYNTAX__ANALYSIS__SYNTAX__NODE__HPP
