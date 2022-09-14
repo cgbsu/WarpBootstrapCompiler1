@@ -61,7 +61,11 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 					else
 					{
 						if(debug == true)
-							std::cerr << "retrieve_value(context): Type not convertable!\n";
+						{
+							std::cerr << "retrieve_value(context): Type not convertable: " 
+									<< friendly_type_name<ReduceToParameterType>() << " from " 
+									<< friendly_type_name<ValueType>() << "\n";
+						}
 						return std::nullopt;
 					}
 				}
@@ -90,7 +94,11 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 						else
 						{
 							if(debug == true)
-								std::cerr << "retrieve_value(no context): Type not convertable!\n";
+							{
+								std::cerr << "retrieve_value(no context): Type not convertable: "
+										<< friendly_type_name<ReduceToParameterType>() << " from " 
+										<< friendly_type_name<ValueType>() << "\n";
+							}
 							return std::nullopt;
 						}
 					}

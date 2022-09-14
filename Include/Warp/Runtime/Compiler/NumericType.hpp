@@ -368,59 +368,118 @@ namespace Warp::Runtime::Compiler
 			FixedPointType, 
 			BoolType
 		>;
+}
 
+namespace Warp::Utilities
+{
+	using namespace Warp::Runtime::Compiler;
+	
+	static std::string to_string(NumericTypeTag tag)
+	{
+		switch(tag)
+		{
+			case NumericTypeTag::Whole : return std::string{"Whole"};
+			case NumericTypeTag::Integer : return std::string{"Integer"};
+			case NumericTypeTag::FixedPoint : return std::string{"FixedPoint"};
+			case NumericTypeTag::Character : return std::string{"Character"};
+			case NumericTypeTag::Bool : return std::string{"Bool"};
+			default : return std::string{"UnkownType!"};
+		};
+	}
+
+	template<NumericTypeTag ParameterTypeConstant, typename NumericParameterType>
+	struct Zero<NumericType<ParameterTypeConstant, NumericParameterType>>
+	{
+		using Type = NumericType<ParameterTypeConstant, NumericParameterType>;
+		constexpr static const auto zero = Type::zero();
+		constexpr Zero(Type) noexcept {}
+	};
+
+    constexpr std::string to_string(Warp::Runtime::Compiler::WarpBool to_stringify)
+	{
+		if(to_stringify == WarpBool::True)
+			return std::string{"True"};
+		else
+			return std::string{"False"};
+	}
+
+	template<
+			NumericTypeTag ParameterTypeConstant, 
+			size_t WholePartBitsParameterConstant, 
+			size_t DecimalPartBitsParameterConstant
+		>
+	constexpr std::string to_string(numeric::fixed<
+					WholePartBitsParameterConstant, 
+					DecimalPartBitsParameterConstant
+				> fixed) {
+		return std::to_string(fixed.to_double());
+	}
+
+    template<typename ParameterType>
+    constexpr std::string to_string(NumericType<NumericTypeTag::FixedPoint, ParameterType> to_stringify) {
+		return std::to_string(to_stringify.number.to_double());
+	}
+    template<NumericTypeTag TermTagParameterConstant, typename ParameterType>
+    constexpr std::string to_string(NumericType<TermTagParameterConstant, ParameterType> to_stringify) {
+			return to_string(to_stringify.number);
+	}
+}
+
+namespace Warp::Runtime::Compiler
+{
+	using namespace Warp::Utilities;
 	struct NumericValue
 	{
 		std::optional<NumericVariantType> number;
 
-		NumericValue() noexcept : number(std::nullopt) {}
-		NumericValue(NumericVariantType number) noexcept : number(std::optional{number}) {}
-		NumericValue(std::optional<NumericVariantType> number) noexcept : number(number) {}
+		constexpr NumericValue() noexcept : number(std::nullopt) {}
+		constexpr NumericValue(NumericVariantType number) noexcept : number(std::optional{number}) {}
+		constexpr NumericValue(std::optional<NumericVariantType> number) noexcept : number(number) {}
 
 		//template<NumericTypeTag NumericTypeParameterConstant>
 		//constexpr NumericValue(NumericTypeResolver<NumericTypeParameterConstant>::Type number) noexcept : number(std::optional{NumericVariantType{number}}) {}
 
-		NumericValue(WholeType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
-		NumericValue(IntegerType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
-		NumericValue(CharacterType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
-		NumericValue(FixedPointType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
-		NumericValue(BoolType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		constexpr NumericValue(WholeType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		constexpr NumericValue(IntegerType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		constexpr NumericValue(CharacterType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		constexpr NumericValue(FixedPointType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
+		constexpr NumericValue(BoolType number) noexcept : number(std::optional{NumericVariantType{number}}) {}
 
-		NumericValue(const NumericValue& other) noexcept = default;
-		NumericValue(NumericValue&& other) noexcept = default;
-		NumericValue& operator=(const NumericValue& other) noexcept = default;
-		NumericValue& operator=(NumericValue&& other) noexcept = default;
-		NumericValue& operator=(NumericVariantType other) noexcept {
+		constexpr NumericValue(const NumericValue& other) noexcept = default;
+		constexpr NumericValue(NumericValue&& other) noexcept = default;
+		constexpr NumericValue& operator=(const NumericValue& other) noexcept = default;
+		constexpr NumericValue& operator=(NumericValue&& other) noexcept = default;
+		constexpr NumericValue& operator=(NumericVariantType other) noexcept {
 			number = std::optional{other};
 			return *this;
 		}
-		NumericValue& operator=(std::optional<NumericVariantType> other) noexcept {
+		constexpr NumericValue& operator=(std::optional<NumericVariantType> other) noexcept {
 			number = other;
 			return *this;
 		}
-		NumericValue& operator=(WholeType other) noexcept {
+		constexpr NumericValue& operator=(WholeType other) noexcept {
 			number = std::optional{other};
 			return *this;
 		}
-		NumericValue& operator=(IntegerType other) noexcept {
+		constexpr NumericValue& operator=(IntegerType other) noexcept {
 			number = std::optional{other};
 			return *this;
 		}
-		NumericValue& operator=(CharacterType other) noexcept {
+		constexpr NumericValue& operator=(CharacterType other) noexcept {
 			number = std::optional{other};
 			return *this;
 		}
-		NumericValue& operator=(FixedPointType other) noexcept {
+		constexpr NumericValue& operator=(FixedPointType other) noexcept {
 			number = std::optional{other};
 			return *this;
 		}
-		NumericValue& operator=(BoolType other) noexcept {
+		constexpr NumericValue& operator=(BoolType other) noexcept {
 			number = std::optional{other};
 			return *this;
 		}
 
 		template<typename ReduceToParameterType>
-		auto to() const -> std::optional<ReduceToParameterType>
+		constexpr auto to() const -> std::optional<ReduceToParameterType> const
 		{
 			if(number.has_value() == true)
 			{
@@ -438,7 +497,7 @@ namespace Warp::Runtime::Compiler
 		}
 		
 		template<auto OperationParameterConstant, bool BooleanParameterConstant = false>
-		NumericValue operate(const NumericValue& other) const
+		constexpr NumericValue operate(const NumericValue& other) const
 		{
 			if(number.has_value() == true && other.number.has_value() == true)
 			{
@@ -478,7 +537,7 @@ namespace Warp::Runtime::Compiler
 		}
 
 		template<auto OperationParameterConstant, bool NegatingOperationConstant = false>
-		NumericValue operate() const
+		constexpr NumericValue operate() const
 		{
 			if(number.has_value() == true)
 			{
@@ -500,99 +559,55 @@ namespace Warp::Runtime::Compiler
 			return *this;
 		}
 
-		NumericValue operator*(const NumericValue& other) const {
+		constexpr NumericValue operator*(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return left * right; }>(other);
 		}
-		NumericValue operator/(const NumericValue& other) const {
+		constexpr NumericValue operator/(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return left / right; }>(other);
 		}
-		NumericValue operator+(const NumericValue& other) const {
+		constexpr NumericValue operator+(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return left + right; }>(other);
 		}
-		NumericValue operator-(const NumericValue& other) const {
+		constexpr NumericValue operator-(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return left - right; }>(other);
 		}
-		NumericValue operator>(const NumericValue& other) const {
+		constexpr NumericValue operator>(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left > right); }, true>(other);
 		}
-		NumericValue operator<(const NumericValue& other) const {
+		constexpr NumericValue operator<(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left < right); }, true>(other);
 		}
-		NumericValue operator<=(const NumericValue& other) const {
+		constexpr NumericValue operator<=(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left <= right); }, true>(other);
 		}
-		NumericValue operator>=(const NumericValue& other) const {
+		constexpr NumericValue operator>=(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left >= right); }, true>(other);
 		}
-		NumericValue operator==(const NumericValue& other) const {
+		constexpr NumericValue operator==(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return to_warp_bool(left == right); }, true>(other);
 		}
-		NumericValue operator-() const {
+		constexpr NumericValue operator-() const {
 			return operate<[](const auto& value) { return -value; }, true>();
 		}
-		NumericValue operator!() const {
+		constexpr NumericValue operator!() const {
 			return operate<[](const auto& value) { return !value; }, true>();
 		}
-		operator std::optional<WholeType>() const {
+		constexpr operator std::optional<WholeType>() const {
 			return to<WholeType>();
 		}
-		operator std::optional<IntegerType>() const {
+		constexpr operator std::optional<IntegerType>() const {
 			return to<IntegerType>();
 		}
-		operator std::optional<FixedPointType>() const {
+		constexpr operator std::optional<FixedPointType>() const {
 			return to<FixedPointType>();
 		}
-		operator std::optional<CharacterType>() const {
+		constexpr operator std::optional<CharacterType>() const {
 			return to<CharacterType>();
 		}
-		operator std::optional<BoolType>() const {
+		constexpr operator std::optional<BoolType>() const {
 			return to<BoolType>();
 		}
 	};
-
-}
-
-namespace Warp::Utilities
-{
-	using namespace Warp::Runtime::Compiler;
-
-
-	template<NumericTypeTag ParameterTypeConstant, typename NumericParameterType>
-	struct Zero<NumericType<ParameterTypeConstant, NumericParameterType>>
-	{
-		using Type = NumericType<ParameterTypeConstant, NumericParameterType>;
-		constexpr static const auto zero = Type::zero();
-		constexpr Zero(Type) noexcept {}
-	};
-
-    constexpr std::string to_string(Warp::Runtime::Compiler::WarpBool to_stringify)
-	{
-		if(to_stringify == WarpBool::True)
-			return std::string{"True"};
-		else
-			return std::string{"False"};
-	}
-
-	template<
-			NumericTypeTag ParameterTypeConstant, 
-			size_t WholePartBitsParameterConstant, 
-			size_t DecimalPartBitsParameterConstant
-		>
-	constexpr std::string to_string(numeric::fixed<
-					WholePartBitsParameterConstant, 
-					DecimalPartBitsParameterConstant
-				> fixed) {
-		return std::to_string(fixed.to_double());
-	}
-
-    template<typename ParameterType>
-    constexpr std::string to_string(NumericType<NumericTypeTag::FixedPoint, ParameterType> to_stringify) {
-		return std::to_string(to_stringify.number.to_double());
-	}
-    template<NumericTypeTag TermTagParameterConstant, typename ParameterType>
-    constexpr std::string to_string(NumericType<TermTagParameterConstant, ParameterType> to_stringify) {
-			return to_string(to_stringify.number);
-	}
 }
 
 #endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__NUMERIC__TYPE__HPP

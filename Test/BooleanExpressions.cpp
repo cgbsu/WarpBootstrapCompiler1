@@ -60,6 +60,17 @@ auto parse_bool(bool debug = false, std::source_location location = std::source_
 }
 
 template<auto TestParameterConstant>
+void print_bool(bool debug = false, std::source_location location = std::source_location::current())
+{
+	std::cout << "\nHi\n";
+	const auto result = parse_bool<TestParameterConstant>(debug, location);
+	std::cout << "\nBoolResult: " << TestParameterConstant.string 
+			<< " = " << to_string(retrieve_value<NumericTypeResolver<NumericTypeTag::Bool>::Type>(
+					result.value().get(), debug
+				).value()) << "\n\n";
+}
+
+template<auto TestParameterConstant>
 void bool_test(
 		UnderlyingBoolType expected, 
 		bool debug = false, 
@@ -106,7 +117,7 @@ TEST(BooleanExpressionTests, Comparisons)
 	bool_test<FixedString{"38890u = 23809u"}>(WarpBool::False, debug);
 };
 
-TEST(BooleanExpressionTests, LogicalOperatorsWithComparsions)
+TEST(BooleanExpressionTests, LogicalOperatorsWithComparisons)
 {
 	bool debug = false;
 	bool_test<FixedString{"5u > 4u && 3u > 2u"}>(WarpBool::True, debug);
@@ -118,7 +129,18 @@ TEST(BooleanExpressionTests, LogicalOperatorsWithComparsions)
 	bool_test<FixedString{"5u < 4u && 3u > 2u"}>(WarpBool::False, debug);
 	bool_test<FixedString{"5u > 4u && 3u < 2u"}>(WarpBool::False, debug);
 	bool_test<FixedString{"5u > 4u && 3u > 2u"}>(WarpBool::True, debug);
-	//bool_test<FixedString{"!5u > 4u && 3u > 2u"}>(WarpBool::False, true);
+	bool_test<FixedString{"!5u > 4u && 3u > 2u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u < 4u && 3u > 2u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u > 4u && 3u < 2u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u > 4u || 3u < 2u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"5u < 4u && 3u > 2u || 5u > 8u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u > 4u && 3u > 2u || 5u > 8u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"5u > 4u && 3u < 2u || 5u > 8u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u > 4u && 3u > 2u || 7u = 7u && 8u < 10u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"5u > 4u && 3u = 2u || 7u = 7u && 8u > 10u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"5u = 4u && 3u > 2u || 7u = 7u && 8u > 10u"}>(WarpBool::False, debug);
+	debug = true;
+	bool_test<FixedString{"2u < 1u && 3u > 4u || 5u > 4u && 3u > 2u"}>(WarpBool::True, debug);
 };
 
 TEST(BooleanExpressionTests, BoolArithmaticWithLogicalExpressions)

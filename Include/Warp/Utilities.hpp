@@ -9,6 +9,7 @@
 #include <Warp/Utilities/MovingVector.hpp>
 #include <Warp/Utilities/TemplateUtilities.hpp>
 #include <Warp/Utilities/VariantView.hpp>
+#include <Warp/Utilities/Reflection.hpp>
 
 #ifndef WARP__UTILITIES__HEADER__HPP
 #define WARP__UTILITIES__HEADER__HPP
