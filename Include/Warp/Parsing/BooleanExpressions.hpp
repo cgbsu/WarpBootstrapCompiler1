@@ -376,6 +376,46 @@ namespace Warp::Parsing
 								return binary_node<
 										NodeType::LogicalAnd
 									>(std::move(left), std::move(right.node));
+							}, 
+							//logical_and(logical_and, logical_and_operator, comparison)
+							//>=[](auto left, auto operator_, auto right)
+							//{
+							//	return binary_node<
+							//			NodeType::LogicalAnd
+							//		>(std::move(left), std::move(right));
+							//}, 
+							//logical_and(logical_and, logical_and_operator, expression_term)
+							//>=[](auto left, auto operator_, auto right)
+							//{
+							//	return binary_node<
+							//			NodeType::LogicalAnd
+							//		>(std::move(left), std::move(right.node));
+							//}, 
+							logical_and(logical_or, logical_and_operator, expression_term)
+							>=[](auto left, auto operator_, auto right)
+							{
+								auto left_ = static_cast<Node<NodeType::LogicalOr>*>(left.get());
+								return binary_node<
+										NodeType::LogicalOr
+									>(
+										std::move(left_->left), 
+										binary_node<
+												NodeType::LogicalAnd
+											>(std::move(left_->right), std::move(right.node))
+									);
+							}, 
+							logical_and(logical_or, logical_and_operator, comparison)
+							>=[](auto left, auto operator_, auto right)
+							{
+								auto left_ = static_cast<Node<NodeType::LogicalOr>*>(left.get());
+								return binary_node<
+										NodeType::LogicalOr
+									>(
+										std::move(left_->left), 
+										binary_node<
+												NodeType::LogicalAnd
+											>(std::move(left_->right), std::move(right))
+									);
 							}
 					)
 				);
