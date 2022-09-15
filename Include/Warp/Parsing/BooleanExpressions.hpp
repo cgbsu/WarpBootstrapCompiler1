@@ -190,7 +190,7 @@ namespace Warp::Parsing
 		constexpr static const auto logical_and_operator = term<BooleanExpression::LogicalAndOperator>;
 		constexpr static const auto logical_or_operator = term<BooleanExpression::LogicalOrOperator>;
 		constexpr static const auto logical_not_operator = term<BooleanExpression::LogicalNotOperator>;
-		constexpr static const auto logical_and = term<BooleanExpression::LogicalAnd>;
+		constexpr static const auto logical_term = term<BooleanExpression::LogicalAnd>;
 		constexpr static const auto logical_or = term<BooleanExpression::LogicalOr>;
 		constexpr static const auto logical_not = term<BooleanExpression::LogicalNot>;
 		constexpr static const auto greater_than = term<BooleanExpression::GreaterThan>;
@@ -229,7 +229,7 @@ namespace Warp::Parsing
 				less_than_or_equal_to, 
 				greater_than_or_equal_to, 
 				comparison, 
-				logical_and, 
+				logical_term, 
 				logical_or, 
 				logical_not, 
 				logical_operation, 
@@ -270,7 +270,7 @@ namespace Warp::Parsing
 		}
 
 		template<NodeType LogicalOperatorParameterConstant>
-		constexpr static const auto make_logical_operator(auto logical_reduction, auto logical_operator)
+		constexpr static const auto make_logical_term(auto logical_reduction, auto logical_operator)
 		{
 			using TagType = BoolMathematicalParserType
 					::TypeSpecificMathematicalExpressionTermTags;
@@ -305,41 +305,14 @@ namespace Warp::Parsing
 								LogicalOperatorParameterConstant
 							>(std::move(left), std::move(right.node));
 					}, 
-					//logical_reduction(logical_operation, logical_operator, logical_operation)
-					//>=[](auto left, auto operator_, auto right)
-					//{
-					//	return binary_node<
-					//			LogicalOperatorParameterConstant
-					//		>(std::move(left), std::move(right));
-					//},  
-					//logical_reduction(logical_operation, logical_operator, comparison)
-					//>=[](auto left, auto operator_, auto right)
-					//{
-					//	return binary_node<
-					//			LogicalOperatorParameterConstant
-					//		>(std::move(left), std::move(right));
-					//}, 
-					//logical_reduction(logical_operation, logical_operator, expression_term)
-					//>=[](auto left, auto operator_, auto right)
-					//{
-					//	return binary_node<
-					//			LogicalOperatorParameterConstant
-					//		>(std::move(left), std::move(right.node));
-					//}, 
-					//logical_reduction(comparison, logical_operator, logical_operation)
-					//>=[](auto left, auto operator_, auto right)
-					//{
-					//	return binary_node<
-					//			LogicalOperatorParameterConstant
-					//		>(std::move(left), std::move(right));
-					//}, 
-					//logical_reduction(expression_term, logical_operator, logical_operation)
-					//>=[](auto left, auto operator_, auto right)
-					//{
-					//	return binary_node<
-					//			LogicalOperatorParameterConstant
-					//		>(std::move(left.node), std::move(right));
-					//}, 
+					logical_reduction(comparison)
+					>=[](auto&& term) {
+						return std::move(term);
+					}, 
+					logical_reduction(expression_term)
+					>=[](auto&& expression) {
+						return std::move(expression.node);
+					}, 
 					logical_operation(logical_reduction)
 					>=[](auto&& operation) {
 						return operation;
@@ -354,70 +327,23 @@ namespace Warp::Parsing
 			constexpr const auto expression_term 
 					= BoolMathematicalParserType::template term<TagType::Expression>;
 			return concatinate_tuples(
-					make_logical_operator<NodeType::LogicalAnd>(logical_and, logical_and_operator), 
+					make_logical_term<NodeType::LogicalAnd>(logical_term, logical_and_operator), 
 					ctpg::rules(
-							logical_and(logical_and, logical_and_operator, logical_operation)
+							logical_term(logical_term, logical_and_operator, comparison)
 							>=[](auto left, auto operator_, auto right)
 							{
 								return binary_node<
 										NodeType::LogicalAnd
 									>(std::move(left), std::move(right));
 							}, 
-							logical_and(logical_and, logical_and_operator, comparison)
-							>=[](auto left, auto operator_, auto right)
-							{
-								return binary_node<
-										NodeType::LogicalAnd
-									>(std::move(left), std::move(right));
-							}, 
-							logical_and(logical_and, logical_and_operator, expression_term)
+							logical_term(logical_term, logical_and_operator, expression_term)
 							>=[](auto left, auto operator_, auto right)
 							{
 								return binary_node<
 										NodeType::LogicalAnd
 									>(std::move(left), std::move(right.node));
-							}, 
-							//logical_and(logical_and, logical_and_operator, comparison)
-							//>=[](auto left, auto operator_, auto right)
-							//{
-							//	return binary_node<
-							//			NodeType::LogicalAnd
-							//		>(std::move(left), std::move(right));
-							//}, 
-							//logical_and(logical_and, logical_and_operator, expression_term)
-							//>=[](auto left, auto operator_, auto right)
-							//{
-							//	return binary_node<
-							//			NodeType::LogicalAnd
-							//		>(std::move(left), std::move(right.node));
-							//}, 
-							logical_and(logical_or, logical_and_operator, expression_term)
-							>=[](auto left, auto operator_, auto right)
-							{
-								auto left_ = static_cast<Node<NodeType::LogicalOr>*>(left.get());
-								return binary_node<
-										NodeType::LogicalOr
-									>(
-										std::move(left_->left), 
-										binary_node<
-												NodeType::LogicalAnd
-											>(std::move(left_->right), std::move(right.node))
-									);
-							}, 
-							logical_and(logical_or, logical_and_operator, comparison)
-							>=[](auto left, auto operator_, auto right)
-							{
-								auto left_ = static_cast<Node<NodeType::LogicalOr>*>(left.get());
-								return binary_node<
-										NodeType::LogicalOr
-									>(
-										std::move(left_->left), 
-										binary_node<
-												NodeType::LogicalAnd
-											>(std::move(left_->right), std::move(right))
-									);
 							}
-					)
+						)
 				);
 		}
 
@@ -441,73 +367,21 @@ namespace Warp::Parsing
 					::TypeSpecificMathematicalExpressionTermTags;
 			constexpr const auto expression_term 
 					= BoolMathematicalParserType::template term<TagType::Expression>;
-			return concatinate_tuples(
-					make_logical_operator<NodeType::LogicalOr>(logical_or, logical_or_operator), 
-					ctpg::rules(
-							logical_or(logical_and, logical_or_operator, logical_and)
-							>=[](auto left, auto operator_, auto right)
-							{
-								return binary_node<
-										NodeType::LogicalOr
-									>(std::move(left), std::move(right));
-							}, 
-							//logical_or(logical_or, logical_or_operator, logical_operation)
-							//>=[](auto left, auto operator_, auto right)
-							//{
-							//	return binary_node<
-							//			NodeType::LogicalOr
-							//		>(std::move(left), std::move(right));
-							//}, 
-							//logical_or(logical_operation, logical_or_operator, logical_and)
-							//>=[](auto left, auto operator_, auto right)
-							//{
-							//	return binary_node<
-							//			NodeType::LogicalOr
-							//		>(std::move(left), std::move(right));
-							//}, 
-							//logical_or(comparison, logical_or_operator, logical_and)
-							//>=[](auto left, auto operator_, auto right)
-							//{
-							//	return binary_node<
-							//			NodeType::LogicalOr
-							//		>(std::move(left), std::move(right));
-							//}, 
-							//logical_or(expression_term, logical_or_operator, logical_and)
-							//>=[](auto left, auto operator_, auto right)
-							//{
-							//	return binary_node<
-							//			NodeType::LogicalOr
-							//		>(std::move(left.node), std::move(right));
-							//}, 
-							logical_or(logical_and, logical_or_operator, comparison)
-							>=[](auto left, auto operator_, auto right)
-							{
-								return binary_node<
-										NodeType::LogicalOr
-									>(std::move(left), std::move(right));
-							}, 
-							logical_or(logical_and, logical_or_operator, expression_term)
-							>=[](auto left, auto operator_, auto right)
-							{
-								return binary_node<
-										NodeType::LogicalOr
-									>(std::move(left), std::move(right.node));
-							}, 
-							logical_or(logical_or, logical_or_operator, comparison)
-							>=[](auto left, auto operator_, auto right)
-							{
-								return binary_node<
-										NodeType::LogicalOr
-									>(std::move(left), std::move(right));
-							}, 
-							logical_or(logical_or, logical_or_operator, expression_term)
-							>=[](auto left, auto operator_, auto right)
-							{
-								return binary_node<
-										NodeType::LogicalOr
-									>(std::move(left), std::move(right.node));
-							}
-						)
+			return ctpg::rules(
+					logical_or(logical_term, logical_or_operator, logical_term)
+					>=[](auto left, auto operator_, auto right)
+					{
+						return binary_node<
+								NodeType::LogicalOr
+							>(std::move(left), std::move(right));
+					}, 
+					logical_or(logical_or, logical_or_operator, logical_term)
+					>=[](auto left, auto operator_, auto right)
+					{
+						return binary_node<
+								NodeType::LogicalOr
+							>(std::move(left), std::move(right));
+					}
 				);
 		}
 
@@ -529,7 +403,7 @@ namespace Warp::Parsing
 								NodeType::LogicalNot
 							>(std::move(operand));
 					}, 
-					logical_not(logical_not_operator, logical_and)
+					logical_not(logical_not_operator, logical_term)
 					>=[](auto operator_, auto operand)
 					{
 						return unary_node<
@@ -632,7 +506,7 @@ namespace Warp::Parsing
 					or_rules(), 
 					negate_rules(), 
 					to_logical_expression(comparison), 
-					to_logical_expression(logical_and), 
+					to_logical_expression(logical_term), 
 					to_logical_expression(logical_or), 
 					to_logical_expression(logical_not), 
 					to_logical_expression(logical_operation)
