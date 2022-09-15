@@ -18,7 +18,11 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 	- [x] Constants (Functions of Zero Parameters)
 	- [ ] Function Calls
 	- [ ] Bitwise?
- - [ ] Evaluate boolean-expressions
+ - [x] Evaluate boolean-expressions
+	- [ ] Negation
+	- [ ] Logical Or
+	- [ ] Logical And
+	- [ ] Parenthesis Prioritization
  - [ ] Evaluate compile-time functions
  - [ ] Runtime functions & modules
 
@@ -38,6 +42,16 @@ This is the second attempt ([re-write](https://github.com/cgbsu/WarpBootstrapCom
 		- [x] Parenthesis Prioritization
 		- [ ] Bitwise?
 	- [ ] Boolean expressions
+		- [x] Negation (No Calls/Constants)
+		- [x] Negation (Constant Calls)
+		- [ ] Negation (Calls)
+		- [x] Logical Or (No Calls/Constants)
+		- [x] Logical Or (Constants Calls)
+		- [ ] Logical Or (Calls)
+		- [x] Logical And (No Calls/Constants)
+		- [x] Logical And (Constant Calls)
+		- [ ] Logical And (Calls)
+		- [ ] Parenthesis Prioritization
 	- [ ] Functions
 		- [ ] Function calls
 		- [x] Declare constants (functions of zero parameters)

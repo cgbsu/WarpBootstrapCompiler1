@@ -214,13 +214,12 @@ namespace Warp::Parsing
 				equal
 			); 
 
-		//constexpr static const auto terms = WholeMathematicalParserType::terms;
 		
 		constexpr static const auto terms = concatinate_tuples(
 				WholeMathematicalParserType::terms, // Using this to include NumericLiteral/all previous terms
 				IntegerMathematicalParserType::unique_terms, 
-		//		//FixedPointMathematicalParserType::unique_terms, 
-		//		//CharacterMathematicalParserType::unique_terms, 
+				FixedPointMathematicalParserType::unique_terms, 
+				CharacterMathematicalParserType::unique_terms, 
 				BoolMathematicalParserType::unique_terms, 
 				unique_terms
 			);
@@ -237,14 +236,13 @@ namespace Warp::Parsing
 			);
 
 
-		//constexpr static const auto non_terminal_terms = WholeMathematicalParserType::non_terminal_terms;
 
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
 				WholeMathematicalParserType::non_terminal_terms, /* Using this to include 
 						NumericLiteral/all previous non-terminal-terms */
 				IntegerMathematicalParserType::unique_non_terminal_terms, 
-				//FixedPointMathematicalParserType::unique_non_terminal_terms, 
-				//CharacterMathematicalParserType::unique_non_terminal_terms, 
+				FixedPointMathematicalParserType::unique_non_terminal_terms, 
+				CharacterMathematicalParserType::unique_non_terminal_terms, 
 				BoolMathematicalParserType::unique_non_terminal_terms, 
 				unique_non_terminal_terms
 			);
@@ -517,9 +515,9 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					WholeMathematicalParserType::rules(), 
-					IntegerMathematicalParserType::unique_rules(), //, 
-					//FixedPointMathematicalParserType::unique_rules(), 
-					//CharacterMathematicalParserType::unique_rules(), 
+					IntegerMathematicalParserType::unique_rules(), 
+					FixedPointMathematicalParserType::unique_rules(), 
+					CharacterMathematicalParserType::unique_rules(), 
 					BoolMathematicalParserType::unique_rules(), 
 					unique_rules()
 				);
