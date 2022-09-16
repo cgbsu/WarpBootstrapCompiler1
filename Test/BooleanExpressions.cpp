@@ -3,6 +3,7 @@
 #define WARP__TESTING__HEADER__TESTING__PARSE__TESTING__UTILITIES__HPP__CHECK__MACRO__REQUIRED CHECK
 #include <Warp/Testing/ParseTestingUtilities.hpp>
 #include <Warp/Runtime/Compiler/SimpleExecutor.hpp>
+#include <fstream>
 
 using namespace Warp::Utilities;
 using namespace Warp::Parsing;
@@ -62,7 +63,6 @@ auto parse_bool(bool debug = false, std::source_location location = std::source_
 template<auto TestParameterConstant>
 void print_bool(bool debug = false, std::source_location location = std::source_location::current())
 {
-	std::cout << "\nHi\n";
 	const auto result = parse_bool<TestParameterConstant>(debug, location);
 	std::cout << "\nBoolResult: " << TestParameterConstant.string 
 			<< " = " << to_string(retrieve_value<NumericTypeResolver<NumericTypeTag::Bool>::Type>(
@@ -85,7 +85,18 @@ void bool_test(
 		);
 }
 
-TEST_GROUP(BooleanExpressionTests) {};
+TEST_GROUP(BooleanExpressionTests)
+{
+	void setup()
+	{
+		std::cout << "Dumping Boolean Test Parser Diagnostic\n";
+		std::ofstream parse_dumper;
+		parse_dumper.open("boolean_expression_parser_dump.txt");
+		TestParserType::parser.write_diag_str(parse_dumper);
+		parse_dumper.close();
+		std::cout << "Done Dumping Boolean Test Parser Diagnostic\n";
+	}
+};
 
 TEST(BooleanExpressionTests, Comparisons)
 {
@@ -159,6 +170,14 @@ TEST(BooleanExpressionTests, LogicalOperatorsWithComparisons)
 	bool_test<FixedString{"2u < 1u && 3u < 4u && 5u < 4u || 3u < 2u"}>(WarpBool::False, debug);
 };
 
+TEST(BooleanExpressionTests, LogicalOperatorsWithParenthesis)
+{
+	bool debug = true;
+	bool_test<FixedString{"2u > 1u && 3u < 4u && (5u < 4u || 3u > 2u)"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2u > 1u && (5u < 4u || 3u > 2u) && 3u < 4u"}>(WarpBool::True, debug);
+	bool_test<FixedString{"2u > 1u && (5u < 4u && 5u > 4u || 3u > 2u) && 3u < 4u"}>(WarpBool::True, debug);
+};
+
 TEST(BooleanExpressionTests, LogicalOperatorsChainingAnds)
 {
 	bool debug = false;
@@ -171,8 +190,9 @@ TEST(BooleanExpressionTests, LogicalOperatorsChainingAnds)
 
 TEST(BooleanExpressionTests, LogicalOperatorsChainingOrs)
 {
-	bool debug = false;
+	bool debug = true;
 	bool_test<FixedString{"2u > 1u || 3u < 4u || 5u > 4u || 3u > 2u"}>(WarpBool::True, debug);
+	debug = false;
 	bool_test<FixedString{"2u < 1u || 3u < 4u || 5u > 4u || 3u > 2u"}>(WarpBool::True, debug);
 	bool_test<FixedString{"2u > 1u || 3u > 4u || 5u > 4u || 3u > 2u"}>(WarpBool::True, debug);
 	bool_test<FixedString{"2u > 1u || 3u < 4u || 5u < 4u || 3u > 2u"}>(WarpBool::True, debug);
@@ -198,5 +218,7 @@ TEST(BooleanExpressionTests, BoolArithmaticWithLogicalExpressions)
 
 
 	bool_test<FixedString{"!false || false"}>(WarpBool::True, debug);
+	bool_test<FixedString{"!false || !false"}>(WarpBool::True, debug);
+	bool_test<FixedString{"false || !true"}>(WarpBool::False, debug);
 };
 

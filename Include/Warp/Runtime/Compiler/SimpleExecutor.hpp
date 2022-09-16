@@ -376,38 +376,70 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		}
 	};
 
-	#define LOGICAL_NOT_ERROR_ON_TYPE(VALUE_TYPE_TAG) \
-		template<> \
-		struct Executor<NumericTypeResolver<VALUE_TYPE_TAG>::Type, NodeType::LogicalNot> \
-		{ \
-			using ReduceToType = NumericTypeResolver<VALUE_TYPE_TAG>::Type; \
-			std::optional<ReduceToType> absolute_value, value; \
-			Executor(const Node<NodeType::LogicalNot>* node, bool debug)  \
-					: absolute_value(std::nullopt), value(std::nullopt) { \
-				std::cerr << "LogicalNot::Error: can not perform LogicalNot on " << #VALUE_TYPE_TAG << "\n"; \
-			} \
-			Executor(const auto* context, const Node<NodeType::LogicalNot>* node, bool debug)  \
-					: absolute_value(std::nullopt), value(std::nullopt) { \
-				std::cerr << "LogicalNot::Error: can not perform LogicalNot on " << #VALUE_TYPE_TAG << "\n"; \
-			} \
-			std::optional<ReduceToType> to_value() { \
-				return value; \
-			} \
-			operator std::optional<ReduceToType>() { \
-				return to_value(); \
-			} \
-		}
+	//#define LOGICAL_NOT_ERROR_ON_TYPE(VALUE_TYPE_TAG) \
+	//	template<> \
+	//	struct Executor<NumericTypeResolver<VALUE_TYPE_TAG>::Type, NodeType::LogicalNot> \
+	//	{ \
+	//		using ReduceToType = NumericTypeResolver<VALUE_TYPE_TAG>::Type; \
+	//		std::optional<ReduceToType> absolute_value, value; \
+	//		Executor(const Node<NodeType::LogicalNot>* node, bool debug)  \
+	//				: absolute_value(std::nullopt), value(std::nullopt) { \
+	//			std::cerr << "LogicalNot::Error: can not perform LogicalNot on " << #VALUE_TYPE_TAG << "\n"; \
+	//		} \
+	//		Executor(const auto* context, const Node<NodeType::LogicalNot>* node, bool debug)  \
+	//				: absolute_value(std::nullopt), value(std::nullopt) { \
+	//			std::cerr << "LogicalNot::Error: can not perform LogicalNot on " << #VALUE_TYPE_TAG << "\n"; \
+	//		} \
+	//		std::optional<ReduceToType> to_value() { \
+	//			return value; \
+	//		} \
+	//		operator std::optional<ReduceToType>() { \
+	//			return to_value(); \
+	//		} \
+	//	}
 
-	LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::Whole);
-	LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::Integer);
-	LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::FixedPoint);
-	LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::Character);
+	//LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::Whole);
+	//LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::Integer);
+	//LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::FixedPoint);
+	//LOGICAL_NOT_ERROR_ON_TYPE(NumericTypeTag::Character);
 
+	//template<typename ReduceToParameterType>
+	//struct Executor<ReduceToParameterType, NodeType::LogicalNot>
+	//{
+	//	using ReduceToType = ReduceToParameterType;
+	//	std::optional<ReduceToType> absolute_value, value;
+	//	Executor(const Node<NodeType::LogicalNot>* node, bool debug) 
+	//			: absolute_value(retrieve_value<ReduceToType>(node->negated.get(), debug)), 
+	//			value(
+	//					(absolute_value.has_value() == true)
+	//							? std::optional{!absolute_value.value()}
+	//							: std::nullopt
+	//				) {
+	//			if(debug == true)
+	//				std::cout << "Negation, has value? " << value.has_value() << "\n";
+	//		}
+	//	Executor(const auto* context, const Node<NodeType::LogicalNot>* node, bool debug) 
+	//			: absolute_value(retrieve_value<ReduceToType>(context, node->negated.get(), debug)), 
+	//			value(
+	//					(absolute_value.has_value() == true)
+	//							? std::optional{!absolute_value.value()}
+	//							: std::nullopt
+	//				) {
+	//			if(debug == true)
+	//				std::cout << "Negation, has value? " << absolute_value.has_value() << "\n";
+	//		}
+	//	std::optional<ReduceToType> to_value() {
+	//		return value;
+	//	}
+	//	operator std::optional<ReduceToType>() {
+	//		return to_value();
+	//	}
+	//};
 	template<typename ReduceToParameterType>
 	struct Executor<ReduceToParameterType, NodeType::LogicalNot>
 	{
-		using ReduceToType = ReduceToParameterType;
-		std::optional<ReduceToType> absolute_value, value;
+		using ReduceToType = BoolType;
+		std::optional<BoolType> absolute_value, value;
 		Executor(const Node<NodeType::LogicalNot>* node, bool debug) 
 				: absolute_value(retrieve_value<ReduceToType>(node->negated.get(), debug)), 
 				value(
