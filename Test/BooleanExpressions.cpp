@@ -35,7 +35,8 @@ constexpr static const auto compare_value = [](
 			typename NumericTagResolver<CleanType<decltype(right)>>::NumericType
 		>(left.get(), debug).value();
 	bool result = (actual == right);
-	if(result == false) {
+	if(result == false)
+	{
 		std::cout << location.file_name() << ": " << location.line() 
 				<< ": Comparision failure! With Actual: " << result 
 				<< " vs. Expected: " << from_warp_bool(right) << "\n";
@@ -203,6 +204,7 @@ TEST(BooleanExpressionTests, LogicalOperatorsChainingOrs)
 TEST(BooleanExpressionTests, BoolArithmaticWithLogicalExpressions)
 {
 	bool debug = false;
+	debug = true;
 	bool_test<FixedString{"true && true"}>(WarpBool::True, debug);
 	bool_test<FixedString{"false && true"}>(WarpBool::False, debug);
 	bool_test<FixedString{"true && false"}>(WarpBool::False, debug);

@@ -12,6 +12,7 @@ namespace Warp::Parsing
 		LogicalNotOperator, 
 		LogicalTerm, 
 		LogicalOr, 
+		LogicalNot, 
 		GreaterThan, 
 		LessThan, 
 		GreaterThanOrEqualTo, 
@@ -22,12 +23,6 @@ namespace Warp::Parsing
 	};
 
 	using BooleanExpressionTermsType_ = MathematicalExpressionTermsType::AddOnePriority< 
-				TreeTerm< 
-						BooleanExpression::LogicalNotOperator, 
-						CharTerm,  
-						'!',  
-						ctpg::associativity::no_assoc 
-					>,  
 				TreeTerm<
 						MultiPurposeOperator::Equal, 
 						CharTerm, 
@@ -98,12 +93,26 @@ namespace Warp::Parsing
 							FixedString{"LogicalOr"} 
 						>,  
 					TypeTreeTerm< 
+							BooleanExpression::LogicalNot, 
+							NonTerminalTerm,  
+							SyntaxNode,  
+							FixedString{"LogicalNot"} 
+						>,  
+					TypeTreeTerm< 
 							BooleanExpression::Expression, 
 							NonTerminalTerm,  
 							SyntaxNode,  
 							FixedString{"BooleanLogicExpression"} 
 						> 
+				>::AddOnePriority<
+					TreeTerm< 
+							BooleanExpression::LogicalNotOperator, 
+							CharTerm,  
+							'!',  
+							ctpg::associativity::no_assoc 
+						>
 				>;
+
 
 		template<>
 		struct TemplateInstantiator<TemplateInstantiationTag::BooleanTerms> {
@@ -185,6 +194,7 @@ namespace Warp::Parsing
 		constexpr static const auto logical_not_operator = term<BooleanExpression::LogicalNotOperator>;
 		constexpr static const auto logical_term = term<BooleanExpression::LogicalTerm>;
 		constexpr static const auto logical_or = term<BooleanExpression::LogicalOr>;
+		constexpr static const auto logical_not = term<BooleanExpression::LogicalNot>;
 		constexpr static const auto greater_than = term<BooleanExpression::GreaterThan>;
 		constexpr static const auto less_than = term<BooleanExpression::LessThan>;
 		constexpr static const auto greater_than_or_equal_to = term<BooleanExpression::GreaterThanOrEqualTo>;
@@ -222,6 +232,7 @@ namespace Warp::Parsing
 				comparison, 
 				logical_term, 
 				logical_or, 
+				logical_not, 
 				logical_operation, 
 				logical_expression
 			);
@@ -292,6 +303,10 @@ namespace Warp::Parsing
 					>=[](auto&& expression) {
 						return std::move(expression.node);
 					}, 
+					logical_reduction(logical_not)
+					>=[](auto&& logical_not_) {
+						return std::move(logical_not_);
+					}, 
 					logical_operation(logical_reduction)
 					>=[](auto&& operation) {
 						return operation;
@@ -357,32 +372,32 @@ namespace Warp::Parsing
 			constexpr const auto expression_term 
 					= BoolMathematicalParserType::template term<TagType::Expression>;
 			return ctpg::rules(
-					logical_term(logical_not_operator, logical_not_operator, logical_term)
-					>=[](auto first_operator_, auto second_operator_, auto&& operand) {
-						return operand;
-					}, 
-					logical_term(logical_not_operator, comparison)
+					//logical_not(logical_not_operator, logical_not_operator, logical_term)
+					//>=[](auto first_operator_, auto second_operator_, auto&& operand) {
+					//	return operand;
+					//}, 
+					logical_not(logical_not_operator, comparison)
 					>=[](auto operator_, auto operand)
 					{
 						return unary_node<
 								NodeType::LogicalNot
 							>(std::move(operand));
 					}, 
-					logical_term(logical_not_operator, logical_term)
+					logical_not(logical_not_operator, logical_term)
 					>=[](auto operator_, auto operand)
 					{
 						return unary_node<
 								NodeType::LogicalNot
 							>(std::move(operand));
 					}, 
-					logical_term(logical_not_operator, logical_or)
-					>=[](auto operator_, auto operand)
-					{
-						return unary_node<
-								NodeType::LogicalNot
-							>(std::move(operand));
-					}, 
-					logical_term(logical_not_operator, expression_term)
+					//logical_not(logical_not_operator, logical_or)
+					//>=[](auto operator_, auto operand)
+					//{
+					//	return unary_node<
+					//			NodeType::LogicalNot
+					//		>(std::move(operand));
+					//}, 
+					logical_not(logical_not_operator, expression_term)
 					>=[](auto operator_, auto operand)
 					{
 						return unary_node<
