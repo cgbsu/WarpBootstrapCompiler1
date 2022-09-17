@@ -126,7 +126,131 @@ namespace Warp::Parsing
 
 		using BooleanExpressionTermsType = TemplateInstantiator<TemplateInstantiationTag::BooleanTerms>::Type;
 
+	//template<typename... OrPairParameterTypes>
+	//struct RuleOr
+	//{
+	//	std::tuple<OrPairParameterTypes...> terms;
+	//	constexpr RuleOr(OrPairParameterTypes... terms) noexcept : terms(std::tuple{terms...}) {}
+	//	constexpr RuleOr(std::tuple<OrPairParameterTypes...> terms) noexcept : terms(terms) {}
+	//	constexpr RuleOr(const RuleOr& other) noexcept = default;
+	//	constexpr RuleOr(RuleOr&& other) noexcept = default;
+	//	constexpr RuleOr& operator=(const RuleOr& other) noexcept = default;
+	//	constexpr RuleOr& operator=(RuleOr&& other) noexcept = default;
 
+	//	constexpr auto after_first(auto first, auto... remaining) const noexcept {
+	//		return RuleOr<CleanType<decltype(remaining)>...>(std::tuple{remaining...});
+	//	}
+	//	template<size_t... IndexParameterConstants>
+	//	constexpr auto remove_first_implementation(std::index_sequence<IndexParameterConstants...>) const noexcept {
+	//		return after_first(std::get<IndexParameterConstants>(terms)...);
+	//	}
+	//	constexpr auto remove_first() const noexcept {
+	//		return remove_first_implementation(std::make_index_sequence<std::tuple_size_v<decltype(terms)>>());
+	//	}
+	//};
+
+	//
+	//template<size_t... PrecedingIndexParameterConstants, size_t... ProcedingIndexParameterConstants>
+	//constexpr auto make_rule_tuple(
+	//		auto reduction, 
+	//		auto preceding_terms, 
+	//		std::index_sequence<PrecedingIndexParameterConstants...> preceding_indicies, 
+	//		auto or_term_term, 
+	//		auto proceding_terms, 
+	//		std::index_sequence<ProcedingIndexParameterConstants...> proceding_indicies, 
+	//		auto rule_generator
+	//	)
+	//{
+	//	return std::tuple{
+	//			reduction, 
+	//			std::tuple{
+	//					std::get<PrecedingIndexParameterConstants>(preceding_terms)..., 
+	//					or_term_term, 
+	//					std::get<ProcedingIndexParameterConstants>(proceding_terms)...
+	//				}, 
+	//			rule_generator(or_term_term)
+	//		};
+	//}
+	//		
+
+	//template<
+	//		typename ReductionParameterType, 
+	//		typename... PrecedingTermParameterTypes, 
+	//		typename... OrPairParameterTypes, 
+	//		typename... ProcedingTermParameterTypes
+	//	>
+	//requires(sizeof...(OrPairParameterTypes) > 1)
+	//constexpr auto reduce_or_rule(
+	//		ReductionParameterType reduction, 
+	//		std::tuple<PrecedingTermParameterTypes...> preceding_terms, 
+	//		RuleOr<OrPairParameterTypes...> or_terms, 
+	//		std::tuple<ProcedingTermParameterTypes...> proceding_terms, 
+	//		auto rule_generator
+	//	)
+	//{
+	//	return std::tuple_cat(
+	//		ctpg::rules(
+	//				make_rule_tuple(
+	//						reduction, 
+	//						preceding_terms, 
+	//						std::make_index_sequence<std::tuple_size_v<decltype(preceding_terms)>>(), 
+	//						std::get<0>(or_terms.terms), 
+	//						proceding_terms, 
+	//						std::make_index_sequence<std::tuple_size_v<decltype(proceding_terms)>>(), 
+	//						rule_generator
+	//					)
+	//			), 
+	//		reduce_or_rule(
+	//				reduction, 
+	//				preceding_terms, 
+	//				or_terms.remove_first(), 
+	//				proceding_terms, 
+	//				rule_generator
+	//			)
+	//	);
+	//}
+	//
+	//template<
+	//		typename ReductionParameterType, 
+	//		typename... PrecedingTermParameterTypes, 
+	//		typename... OrPairParameterTypes, 
+	//		typename... ProcedingTermParameterTypes
+	//	>
+	//requires(sizeof...(OrPairParameterTypes) == 1)
+	//constexpr auto reduce_or_rule(
+	//		ReductionParameterType reduction, 
+	//		std::tuple<PrecedingTermParameterTypes...> preceding_terms, 
+	//		RuleOr<OrPairParameterTypes...> or_terms, 
+	//		std::tuple<ProcedingTermParameterTypes...> proceding_terms, 
+	//		auto rule_generator
+	//	)
+	//{
+	//	return ctpg::rules(
+	//			make_rule_tuple(
+	//					reduction, 
+	//					preceding_terms, 
+	//					std::make_index_sequence<std::tuple_size_v<decltype(preceding_terms)>>(), 
+	//					std::get<0>(or_terms.terms), 
+	//					proceding_terms, 
+	//					std::make_index_sequence<std::tuple_size_v<decltype(proceding_terms)>>(), 
+	//					rule_generator
+	//				)
+	//		);
+	//}
+	//
+
+	//template<auto ConvertParameterConstant, typename TermParameterType>
+	//struct OrTermConstructor
+	//{
+	//	using TermType = TermParameterType;
+	//	constexpr static const auto convert = ConvertParameterConstant;
+	//	TermType term;
+	//	constexpr OrTermConstructor(TermParameterType term) : term(term) {}
+	//	constexpr OrTermConstructor(const OrTermConstructor& other) = default;
+	//	constexpr OrTermConstructor(OrTermConstructor&& other) = default;
+	//	constexpr OrTermConstructor& operator=(const OrTermConstructor& term) = default;
+	//	constexpr OrTermConstructor& operator=(OrTermConstructor&& other) = default;
+	//};
 
 	template<
 			typename TermsParameterType, 
@@ -219,9 +343,9 @@ namespace Warp::Parsing
 		
 		constexpr static const auto terms = concatinate_tuples(
 				WholeMathematicalParserType::terms, // Using this to include NumericLiteral/all previous terms
-				IntegerMathematicalParserType::unique_terms, 
-				FixedPointMathematicalParserType::unique_terms, 
-				CharacterMathematicalParserType::unique_terms, 
+				//IntegerMathematicalParserType::unique_terms, 
+				//FixedPointMathematicalParserType::unique_terms, 
+				//CharacterMathematicalParserType::unique_terms, 
 				BoolMathematicalParserType::unique_terms, 
 				unique_terms
 			);
@@ -242,9 +366,9 @@ namespace Warp::Parsing
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
 				WholeMathematicalParserType::non_terminal_terms, /* Using this to include 
 						NumericLiteral/all previous non-terminal-terms */
-				IntegerMathematicalParserType::unique_non_terminal_terms, 
-				FixedPointMathematicalParserType::unique_non_terminal_terms, 
-				CharacterMathematicalParserType::unique_non_terminal_terms, 
+				//IntegerMathematicalParserType::unique_non_terminal_terms, 
+				//FixedPointMathematicalParserType::unique_non_terminal_terms, 
+				//CharacterMathematicalParserType::unique_non_terminal_terms, 
 				BoolMathematicalParserType::unique_non_terminal_terms, 
 				unique_non_terminal_terms
 			);
@@ -266,6 +390,26 @@ namespace Warp::Parsing
 					::TypeSpecificMathematicalExpressionTermTags;
 			constexpr const auto expression_term 
 					= BoolMathematicalParserType::template term<TagType::Expression>;
+
+			//std::tuple term_constructors{
+			//		OrTermConstructor<[](auto&& term) { return std::move(term); }, decltype(comparison)>{comparison}, 
+			//		OrTermConstructor<[](auto&& term) { return std::move(term.node); }, decltype(expression_term)>{expression_term}, 
+			//		OrTermConstructor<[](auto&& term) { return std::move(term); }, decltype(logical_not)>{logical_not}
+			//	};
+			//std::tuple<> empty_terms{};
+			//RuleOr rulor{term_constructors};
+			//auto rules = reduce_or_rule(
+			//		logical_reduction, 
+			//		empty_terms, 
+			//		rulor, 
+			//		empty_terms, 
+			//		[&](auto term_constructor) { 
+			//				return logical_reduction(term_constructor.term) 
+			//				>=[&term_constructor](auto&& from) {
+			//					return term_constructor.convert(from);
+			//				};
+			//		}
+			//	);
 			return ctpg::rules(
 					logical_reduction(comparison, logical_operator, comparison)
 					>=[](auto left, auto operator_, auto right)
@@ -295,6 +439,10 @@ namespace Warp::Parsing
 								LogicalOperatorParameterConstant
 							>(std::move(left), std::move(right.node));
 					}, 
+				
+				
+				
+					//reduce_or_rule(std::tuple<>{}, RuleOr{std::tuple{comparison, expression_term 
 					logical_reduction(comparison)
 					>=[](auto&& term) {
 						return std::move(term);
@@ -306,11 +454,23 @@ namespace Warp::Parsing
 					logical_reduction(logical_not)
 					>=[](auto&& logical_not_) {
 						return std::move(logical_not_);
-					}, 
-					logical_operation(logical_reduction)
-					>=[](auto&& operation) {
-						return operation;
 					}
+
+					//std::get<2>(std::get<0>(rules)), 
+					//std::get<2>(std::get<1>(rules)), 
+					//std::get<2>(std::get<2>(rules))
+											
+
+						//, 
+					//logical_reduction(logical_operation)
+					//>=[](auto&& operation) {
+					//	return std::move(operation);
+					//}
+					//, 
+					//logical_operation(logical_reduction)
+					//>=[](auto&& operation) {
+					//	return operation;
+					//}
 				);
 		}
 
@@ -477,10 +637,15 @@ namespace Warp::Parsing
 
 		constexpr static const auto from_parenthesis(auto from_term)
 		{
+			using TagType = BoolMathematicalParserType
+					::TypeSpecificMathematicalExpressionTermTags;
+			constexpr const auto expression_term 
+					= BoolMathematicalParserType::template term<TagType::Expression>;
 			return ctpg::rules(
-					logical_term(open_parenthesis, from_term, close_parenthesis)
-					>=[](auto open_, auto from, auto close_) {
-						return from;
+					expression_term(open_parenthesis, from_term, close_parenthesis)
+					>=[](auto open_, auto&& from, auto close_) {
+						std::cout << "from: " << friendly_type_name<CleanType<decltype(from)>>() << "\n";
+						return std::move(from);
 					}
 				);
 		}
@@ -490,7 +655,7 @@ namespace Warp::Parsing
 			return concatinate_tuples(
 					or_equal_to_operators(), 
 					mathematical_parser_unique_rules<WholeMathematicalParserType>(), 
-					mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
+					//mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
 					mathematical_parser_unique_rules<BoolMathematicalParserType>(), 
 					and_rules(), 
 					or_rules(), 
@@ -498,10 +663,10 @@ namespace Warp::Parsing
 					to_logical_expression(comparison), 
 					to_logical_expression(logical_term), 
 					to_logical_expression(logical_or), 
-					to_logical_expression(logical_operation)//, 
+					to_logical_expression(logical_operation), 
 					//from_parenthesis(comparison), 
-					//from_parenthesis(logical_term), 
-					//from_parenthesis(logical_or), 
+					from_parenthesis(logical_term), 
+					from_parenthesis(logical_or)
 					//from_parenthesis(logical_operation)
 				);
 		}
@@ -510,9 +675,9 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					WholeMathematicalParserType::rules(), 
-					IntegerMathematicalParserType::unique_rules(), 
-					FixedPointMathematicalParserType::unique_rules(), 
-					CharacterMathematicalParserType::unique_rules(), 
+					//IntegerMathematicalParserType::unique_rules(), 
+					//FixedPointMathematicalParserType::unique_rules(), 
+					//CharacterMathematicalParserType::unique_rules(), 
 					BoolMathematicalParserType::unique_rules(), 
 					unique_rules()
 				);
