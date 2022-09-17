@@ -209,9 +209,9 @@ namespace Warp::Parsing
 		
 		constexpr static const auto terms = concatinate_tuples(
 				WholeMathematicalParserType::terms, // Using this to include NumericLiteral/all previous terms
-				//IntegerMathematicalParserType::unique_terms, 
-				//FixedPointMathematicalParserType::unique_terms, 
-				//CharacterMathematicalParserType::unique_terms, 
+				IntegerMathematicalParserType::unique_terms, 
+				FixedPointMathematicalParserType::unique_terms, 
+				CharacterMathematicalParserType::unique_terms, 
 				BoolMathematicalParserType::unique_terms, 
 				unique_terms
 			);
@@ -231,9 +231,9 @@ namespace Warp::Parsing
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
 				WholeMathematicalParserType::non_terminal_terms, /* Using this to include 
 						NumericLiteral/all previous non-terminal-terms */
-				//IntegerMathematicalParserType::unique_non_terminal_terms, 
-				//FixedPointMathematicalParserType::unique_non_terminal_terms, 
-				//CharacterMathematicalParserType::unique_non_terminal_terms, 
+				IntegerMathematicalParserType::unique_non_terminal_terms, 
+				FixedPointMathematicalParserType::unique_non_terminal_terms, 
+				CharacterMathematicalParserType::unique_non_terminal_terms, 
 				BoolMathematicalParserType::unique_non_terminal_terms, 
 				unique_non_terminal_terms
 			);
@@ -358,10 +358,6 @@ namespace Warp::Parsing
 			constexpr const auto expression_term 
 					= BoolMathematicalParserType::template term<TagType::Expression>;
 			return ctpg::rules(
-					//logical_not(logical_not_operator, logical_not_operator, logical_term)
-					//>=[](auto first_operator_, auto second_operator_, auto&& operand) {
-					//	return operand;
-					//}, 
 					logical_not(logical_not_operator, comparison)
 					>=[](auto operator_, auto operand)
 					{
@@ -376,13 +372,6 @@ namespace Warp::Parsing
 								NodeType::LogicalNot
 							>(std::move(operand));
 					}, 
-					//logical_not(logical_not_operator, logical_or)
-					//>=[](auto operator_, auto operand)
-					//{
-					//	return unary_node<
-					//			NodeType::LogicalNot
-					//		>(std::move(operand));
-					//}, 
 					logical_not(logical_not_operator, expression_term)
 					>=[](auto operator_, auto operand)
 					{
@@ -480,7 +469,9 @@ namespace Warp::Parsing
 			return concatinate_tuples(
 					or_equal_to_operators(), 
 					mathematical_parser_unique_rules<WholeMathematicalParserType>(), 
-					//mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
+					mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
+					mathematical_parser_unique_rules<FixedPointMathematicalParserType>(), 
+					mathematical_parser_unique_rules<CharacterMathematicalParserType>(), 
 					mathematical_parser_unique_rules<BoolMathematicalParserType>(), 
 					and_rules(), 
 					or_rules(), 
@@ -497,9 +488,9 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					WholeMathematicalParserType::rules(), 
-					//IntegerMathematicalParserType::unique_rules(), 
-					//FixedPointMathematicalParserType::unique_rules(), 
-					//CharacterMathematicalParserType::unique_rules(), 
+					IntegerMathematicalParserType::unique_rules(), 
+					FixedPointMathematicalParserType::unique_rules(), 
+					CharacterMathematicalParserType::unique_rules(), 
 					BoolMathematicalParserType::unique_rules(), 
 					unique_rules()
 				);
