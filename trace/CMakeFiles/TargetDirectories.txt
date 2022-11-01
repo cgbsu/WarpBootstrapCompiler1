@@ -1,4 +1,0 @@
-/root/workdir/trace/CMakeFiles/libwarp.dir
-/root/workdir/trace/CMakeFiles/test.dir
-/root/workdir/trace/CMakeFiles/edit_cache.dir
-/root/workdir/trace/CMakeFiles/rebuild_cache.dir
