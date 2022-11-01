@@ -3,6 +3,8 @@
 #ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP
 #define WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP
 
+#define WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+
 namespace Warp::Parsing
 {
 	enum class BooleanExpression
@@ -141,32 +143,34 @@ namespace Warp::Parsing
 				FixedString{"WholeExpression"}
 			>;
 
-		using IntegerMathematicalParserType = HomogenousMathematicalExpressionParser<
-				NumericTypeTag::Integer, 
-				TermsType, 
-				TypeResolverParameterTemplate, 
-				FixedString{"IntegerTerm"}, 
-				FixedString{"IntegerSum"}, 
-				FixedString{"IntegerExpression"}
-			>;
+		#ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+				using IntegerMathematicalParserType = HomogenousMathematicalExpressionParser<
+						NumericTypeTag::Integer, 
+						TermsType, 
+						TypeResolverParameterTemplate, 
+						FixedString{"IntegerTerm"}, 
+						FixedString{"IntegerSum"}, 
+						FixedString{"IntegerExpression"}
+					>;
 
-		using FixedPointMathematicalParserType = HomogenousMathematicalExpressionParser<
-				NumericTypeTag::FixedPoint, 
-				TermsType, 
-				TypeResolverParameterTemplate, 
-				FixedString{"FixedPointTerm"}, 
-				FixedString{"FixedPointSum"}, 
-				FixedString{"FixedPointExpression"}
-			>;
+				using FixedPointMathematicalParserType = HomogenousMathematicalExpressionParser<
+						NumericTypeTag::FixedPoint, 
+						TermsType, 
+						TypeResolverParameterTemplate, 
+						FixedString{"FixedPointTerm"}, 
+						FixedString{"FixedPointSum"}, 
+						FixedString{"FixedPointExpression"}
+					>;
 
-		using CharacterMathematicalParserType = HomogenousMathematicalExpressionParser<
-				NumericTypeTag::Character, 
-				TermsType, 
-				TypeResolverParameterTemplate, 
-				FixedString{"CharacterTerm"}, 
-				FixedString{"CharacterSum"}, 
-				FixedString{"CharacterExpression"}
-			>;
+				using CharacterMathematicalParserType = HomogenousMathematicalExpressionParser<
+						NumericTypeTag::Character, 
+						TermsType, 
+						TypeResolverParameterTemplate, 
+						FixedString{"CharacterTerm"}, 
+						FixedString{"CharacterSum"}, 
+						FixedString{"CharacterExpression"}
+					>;
+		#endif
 
 		using BoolMathematicalParserType = HomogenousMathematicalExpressionParser<
 				NumericTypeTag::Bool, 
@@ -209,9 +213,11 @@ namespace Warp::Parsing
 		
 		constexpr static const auto terms = concatinate_tuples(
 				WholeMathematicalParserType::terms, // Using this to include NumericLiteral/all previous terms
-				IntegerMathematicalParserType::unique_terms, 
-				FixedPointMathematicalParserType::unique_terms, 
-				CharacterMathematicalParserType::unique_terms, 
+				#ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+					IntegerMathematicalParserType::unique_terms, 
+					FixedPointMathematicalParserType::unique_terms, 
+					CharacterMathematicalParserType::unique_terms, 
+				#endif
 				BoolMathematicalParserType::unique_terms, 
 				unique_terms
 			);
@@ -231,9 +237,11 @@ namespace Warp::Parsing
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
 				WholeMathematicalParserType::non_terminal_terms, /* Using this to include 
 						NumericLiteral/all previous non-terminal-terms */
-				IntegerMathematicalParserType::unique_non_terminal_terms, 
-				FixedPointMathematicalParserType::unique_non_terminal_terms, 
-				CharacterMathematicalParserType::unique_non_terminal_terms, 
+				#ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+					IntegerMathematicalParserType::unique_non_terminal_terms, 
+					FixedPointMathematicalParserType::unique_non_terminal_terms, 
+					CharacterMathematicalParserType::unique_non_terminal_terms, 
+				#endif
 				BoolMathematicalParserType::unique_non_terminal_terms, 
 				unique_non_terminal_terms
 			);
@@ -469,9 +477,11 @@ namespace Warp::Parsing
 			return concatinate_tuples(
 					or_equal_to_operators(), 
 					mathematical_parser_unique_rules<WholeMathematicalParserType>(), 
-					mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
-					mathematical_parser_unique_rules<FixedPointMathematicalParserType>(), 
-					mathematical_parser_unique_rules<CharacterMathematicalParserType>(), 
+					#ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+						mathematical_parser_unique_rules<IntegerMathematicalParserType>(), 
+						mathematical_parser_unique_rules<FixedPointMathematicalParserType>(), 
+						mathematical_parser_unique_rules<CharacterMathematicalParserType>(), 
+					#endif
 					mathematical_parser_unique_rules<BoolMathematicalParserType>(), 
 					and_rules(), 
 					or_rules(), 
@@ -488,9 +498,11 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					WholeMathematicalParserType::rules(), 
-					IntegerMathematicalParserType::unique_rules(), 
-					FixedPointMathematicalParserType::unique_rules(), 
-					CharacterMathematicalParserType::unique_rules(), 
+					#ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+						IntegerMathematicalParserType::unique_rules(), 
+						FixedPointMathematicalParserType::unique_rules(), 
+						CharacterMathematicalParserType::unique_rules(), 
+					#endif
 					BoolMathematicalParserType::unique_rules(), 
 					unique_rules()
 				);

@@ -5,7 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(MAKE_EXPORT_COMPILE_COMMANDS ON)
 #set(CMAKE_BUILD_TYPE Debug)
-#set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 
 # -time -save-temps 
 add_compile_options(
@@ -20,6 +20,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 include_directories(${CMAKE_SOURCE_DIR}/Include)
+FILE(GLOB_RECURSE HeaderFiles ${CMAKE_SOURCE_DIR}/Include)
 FILE(GLOB_RECURSE SourceFiles ${CMAKE_SOURCE_DIR}/Source/*.cpp)
 #FILE(GLOB SourceFiles ${CMAKE_SOURCE_DIR}/Source/*.cpp)
 #FILE(GLOB CacheSourceFiles ${CMAKE_SOURCE_DIR}/Source/Caches/*.cpp)
@@ -33,8 +34,9 @@ FILE(GLOB_RECURSE StackLoggerSourceFiles ${CMAKE_SOURCE_DIR}/Tools/StackLogger/*
 add_library(libwarp STATIC) 
 target_sources(libwarp PUBLIC ${SourceFiles}) #${SourceFiles} ${CacheSourceFiles} ${SyntaxNodeFiles})
 target_link_libraries(libwarp ${CONAN_LIBS})
-# https://stackoverflow.com/questions/63508786/install-only-a-part-of-boost-using-conan
+target_precompile_headers(libwarp PUBLIC ${HeaderFiles})
 
+# https://stackoverflow.com/questions/63508786/install-only-a-part-of-boost-using-conan
 
 add_executable(test ${TestSourceFiles})
 target_sources(test PUBLIC ${TestSourceFiles})
@@ -47,5 +49,4 @@ target_link_libraries(test libwarp ${CONAN_LIBS})
 #add_executable(bert ${BertrandSource})
 #target_sources(bert PUBLIC ${BertrandSource})
 #target_link_libraries(bert ${CONAN_LIBS})
-
 

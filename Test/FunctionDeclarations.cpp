@@ -1,3 +1,4 @@
+#define WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
 #include <Warp/Common.hpp>
 #include <Warp/Utilities.hpp>
 #include <Warp/Parsing/FunctionDeclarations.hpp>
@@ -11,7 +12,12 @@ using namespace Warp::Parsing;
 using namespace Warp::Runtime::Compiler::SimpleExecutor;
 using namespace Warp::Testing;
 
+#define WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+
 TEST_GROUP(FunctionDeclarations) {};
+
+//#define EXCLUDE_CONSTANT_TEST
+#ifndef EXCLUDE_CONSTANT_TEST
 
 TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 {
@@ -89,6 +95,10 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 				}, 
 			NumericTypeTag::Whole
 		>({"TheAnswer", "PieDay", "BakerStreet"}, std::vector{42u, 314u, 221u}, debug);
+};
+#ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+TEST(FunctionDeclarations, MultiTypeDeclareConstantFromLiteral)
+{
 	check_context_constant<
 			FixedString{
 					"let LetterOfTheDay = 'A';"
@@ -198,9 +208,6 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 				}, 
 			NumericTypeTag::Whole
 		>({"TheAnswer", "PieDay", "BakerStreet"}, std::vector{42u, 314u, 221u}, debug);
-
-
-
 	//check_context_constant<
 	//		FixedString{
 	//				"let TheAnswer = 2u * 20u + 2u;\n"
@@ -217,6 +224,8 @@ TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 	//		NumericTypeTag::Character
 	//	>({"LetterOfTheDay"}, std::vector{'A'}, debug);
 };
+
+#endif // WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
 
 TEST(FunctionDeclarations, UseConstansInConstants)
 {
@@ -266,4 +275,6 @@ TEST(FunctionDeclarations, UseConstansInConstants)
 			NumericTypeTag::Whole
 		>({"TheAnswer", "Fourty"}, std::vector{42u, 40u}, debug);
 };
+
+#endif // EXCLUDE_CONSTANT_TEST
 
