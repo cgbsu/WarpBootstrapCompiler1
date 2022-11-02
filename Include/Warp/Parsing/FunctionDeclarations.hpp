@@ -6,6 +6,12 @@
 
 namespace Warp::Parsing
 {
+	using namespace Warp::Runtime::Compiler;
+
+	enum class FunctionDeclaration {
+		Prototype, 
+		IntermediatePrototype
+	};
 
 	using FunctionDeclaritionTermsType_ = BooleanExpressionTermsType 
 		::Prepend<
@@ -32,7 +38,13 @@ namespace Warp::Parsing
 					CharTerm, 
 					'}', 
 					ctpg::associativity::no_assoc
-				>
+				>//, 
+			//TypeTreeTerm<
+			//		FunctionDeclaration::IntermediatePrototype, 
+			//		NonTerminalTerm, 
+			//		Alternative, 
+			//		FixedString{"IntermediatePrototype"}
+			//	>
 		>;
 
 	template<>
@@ -196,6 +208,11 @@ namespace Warp::Parsing
 					)
 				);
 		}
+
+		//consteval static const auto declare_function() {
+		//	ctpg::rules(
+		//		[](let_keyword, identifier, open_parenthesis) {
+					
 
 		consteval static const auto rules()
 		{

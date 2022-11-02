@@ -21,7 +21,7 @@ conan_basic_setup()
 
 include_directories(${CMAKE_SOURCE_DIR}/Include)
 FILE(GLOB_RECURSE HeaderFiles ${CMAKE_SOURCE_DIR}/Include)
-FILE(GLOB_RECURSE SourceFiles ${CMAKE_SOURCE_DIR}/Source/*.cpp)
+FILE(GLOB_RECURSE SourceFiles ${CMAKE_SOURCE_DIR}/Source/*.cpp ${HeaderFiles})
 #FILE(GLOB SourceFiles ${CMAKE_SOURCE_DIR}/Source/*.cpp)
 #FILE(GLOB CacheSourceFiles ${CMAKE_SOURCE_DIR}/Source/Caches/*.cpp)
 #FILE(GLOB SyntaxNodeFiles ${CMAKE_SOURCE_DIR}/Source/SyntaxNode/*.cpp)
