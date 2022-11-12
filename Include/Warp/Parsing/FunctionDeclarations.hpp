@@ -42,7 +42,7 @@ namespace Warp::Parsing
 			//TypeTreeTerm<
 			//		FunctionDeclaration::IntermediatePrototype, 
 			//		NonTerminalTerm, 
-			//		Alternative, 
+			//		AlternativeType, 
 			//		FixedString{"IntermediatePrototype"}
 			//	>
 		>;
@@ -141,7 +141,7 @@ namespace Warp::Parsing
 		template<typename MathematicalExpressionGeneratorParameterType>
 		constexpr static const auto constant_from_math_term()
 		{
-			using TagType = MathematicalExpressionGeneratorParameterType
+			using TagType = typename MathematicalExpressionGeneratorParameterType
 					::TypeSpecificMathematicalExpressionTermTags;
 			constexpr const auto reduction_tag 
 					= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
@@ -157,11 +157,14 @@ namespace Warp::Parsing
 					constant(let_keyword, identifier, equal, expression_term)
 					>=[](auto let_, auto name, auto equal_, auto expression)
 					{
-						return ConstantType{
+						auto type_tag = make_clean_any<
+								decltype(reduction_tag)
+							>(reduction_tag);
+						return std::move(ConstantType{
 								std::string{name}, 
-								reduction_tag, 
+								std::move(type_tag), 
 								std::move(expression.node)
-							};
+							});
 					}
 				);
 		}
@@ -171,7 +174,7 @@ namespace Warp::Parsing
 			return ctpg::rules(
 					context(from_term, semi_colon)
 					>= [](auto new_object, auto semi_colon_) {
-						Context new_context;
+						ContextType new_context;
 						return new_context.inject(std::move(new_object));
 					}, 
 					context(context, from_term, semi_colon)
@@ -187,7 +190,7 @@ namespace Warp::Parsing
 				{
 					return ConstantType{
 							std::string{name}, 
-							OperationalValueTag::InferFromEvaluation, 
+							to_tag(OperationalValueTag::InferFromEvaluation), 
 							std::move(constant_call(std::string{std::string_view{value}}))
 						};
 				};
@@ -212,6 +215,7 @@ namespace Warp::Parsing
 		//consteval static const auto declare_function() {
 		//	ctpg::rules(
 		//		[](let_keyword, identifier, open_parenthesis) {
+		//			return CountedParameterAlternativeType<0>
 					
 
 		consteval static const auto rules()

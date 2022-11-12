@@ -11,6 +11,8 @@
 #include <Warp/Utilities/VariantView.hpp>
 #include <Warp/Utilities/Reflection.hpp>
 #include <Warp/Utilities/ArrayView.hpp>
+#include <Warp/Utilities/TypeHash.hpp>
+#include <Warp/Utilities/Any.hpp>
 
 #ifndef WARP__UTILITIES__HEADER__HPP
 #define WARP__UTILITIES__HEADER__HPP

@@ -15,12 +15,30 @@ namespace Warp::Utilities
 		using Type = ParameterType;
 	};
 
-	template<typename DoNotConvertToParameterType, typename ConvertToParameterType, typename CanidateParameterType>
+	template<
+			typename DoNotConvertToParameterType, 
+			typename ConvertToParameterType, 
+			typename CanidateParameterType
+		>
 	concept ConvertableToExceptConcept =
-			(!std::convertible_to<CleanType<DoNotConvertToParameterType>, CleanType<CanidateParameterType>> 
-					&& std::convertible_to<CleanType<ConvertToParameterType>, CleanType<CanidateParameterType>>)
-			|| (!std::same_as<CleanType<DoNotConvertToParameterType>, CleanType<CanidateParameterType>> 
-					&& std::convertible_to<CleanType<ConvertToParameterType>, CleanType<CanidateParameterType>>);
+			(!std::convertible_to<
+							CleanType<DoNotConvertToParameterType>, 
+							CleanType<CanidateParameterType>
+						> 
+					&& std::convertible_to<
+							CleanType<ConvertToParameterType>, 
+							CleanType<CanidateParameterType>
+						>
+				)
+			|| (!std::same_as<
+							CleanType<DoNotConvertToParameterType>, 
+							CleanType<CanidateParameterType>
+						> 
+					&& std::convertible_to<
+							CleanType<ConvertToParameterType>, 
+							CleanType<CanidateParameterType>
+						>
+				);
 
 	template<typename, typename>
 	struct TotallyOrderedWith {

@@ -44,6 +44,7 @@ namespace Warp
 			#endif
 		#endif
 	}
+	using size_t = std::size_t; // Getting some warnings, this is to silence them
 }
 
 #endif // WARP__UTILITIES__HEADER__COMMON__HPP

@@ -1,0 +1,52 @@
+#include <Warp/Runtime/Compiler/Alternative.hpp>
+
+#ifndef WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__FUNCTION__HPP
+#define WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__FUNCTION__HPP
+
+namespace Warp::Runtime::Compiler
+{
+	template<
+			typename AlternativeParameterType, 
+			typename IdentifierParameterType = std::string
+		>
+	struct Function
+	{
+		using AlternativeType = AlternativeParameterType;
+		using IdentifierType = IdentifierParameterType;
+		using AlternativeMatrixType = std::vector<std::vector<std::unique_ptr<AlternativeType>>>;
+
+		constexpr Function() noexcept = default;
+		constexpr Function(std::unique_ptr<AlternativeType> alternative) noexcept : name(alternative->get_name()) {
+			add_alternative(std::move(alternative));
+		}
+		constexpr Function(const Function& other) noexcept = default;
+		constexpr Function(Function&& other) noexcept = default;
+		constexpr Function& operator=(const Function& other) noexcept = default;
+		constexpr Function& operator=(Function&& other) noexcept = default;
+		constexpr ~Function() = default;
+
+		constexpr const IdentifierType get_name() const noexcept {
+			return name;
+		}
+
+		constexpr const AlternativeMatrixType& get_alternatives() const noexcept {
+			return alternatives;
+		}
+
+		const AlternativeMatrixType& add_alternative(std::unique_ptr<AlternativeType> alternative)
+		{
+			const size_t parameter_count = alternative->parameter_count();
+			if(alternatives.size() <= parameter_count)
+				alternatives.reserve(parameter_count);
+			alternatives[parameter_count].push_back(std::move(alternative));
+			return alternatives;
+		}
+
+		protected: 
+			const IdentifierType name;
+			AlternativeMatrixType alternatives;
+	};
+}
+
+#endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__FUNCTION__HPP
+

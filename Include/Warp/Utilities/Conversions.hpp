@@ -333,6 +333,18 @@ namespace Warp::Utilities
 
 	template<typename ParameterType>
 	constexpr static const auto zero = Zero<ParameterType>::zero;
+
+
+	template<typename ToParameterType, typename FromParameterType>
+	requires(std::derived_from<ToParameterType, FromParameterType> == true)
+	constexpr static std::unique_ptr<ToParameterType> dynamic_cast_unique(
+			std::unique_ptr<FromParameterType> from
+		)
+	{
+		return std::unique_ptr<ToParameterType>(
+				dynamic_cast<ToParameterType*>(from.release())
+			);
+	}
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP
 
