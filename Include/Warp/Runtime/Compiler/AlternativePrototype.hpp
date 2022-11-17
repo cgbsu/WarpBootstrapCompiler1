@@ -21,8 +21,7 @@ namespace Warp::Runtime::Compiler
 			typename IdentifierParameterType
 		>
 	struct CountedParameterAlternative;
-
-	template<
+template<
 			typename SingleParameterParameterType, 
 			typename FunctionTreeStorageParameterType, 
 			typename IdentifierParameterType
@@ -209,6 +208,26 @@ namespace Warp::Runtime::Compiler
 		protected: 
 			const ParameterArrayType parameters;
 	};
+	
+	template<
+			size_t ParameterCountParameterConstant, 
+			typename IdentifierParameterType = std::string
+		>
+	constexpr auto make_alternative_prototype(IdentifierParameterType name, auto... parameters) 
+	{
+		using SingleParameterType = CleanType<
+				typename TakeFirstType<decltype(parameters)...>::Type
+			>;
+		auto concrete = std::make_unique<CountedParameterAlternativePrototype<
+				ParameterCountParameterConstant, 
+				SingleParameterType, 
+				IdentifierParameterType
+			>>(name, std::move(parameters)...);
+		return std::unique_ptr<AlternativePrototype<
+				SingleParameterType, 
+				IdentifierParameterType
+			>>(concrete.release());
+	}
 }
 
 #endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__ALTERNATIVE_PROTOTYPE__HPP
