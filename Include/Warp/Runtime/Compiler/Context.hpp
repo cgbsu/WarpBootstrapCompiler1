@@ -34,6 +34,7 @@ namespace Warp::Runtime::Compiler
 		using ConstantType = Constant<ValueStorageType, TypeTagType, IdentifierType>;
 		using ConstraintType = Constraint<ConstraintStorageType, IdentifierType>;
 		using SingleParameterType = SingleParameter<ConstraintType, IdentifierType>;
+		using AlternativePrototypeType = AlternativePrototype<SingleParameterType, IdentifierType>;
 		using AlternativeType = Alternative<
 				SingleParameterType, 
 				FunctionTreeStorageType, 
@@ -74,6 +75,8 @@ namespace Warp::Runtime::Compiler
 		>;
 
 	using ConstantType = DefaultContextType::ConstantType;
+	using AlternativePrototypeType = DefaultContextType::AlternativePrototypeType;
+	using SingleParameterType = DefaultContextType::SingleParameterType;
 	using ContextType = DefaultContextType;
 }
 

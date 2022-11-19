@@ -9,8 +9,7 @@ namespace Warp::Parsing
 	using namespace Warp::Runtime::Compiler;
 
 	enum class FunctionDeclaration {
-		Prototype, 
-		IntermediatePrototype
+		Prototype
 	};
 
 	using FunctionDeclaritionTermsType_ = BooleanExpressionTermsType 
@@ -38,13 +37,13 @@ namespace Warp::Parsing
 					CharTerm, 
 					'}', 
 					ctpg::associativity::no_assoc
-				>//, 
-			//TypeTreeTerm<
-			//		FunctionDeclaration::IntermediatePrototype, 
-			//		NonTerminalTerm, 
-			//		AlternativeType, 
-			//		FixedString{"IntermediatePrototype"}
-			//	>
+				>, 
+			TypeTreeTerm<
+					FunctionDeclaration::Prototype, 
+					NonTerminalTerm, 
+					std::unique_ptr<AlternativePrototypeType>, 
+					FixedString{"AlternativePrototype"}
+				>
 		>;
 
 	template<>
@@ -114,6 +113,7 @@ namespace Warp::Parsing
 		constexpr static const auto close_curley_bracket = term<Brackets::ClosedCurleyBracket>;
 		constexpr static const auto semi_colon = term<Declaration::SemiColon>;
 		constexpr static const auto constant = term<Construct::Constant>;
+		constexpr static const auto prototype = term<FunctionDeclaration::Prototype>;
 		constexpr static const auto context = term<Construct::Context>;
 
 		constexpr static const auto unique_terms = ctpg::terms(
@@ -129,6 +129,7 @@ namespace Warp::Parsing
 
 		constexpr static const auto unique_non_terminal_terms = ctpg::nterms(
 				constant, 
+				prototype, 
 				context
 			);
 
@@ -195,6 +196,19 @@ namespace Warp::Parsing
 						};
 				};
 
+		consteval static const auto declare_function()
+		{
+			return ctpg::rules(
+					prototype(let_keyword, identifier, open_parenthesis)
+					>= [](auto let_, auto name, auto open_parenthesis_)
+					{
+						return make_alternative_prototype_with_no_parameters<
+								SingleParameterType
+							>(std::string{name});
+					}
+				);
+		}
+
 		consteval static const auto unique_rules()
 		{
 			return concatinate_tuples(
@@ -206,17 +220,12 @@ namespace Warp::Parsing
 					#endif
 					constant_from_math_term<BoolMathematicalParserType>(), 
 					to_context_rules(constant), 
+					declare_function(), 
 					ctpg::rules(
 							alias_value
 					)
 				);
 		}
-
-		//consteval static const auto declare_function() {
-		//	ctpg::rules(
-		//		[](let_keyword, identifier, open_parenthesis) {
-		//			return CountedParameterAlternativeType<0>
-					
 
 		consteval static const auto rules()
 		{

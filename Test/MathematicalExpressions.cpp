@@ -1,3 +1,5 @@
+#include <Warp/Testing/Enable.hpp>
+#ifdef WARP__TESTING__HEADER__TESTING__TEST__MATHEMATICAL__EXPRESSIONS__HPP__DEBUG__ON
 #include <Warp/Runtime/Compiler/NumericType.hpp>
 #include <Warp/Parsing/NumericLiterals.hpp>
 #include <Warp/Parsing/MathematicalExpressions.hpp>
@@ -312,4 +314,6 @@ TEST(MathematicalExpressions, NestedParenthesis)
 	whole_test<FixedString{"3 * (4 * (4 + 4) + (2 + 3) * (2 + ((2 + 4) / 2)))"}>(171, debug);
 	whole_test<FixedString{"3* ((4 * (4 + 4) + (2 + 3)) * (2 + ((2 + 4) / 2)))"}>(555, debug);
 };
+
+#endif // WARP__TESTING__HEADER__TESTING__TEST__MATHEMATICAL__EXPRESSIONS__HPP__DEBUG__ON
 

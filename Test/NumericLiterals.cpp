@@ -1,3 +1,5 @@
+#include <Warp/Testing/Enable.hpp>
+#ifdef WARP__TESTING__HEADER__TESTING__TEST__NUMERIC__LITERALS__HPP__DEBUG__ON
 #include <Warp/Runtime/Compiler/NumericType.hpp>
 #include <Warp/Parsing/NumericLiterals.hpp>
 #include <ThirdParty/fpm/ios.hpp>
@@ -385,4 +387,6 @@ TEST(NumericLiterals, CharacterVariableBitArity)
 
 	check_varible_bit_against_value<ParserTestType::CharacterType, 123>(to_check, bit_values);
 };
+
+#endif // WARP__TESTING__HEADER__TESTING__TEST__NUMERIC__LITERALS__HPP__DEBUG__ON
 

@@ -24,7 +24,9 @@ namespace Warp::Utilities
 			auto BaseParameterConstant = 10, 
 			auto CharacterOffsetParameterConstant = '0'
 		>
-    constexpr ParameterType to_integral(std::convertible_to<std::string_view> auto integer_token)
+    constexpr ParameterType to_integral(
+			std::convertible_to<std::string_view> auto integer_token
+		)
     {
 		auto integer_token_as_string_view = std::string_view{integer_token};
         ParameterType sum = ParameterType{0};
@@ -337,12 +339,42 @@ namespace Warp::Utilities
 
 	template<typename ToParameterType, typename FromParameterType>
 	requires(std::derived_from<ToParameterType, FromParameterType> == true)
-	constexpr static std::unique_ptr<ToParameterType> dynamic_cast_unique(
+	constexpr static auto dynamic_cast_unique(
 			std::unique_ptr<FromParameterType> from
-		)
+		) -> std::unique_ptr<ToParameterType>
 	{
 		return std::unique_ptr<ToParameterType>(
 				dynamic_cast<ToParameterType*>(from.release())
+			);
+	}
+
+	template<typename ToParameterType, typename FromParameterType>
+	requires(std::derived_from<ToParameterType, FromParameterType> == true)
+	constexpr static auto cast_unique_object(
+				const std::unique_ptr<FromParameterType>& from
+			) -> const ToParameterType& {
+		return dynamic_cast<const ToParameterType&>(*from.get());
+	}
+
+	template<typename ToParameterType, typename FromParameterType>
+	requires(std::derived_from<FromParameterType, ToParameterType> == true)
+	constexpr static auto base_cast(
+			std::unique_ptr<FromParameterType> from
+		) -> std::unique_ptr<ToParameterType>
+	{
+		return std::unique_ptr<ToParameterType>(
+				static_cast<ToParameterType*>(from.release())
+			);
+	}
+
+	template<typename ToParameterType, typename FromParameterType>
+	requires(std::derived_from<FromParameterType, ToParameterType> == true)
+	constexpr static auto make_derived_unique(
+			auto... initializors
+		) -> std::unique_ptr<ToParameterType>
+	{
+		return base_cast<ToParameterType, FromParameterType>(
+				std::make_unique<FromParameterType>(initializors...)
 			);
 	}
 }

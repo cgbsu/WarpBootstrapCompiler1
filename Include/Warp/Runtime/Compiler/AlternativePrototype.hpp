@@ -21,7 +21,8 @@ namespace Warp::Runtime::Compiler
 			typename IdentifierParameterType
 		>
 	struct CountedParameterAlternative;
-template<
+
+	template<
 			typename SingleParameterParameterType, 
 			typename FunctionTreeStorageParameterType, 
 			typename IdentifierParameterType
@@ -75,7 +76,7 @@ template<
 
 		constexpr virtual const ParameterView get_parameters() const noexcept = 0;
 		constexpr virtual const size_t parameter_count() const noexcept = 0;
-		constexpr virtual const AlternativePrototypeType add_parameter(
+		constexpr virtual const ParameterView add_parameter(
 				SingleParameterType parameter
 			) const noexcept = 0;
 
@@ -199,7 +200,7 @@ template<
 			return parameter_count_;
 		}
 
-		constexpr virtual const AlternativePrototypeType add_parameter(
+		constexpr virtual const ParameterView add_parameter(
 					SingleParameterType parameter
 				) const noexcept final {
 			return ParameterView(parameters);
@@ -210,16 +211,31 @@ template<
 	};
 	
 	template<
-			size_t ParameterCountParameterConstant, 
+			typename SingleParameterType, 
 			typename IdentifierParameterType = std::string
 		>
+	constexpr auto make_alternative_prototype_with_no_parameters(IdentifierParameterType name) 
+	{
+		auto concrete = std::make_unique<CountedParameterAlternativePrototype<
+				0, 
+				SingleParameterType, 
+				IdentifierParameterType
+			>>(name);
+		return std::unique_ptr<AlternativePrototype<
+				SingleParameterType, 
+				IdentifierParameterType
+			>>(concrete.release());
+	}
+
+	template<typename IdentifierParameterType = std::string>
 	constexpr auto make_alternative_prototype(IdentifierParameterType name, auto... parameters) 
 	{
 		using SingleParameterType = CleanType<
 				typename TakeFirstType<decltype(parameters)...>::Type
 			>;
+		constexpr const size_t parameter_count = sizeof...(parameters);
 		auto concrete = std::make_unique<CountedParameterAlternativePrototype<
-				ParameterCountParameterConstant, 
+				parameter_count, 
 				SingleParameterType, 
 				IdentifierParameterType
 			>>(name, std::move(parameters)...);

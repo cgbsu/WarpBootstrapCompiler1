@@ -1,4 +1,5 @@
-#define WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
+#include <Warp/Testing/Enable.hpp>
+#ifdef WARP__TESTING__HEADER__TESTING__TEST__FUNCTION__DECLARATIONS__HPP__DEBUG__ON
 #include <Warp/Common.hpp>
 #include <Warp/Utilities.hpp>
 #include <Warp/Parsing/FunctionDeclarations.hpp>
@@ -15,9 +16,6 @@ using namespace Warp::Testing;
 #define WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
 
 TEST_GROUP(FunctionDeclarations) {};
-
-//#define EXCLUDE_CONSTANT_TEST
-#ifndef EXCLUDE_CONSTANT_TEST
 
 TEST(FunctionDeclarations, DeclareConstantFromLiteral)
 {
@@ -276,5 +274,5 @@ TEST(FunctionDeclarations, UseConstansInConstants)
 		>({"TheAnswer", "Fourty"}, std::vector{42u, 40u}, debug);
 };
 
-#endif // EXCLUDE_CONSTANT_TEST
+#endif // WARP__TESTING__HEADER__TESTING__TEST__FUNCTION__DECLARATIONS__HPP__DEBUG__ON
 

@@ -1,5 +1,5 @@
-//#define EXCLUDE_BOOL_TEST
-#ifndef EXCLUDE_BOOL_TEST
+#include <Warp/Testing/Enable.hpp>
+#ifdef WARP__TESTING__HEADER__TESTING__TEST__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
 
 #include <Warp/Parsing/BooleanExpressions.hpp>
 #include <CppUTest/TestHarness.h>
@@ -248,5 +248,5 @@ TEST(BooleanExpressionTests, BoolArithmaticWithLogicalExpressions)
 	bool_test<FixedString{"false || !true"}>(WarpBool::False, debug);
 };
 
-#endif // EXCLUDE_BOOL_TEST
+#endif // WARP__TESTING__HEADER__TESTING__TEST__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
 
