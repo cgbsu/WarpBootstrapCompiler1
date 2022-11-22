@@ -373,9 +373,9 @@ namespace Warp::Utilities
 			auto... initializors
 		) -> std::unique_ptr<ToParameterType>
 	{
-		return base_cast<ToParameterType, FromParameterType>(
+		return std::move(base_cast<ToParameterType, FromParameterType>(
 				std::make_unique<FromParameterType>(initializors...)
-			);
+			));
 	}
 }
 #endif // WARP__UTILITIES__HEADER__UTILITIES__CONVERSIONS__HPP

@@ -36,8 +36,8 @@ namespace Warp::Utilities
 		constexpr const ElementType& operator-(const IteratorType& offset) const noexcept {
 			return subtract(offset);
 		}
-		constexpr virtual const IteratorType& increment() const noexcept = 0;
-		constexpr virtual const IteratorType& decrement() const noexcept = 0;
+		constexpr virtual const IteratorType increment() const noexcept = 0;
+		constexpr virtual const IteratorType decrement() const noexcept = 0;
 		constexpr virtual const ElementType& dereference() const noexcept = 0;
 		constexpr virtual const IteratorType add(size_t index) const noexcept = 0;
 		constexpr virtual const IteratorType subtract(size_t index) const noexcept = 0;
@@ -53,7 +53,7 @@ namespace Warp::Utilities
 	struct Iterator;
 	
 	template<typename ElementParameterType, typename IteratorParameterType>
-	constexpr auto iterator_from(const IteratorParameterType& iterator)
+	constexpr auto iterator_from(const IteratorParameterType iterator)
 			-> IteratorType<ElementParameterType>
 	{
 		return make_derived_unique<
@@ -74,13 +74,11 @@ namespace Warp::Utilities
 
 		constexpr Iterator(const IteratorParameterType iterator) : iterator(iterator) {}
 
-		constexpr virtual const IteratorPointerType& increment() const noexcept final {
-			const auto next = iterator + 1;
-			return make_derived_unique<BaseType, ThisType>(next);
+		constexpr virtual const IteratorPointerType increment() const noexcept final {
+			return iterator_from<ElementType>(iterator + 1);
 		}
-		constexpr virtual const IteratorPointerType& decrement() const noexcept final {
-			const auto previous = iterator - 1;
-			return make_derived_unique<BaseType, ThisType>(previous);
+		constexpr virtual const IteratorPointerType decrement() const noexcept final {
+			return iterator_from<ElementType>(iterator - 1);
 		}
 		constexpr virtual const ElementType& dereference() const noexcept final {
 			return *iterator;
