@@ -221,18 +221,20 @@ namespace Warp::Parsing
 					intermediate_prototype(intermediate_prototype, identifier, comma)
 					>= [](auto&& prototype_, auto name, auto comma_)
 					{
-						return prototype_.release()->add_parameter(SingleParameterType{
+						prototype_->parameters.push_back(SingleParameterType{
 								std::string{name}, 
 								ConstraintType()
-							}); // TODO: Throw an error on nullopt
+							}); 
+						return prototype_;
 					}, 
 					prototype(intermediate_prototype, identifier, close_parenthesis)
 					>= [](auto&& prototype_, auto name, auto parenthesis_)
 					{
-						return prototype_.release()->add_parameter(SingleParameterType{
+						prototype_->parameters.push_back(SingleParameterType{
 								std::string{name}, 
 								ConstraintType()
-							}); // TODO: Throw an error on nullopt
+							});
+						return prototype_;
 					}
 				);
 		}

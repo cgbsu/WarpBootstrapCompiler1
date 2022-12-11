@@ -303,12 +303,12 @@ constexpr static const auto compare_prototype = [](
 		std::source_location location
 	)
 {
-	if(left->parameter_count() == right->parameter_count())
+	if(left->parameters.size() == right->parameters.size())
 	{
-		const auto left_parameters = left->get_parameters();
-		const auto right_parameters = right->get_parameters();
+		const auto& left_parameters = left->parameters;
+		const auto& right_parameters = right->parameters;
 		bool same = true;
-		for(size_t ii = 0; ii < left->parameter_count(); ++ii)
+		for(size_t ii = 0; ii < left->parameters.size(); ++ii)
 		{
 			same = same && compare_single_parameter(
 					left_parameters[ii], 
@@ -346,12 +346,13 @@ TEST(FunctionDeclarations, Prototype)
 TEST(FunctionDeclarations, PrototypeWithUnconstrainedParameters)
 {
 	bool debug = false;
+	auto expected = make_alternative_prototype(
+			std::string{"my_function"}, 
+			std::move(SingleParameterType{std::string{"my_first_parameter"}, ConstraintType()})
+		); /*Expected*/
 	check_parse<compare_prototype>(
 			parse_prototype<FixedString{"let my_function(my_first_parameter)"}>() /*Actual*/, 
-			make_alternative_prototype(
-					std::string{"my_function"}, 
-					SingleParameterType{std::string{"my_first_parameter"}, ConstraintType()}
-				), /*Expected*/
+			std::move(expected), 
 			debug
 		);
 }
