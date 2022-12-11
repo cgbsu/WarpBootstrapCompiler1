@@ -75,6 +75,7 @@ namespace Warp::Runtime::Compiler
 		>;
 
 	using ConstantType = DefaultContextType::ConstantType;
+	using ConstraintType = DefaultContextType::ConstraintType;
 	using AlternativePrototypeType = DefaultContextType::AlternativePrototypeType;
 	using SingleParameterType = DefaultContextType::SingleParameterType;
 	using ContextType = DefaultContextType;

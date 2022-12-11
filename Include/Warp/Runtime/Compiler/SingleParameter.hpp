@@ -13,12 +13,18 @@ namespace Warp::Runtime::Compiler
 	struct SingleParameter
 	{
 		using ConstraintType = ConstraintParameterType;
-		constexpr SingleParameter() noexcept {}
-		constexpr SingleParameter(const SingleParameter& other) noexcept = default;
-		constexpr SingleParameter(SingleParameter&& other) noexcept = default;
-		constexpr SingleParameter& operator=(const SingleParameter& other) noexcept = default;
-		constexpr SingleParameter& operator=(SingleParameter&& other) noexcept = default;
+		using IdentifierType = IdentifierParameterType;
+
+		const IdentifierType name;
 		ConstraintType constraint;
+
+		//constexpr SingleParameter() noexcept {}
+		//constexpr SingleParameter(const SingleParameter& other) noexcept = default;
+		//constexpr SingleParameter(const IdentifierType name, ConstraintType constraint) noexcept 
+		//		: name(name), constraint(constraint) {}
+		//constexpr SingleParameter(SingleParameter&& other) noexcept = default;
+		//constexpr SingleParameter& operator=(const SingleParameter& other) noexcept = default;
+		//constexpr SingleParameter& operator=(SingleParameter&& other) noexcept = default;
 	};
 
 }

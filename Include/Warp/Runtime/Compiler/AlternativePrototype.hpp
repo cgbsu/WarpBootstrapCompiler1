@@ -10,7 +10,8 @@ namespace Warp::Runtime::Compiler
 	template<
 			size_t ParameterCountParameterConstant, 
 			typename SingleParameterParameterType, 
-			typename IdentifierParameterType
+			typename IdentifierParameterType, 
+			size_t ParameterCountLimitParameterConstant
 		>
 	struct CountedParameterAlternativePrototype;
 
@@ -28,6 +29,8 @@ namespace Warp::Runtime::Compiler
 			typename IdentifierParameterType
 		>
 	struct Alternative;
+
+	constexpr static const size_t default_counted_parameter_alternative_parameter_count_limit = 256;
 
 	template<
 			typename SingleParameterParameterType, 
@@ -63,12 +66,17 @@ namespace Warp::Runtime::Compiler
 					>
 			>;
 
-		template<size_t ParameterCountParameterConstant>
+		template<
+				size_t ParameterCountParameterConstant, 
+				size_t ParameterCountLimitParameterConstant 
+						= default_counted_parameter_alternative_parameter_count_limit
+			>
 		using CountedParameterAlternativePrototypeType = std::unique_ptr<
 				CountedParameterAlternativePrototype<
 						ParameterCountParameterConstant, 
 						SingleParameterType, 
-						IdentifierType
+						IdentifierType, 
+						ParameterCountLimitParameterConstant
 					>
 			>;
 
@@ -76,21 +84,29 @@ namespace Warp::Runtime::Compiler
 
 		constexpr virtual const ParameterView get_parameters() const noexcept = 0;
 		constexpr virtual const size_t parameter_count() const noexcept = 0;
-		constexpr virtual const ParameterView add_parameter(
+		constexpr virtual const AlternativePrototypeType add_parameter(
 				SingleParameterType parameter
-			) const noexcept = 0;
+			) noexcept = 0;
 
 		constexpr const IdentifierType& get_name() const noexcept {
 			return name;
 		}
 
-		template<typename FunctionTreeStorageParameterType>
-		constexpr static AlternativeType<FunctionTreeStorageParameterType> to_alternative(
+		template<
+				typename FunctionTreeStorageParameterType, 
+				size_t ParameterCountLimitParameterConstant 
+						= default_counted_parameter_alternative_parameter_count_limit 
+			>
+		constexpr static std::optional<AlternativeType<FunctionTreeStorageParameterType>> to_alternative(
 				AlternativePrototypeType prototype, 
 				FunctionTreeStorageParameterType function_tree
 			)
 		{
-			return to_alternative<0, FunctionTreeStorageParameterType>(
+			return to_alternative<
+					0, 
+					FunctionTreeStorageParameterType, 
+					ParameterCountLimitParameterConstant
+				>(
 					std::move(prototype), 
 					std::move(function_tree)
 				);
@@ -99,8 +115,12 @@ namespace Warp::Runtime::Compiler
 		protected: 
 			IdentifierType name;
 
-			template<size_t ParameterCountParameterConstant, typename FunctionTreeStorageParameterType>
-			constexpr static AlternativeType<FunctionTreeStorageParameterType> to_alternative(
+			template<
+					size_t ParameterCountParameterConstant, 
+					typename FunctionTreeStorageParameterType, 
+					size_t ParameterCountLimitParameterConstant
+				>
+			constexpr static std::optional<AlternativeType<FunctionTreeStorageParameterType>> to_alternative(
 					AlternativePrototypeType prototype, 
 					FunctionTreeStorageParameterType function_tree
 				)
@@ -110,13 +130,19 @@ namespace Warp::Runtime::Compiler
 						FunctionTreeStorageParameterType
 					>;
 				using CountedAlternativePrototypeType = CountedParameterAlternativePrototypeType<
-						ParameterCountParameterConstant
+						ParameterCountParameterConstant, 
+						ParameterCountLimitParameterConstant
 					>;
-				if constexpr(ParameterCountParameterConstant < prototype->parameter_count())
+				if constexpr(ParameterCountParameterConstant > ParameterCountLimitParameterConstant)
+					return std::nullopt;
+				else if constexpr(
+						ParameterCountParameterConstant < prototype->parameter_count()
+					)
 				{
 					return to_alternative<
 							ParameterCountParameterConstant + 1, 
-							FunctionTreeStorageParameterType
+							FunctionTreeStorageParameterType, 
+							ParameterCountLimitParameterConstant
 						>(
 							std::move(prototype), 
 							std::move(function_tree)
@@ -139,7 +165,9 @@ namespace Warp::Runtime::Compiler
 	template<
 			size_t ParameterCountParameterConstant, 
 			typename SingleParameterParameterType, 
-			typename IdentifierParameterType = std::string
+			typename IdentifierParameterType = std::string, 
+			size_t ParameterCountLimitParameterConstant 
+					= default_counted_parameter_alternative_parameter_count_limit 
 		>
 	struct CountedParameterAlternativePrototype : public AlternativePrototype<
 			SingleParameterParameterType, 
@@ -148,6 +176,7 @@ namespace Warp::Runtime::Compiler
 	{
 		constexpr const static auto parameter_count_ 
 				= ParameterCountParameterConstant;
+		constexpr const static auto parameter_count_limit = ParameterCountLimitParameterConstant;
 		using SingleParameterType = SingleParameterParameterType;
 		using IdentifierType = IdentifierParameterType;
 		using ParameterView = ArrayView<SingleParameterType>;
@@ -159,13 +188,15 @@ namespace Warp::Runtime::Compiler
 		using ThisType = CountedParameterAlternativePrototype<
 				parameter_count_, 
 				SingleParameterType, 
-				IdentifierType
+				IdentifierType, 
+				parameter_count_limit
 			>;
 
 		using NextType = CountedParameterAlternativePrototype<
 				parameter_count_ + 1, 
 				SingleParameterType, 
-				IdentifierType
+				IdentifierType, 
+				parameter_count_limit
 			>;
 
 		using AlternativePrototypeType = std::unique_ptr<BaseType>;
@@ -177,17 +208,27 @@ namespace Warp::Runtime::Compiler
 				std::convertible_to<SingleParameterType> auto... parameters
 			) noexcept : BaseType(name), parameters{std::move(parameters)...} {}
 
+		constexpr const static auto previous_parameter_count = parameter_count_ > 0 ? parameter_count_ - 1 : 0;
+		constexpr const static auto next = parameter_count_ + 1;
+
+		friend struct CountedParameterAlternativePrototype<next, SingleParameterType, IdentifierType>;
+
 		template<size_t... IndexParameterConstants>
 		constexpr CountedParameterAlternativePrototype(
-				ThisType from, 
+				CountedParameterAlternativePrototype<
+						previous_parameter_count, 
+						SingleParameterType, 
+						IdentifierType, 
+						parameter_count_limit
+					>&& from, 
 				SingleParameterType parameter, 
-				std::index_sequence<IndexParameterConstants...> = std::make_index_sequence<parameter_count_>()
+				std::index_sequence<IndexParameterConstants...> 
 			) noexcept : 
-					BaseType(from.name), 
-					parameters{
-							std::move(from.get_parameters()[IndexParameterConstants])..., 
+					BaseType(from.get_name()), 
+					parameters(std::array<SingleParameterType, parameter_count_>{
+							std::move(from.parameters[IndexParameterConstants])..., 
 							std::move(parameter)
-						} {}
+						}) {}
 
 		constexpr virtual const ParameterView get_parameters() const noexcept final {
 			return ParameterView(parameters);
@@ -200,26 +241,40 @@ namespace Warp::Runtime::Compiler
 			return parameter_count_;
 		}
 
-		constexpr virtual const ParameterView add_parameter(
+		constexpr virtual const AlternativePrototypeType add_parameter(
 					SingleParameterType parameter
-				) const noexcept final {
-			return ParameterView(parameters);
+				) noexcept final
+		{
+			if constexpr(parameter_count_ < parameter_count_limit)
+			{
+				return std::make_unique<CountedParameterAlternativePrototype<
+						next, 
+						SingleParameterType, 
+						IdentifierType, 
+						parameter_count_limit 
+					>>(std::move(*this), std::move(parameter), std::make_index_sequence<parameter_count_>());
+			}
+			else
+				return AlternativePrototypeType(nullptr);
 		}
 
 		protected: 
-			const ParameterArrayType parameters;
+			ParameterArrayType parameters;
 	};
 	
 	template<
 			typename SingleParameterType, 
-			typename IdentifierParameterType = std::string
+			typename IdentifierParameterType = std::string, 
+			size_t ParameterCountLimitParameterConstant 
+					= default_counted_parameter_alternative_parameter_count_limit
 		>
 	constexpr auto make_alternative_prototype_with_no_parameters(IdentifierParameterType name) 
 	{
 		auto concrete = std::make_unique<CountedParameterAlternativePrototype<
 				0, 
 				SingleParameterType, 
-				IdentifierParameterType
+				IdentifierParameterType, 
+				ParameterCountLimitParameterConstant 
 			>>(name);
 		return std::unique_ptr<AlternativePrototype<
 				SingleParameterType, 
@@ -227,7 +282,11 @@ namespace Warp::Runtime::Compiler
 			>>(concrete.release());
 	}
 
-	template<typename IdentifierParameterType = std::string>
+	template<
+			typename IdentifierParameterType = std::string, 
+			size_t ParameterCountLimitParameterConstant 
+					= default_counted_parameter_alternative_parameter_count_limit
+		>
 	constexpr auto make_alternative_prototype(IdentifierParameterType name, auto... parameters) 
 	{
 		using SingleParameterType = CleanType<
@@ -237,7 +296,8 @@ namespace Warp::Runtime::Compiler
 		auto concrete = std::make_unique<CountedParameterAlternativePrototype<
 				parameter_count, 
 				SingleParameterType, 
-				IdentifierParameterType
+				IdentifierParameterType, 
+				ParameterCountLimitParameterConstant 
 			>>(name, std::move(parameters)...);
 		return std::unique_ptr<AlternativePrototype<
 				SingleParameterType, 

@@ -1,4 +1,5 @@
 #include <Warp/Common.hpp>
+#include <Warp/Utilities/Conversions.hpp>
 
 #ifndef WARP__UTILITIES__HEADER__UTILITIES__ARRAY__VIEW__HPP
 #define WARP__UTILITIES__HEADER__UTILITIES__ARRAY__VIEW__HPP
@@ -12,10 +13,10 @@ namespace Warp::Utilities
 		using ThisType = IteratorBase<ElementType>;
 		using IteratorType = std::unique_ptr<ThisType>;
 
-		constexpr const ElementType& operator++() const noexcept {
+		constexpr const IteratorType operator++() const noexcept {
 			return increment();
 		}
-		constexpr const ElementType& operator--() const noexcept {
+		constexpr const IteratorType operator--() const noexcept {
 			return decrement();
 		}
 		constexpr const ElementType& operator*() const noexcept {
@@ -24,21 +25,22 @@ namespace Warp::Utilities
 		constexpr const ElementType& operator->() const noexcept {
 			return dereference();
 		}
-		constexpr const ElementType& operator+(size_t offset) const noexcept {
+		constexpr const IteratorType operator+(size_t offset) const noexcept {
 			return add(offset);
 		}
-		constexpr const ElementType& operator+(const IteratorType& offset) const noexcept {
+		constexpr const IteratorType operator+(const IteratorType& offset) const noexcept {
 			return add(offset);
 		}
-		constexpr const ElementType& operator-(size_t offset) const noexcept {
+		constexpr const IteratorType operator-(size_t offset) const noexcept {
 			return subtract(offset);
 		}
-		constexpr const ElementType& operator-(const IteratorType& offset) const noexcept {
+		constexpr const IteratorType operator-(const IteratorType& offset) const noexcept {
 			return subtract(offset);
 		}
 		constexpr virtual const IteratorType increment() const noexcept = 0;
 		constexpr virtual const IteratorType decrement() const noexcept = 0;
 		constexpr virtual const ElementType& dereference() const noexcept = 0;
+		constexpr virtual const ElementType& at(size_t index) const noexcept = 0;
 		constexpr virtual const IteratorType add(size_t index) const noexcept = 0;
 		constexpr virtual const IteratorType subtract(size_t index) const noexcept = 0;
 		constexpr virtual const IteratorType add(const IteratorType& ofset) const noexcept = 0;
@@ -83,6 +85,9 @@ namespace Warp::Utilities
 		constexpr virtual const ElementType& dereference() const noexcept final {
 			return *iterator;
 		}
+		constexpr virtual const ElementType& at(size_t index) const noexcept final {
+			return *(iterator + index);
+		}
 		constexpr virtual const IteratorPointerType add(size_t index) const noexcept final {
 			return iterator_from<ElementType>(iterator + index);
 		}
@@ -105,7 +110,7 @@ namespace Warp::Utilities
 			const auto distance = std::distance(iterator, offset_);
 			return add(distance);
 		}
-		constexpr virtual IteratorPointerType copy() const noexcept {
+		constexpr virtual IteratorPointerType copy() const noexcept final {
 			return make_derived_unique<BaseType, ThisType>(iterator);
 		}
 		constexpr const IteratorType get_iterator() const noexcept {
@@ -153,7 +158,7 @@ namespace Warp::Utilities
 		}
 
 		constexpr const ElementType& operator[](size_t index) const noexcept {
-			return begin_;
+			return begin_->at(index);
 		}
 	
 		protected: 

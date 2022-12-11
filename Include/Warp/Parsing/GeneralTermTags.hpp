@@ -40,7 +40,8 @@ namespace Warp::Parsing
 	};
 
 	enum class Call {
-		Constant
+		Constant, 
+		Comma
 	};
 
 	enum class TemplateInstantiationTag

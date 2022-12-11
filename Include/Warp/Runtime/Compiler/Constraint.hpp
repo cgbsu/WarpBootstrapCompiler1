@@ -32,7 +32,7 @@ namespace Warp::Runtime::Compiler
 			return name_dependancies;
 		}
 		protected: 
-			const std::vector<NameDependancyType> name_dependancies;
+			std::vector<NameDependancyType> name_dependancies;
 	};
 }
 
