@@ -590,50 +590,50 @@ TEST(FunctionDeclarations, PrototypeWithMultipleConstrainedParameter)
 				)), /*Expected*/
 			debug
 		);
-	check_parse<compare_prototype>(
-			parse_prototype<FixedString{"let my_function("
-												"my_first_parameter : {"
-														"1u + my_constant_5 > 0u + my_constant_6 "
-																"|| 342u + my_constant_0 > 32u + my_constant_1 "
-																"|| (0u + my_constant_2) / (0u + my_constant_3) = 0u + my_constant_4"
-													"}, "
-												"my_second_parameter : {"
-														"8u + another_test_constant > 0u + test_constant && 34u < 3u"
-													"}, "
-												"my_third_parameter : {"
-														"(0u + something > 0u || 0u + somthing_else > 0u) "
-																	"|| 0u + constant_0 = 0u + constant_1 "
-																	"&& 0u + constnat_0 < 42u * my_constant_2}"
-													"}"
-											")"}>(debug) /*Actual*/, 
-			
-			std::move(make_alternative_prototype(
-					std::string{"my_function"}, 
-					std::move(single_parameter_from_boolean_expression<FixedString{
-							"1u + my_constant_5 > 0u + my_constant_6 "
-									"|| 342u + my_constant_0 > 32u + my_constant_1 "
-									"|| (0u + my_constant_2) / (0u + my_constant_3) = 0u + my_constant_4"
-						}>(
-							std::string{"my_first_parameter"}, 
-							debug
-						)), 
-					std::move(single_parameter_from_boolean_expression<FixedString{
-							"8u + another_test_constant > 0u + test_constant && 34u < 3u"
-						}>(
-							std::string{"my_second_parameter"}, 
-							debug
-						)), 
-					std::move(single_parameter_from_boolean_expression<FixedString{
-							"(0u + something > 0u || 0u + somthing_else > 0u) "
-										"|| 0u + constant_0 = 0u + constant_1 "
-										"&& 0u + constnat_0 < 42u * my_constant_2}"
-						}>(
-							std::string{"my_third_parameter"}, 
-							debug
-						))
-				)), /*Expected*/
-			debug
-		);
+	//check_parse<compare_prototype>(
+	//		parse_prototype<FixedString{"let my_function("
+	//											"my_first_parameter : {"
+	//													"1u + my_constant_5 > 0u + my_constant_6 "
+	//															"|| 342u + my_constant_0 > 32u + my_constant_1 "
+	//															"|| (0u + my_constant_2) / (0u + my_constant_3) = 0u + my_constant_4"
+	//												"}, "
+	//											"my_second_parameter : {"
+	//													"8u + another_test_constant > 0u + test_constant && 34u < 3u"
+	//												"}, "
+	//											"my_third_parameter : {"
+	//													"(0u + something > 0u || 0u + somthing_else > 0u) "
+	//																"|| 0u + constant_0 = 0u + constant_1 "
+	//																"&& 0u + constnat_0 < 42u * my_constant_2}"
+	//												"}"
+	//										")"}>(debug) /*Actual*/, 
+	//		
+	//		std::move(make_alternative_prototype(
+	//				std::string{"my_function"}, 
+	//				std::move(single_parameter_from_boolean_expression<FixedString{
+	//						"1u + my_constant_5 > 0u + my_constant_6 "
+	//								"|| 342u + my_constant_0 > 32u + my_constant_1 "
+	//								"|| (0u + my_constant_2) / (0u + my_constant_3) = 0u + my_constant_4"
+	//					}>(
+	//						std::string{"my_first_parameter"}, 
+	//						debug
+	//					)), 
+	//				std::move(single_parameter_from_boolean_expression<FixedString{
+	//						"8u + another_test_constant > 0u + test_constant && 34u < 3u"
+	//					}>(
+	//						std::string{"my_second_parameter"}, 
+	//						debug
+	//					)), 
+	//				std::move(single_parameter_from_boolean_expression<FixedString{
+	//						"(0u + something > 0u || 0u + somthing_else > 0u) "
+	//									"|| 0u + constant_0 = 0u + constant_1 "
+	//									"&& 0u + constnat_0 < 42u * my_constant_2}"
+	//					}>(
+	//						std::string{"my_third_parameter"}, 
+	//						debug
+	//					))
+	//			)), /*Expected*/
+	//		debug
+	//	);
 }
 #endif // TEST_2
 

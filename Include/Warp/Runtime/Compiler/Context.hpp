@@ -9,9 +9,14 @@
 
 namespace Warp::Runtime::Compiler
 {
+	struct ConstantValueType {
+		SyntaxNode expression;
+		std::optional<NumericValue> value;
+	};
+
 	template<
 			typename TypeTagParameterType = AnyType, 
-			typename ValueStorageParameterType = SyntaxNode, 
+			typename ValueStorageParameterType = ConstantValueType, 
 			typename FunctionTreeStorageParameterType = SyntaxNode, 
 			typename ConstraintStorageParameterType = SyntaxNode, 
 			typename SingleParameterStorageParameterType = SyntaxNode, 
@@ -31,6 +36,16 @@ namespace Warp::Runtime::Compiler
 		template<typename KeyParameterType, typename ValueParameterType>
 		using HashMap = HashTableParameterTemplate<KeyParameterType, ValueParameterType>;
 
+		using ThisType = Context<
+				TypeTagType, 
+				ValueStorageType, 
+				ConstraintStorageType, 
+				FunctionTreeStorageType, 
+				SingleParameterStorageType, 
+				IdentifierType,
+				HashMap
+			>;
+
 		using ConstantType = Constant<ValueStorageType, TypeTagType, IdentifierType>;
 		using ConstraintType = Constraint<ConstraintStorageType, IdentifierType>;
 		using SingleParameterType = SingleParameter<ConstraintType, IdentifierType>;
@@ -44,6 +59,10 @@ namespace Warp::Runtime::Compiler
 
 		HashMap<IdentifierType, ConstantType> constants;
 		HashMap<IdentifierType, std::unique_ptr<FunctionType>> functions;
+		
+		constexpr Context(const ThisType& parent) : parent(parent) {}
+		constexpr Context() : parent(std::nullopt) {}
+
 		Context inject(std::unique_ptr<AlternativeType> alternative)
 		{
 			if(functions.contains(alternative->get_name()) == false)
@@ -62,11 +81,32 @@ namespace Warp::Runtime::Compiler
 			constants.insert({constant.name, std::move(constant)});
 			return std::move(*this);
 		}
+		constexpr const OptionalReference<FunctionType> retrieve_function(IdentifierType name) const noexcept
+		{
+			if(functions.contains(name) == true)
+				return OptionalReference<FunctionType>{functions.at(name)};
+			if(parent.has_value() == true)
+				return parent.retrieve_function(name);
+			return OptionalReference<FunctionType>{std::nullopt};
+		}
+		constexpr const OptionalReference<ConstantType> retrieve_constant(IdentifierType name) const noexcept
+		{
+			if(constants.contains(name) == true)
+				return OptionalReference<ConstantType>{constants.at(name)};
+			if(parent.has_value() == true)
+				return parent.retrieve_constant(name);
+			return OptionalReference<ConstantType>{std::nullopt};
+		}
+		const auto get_parent() const noexcept {
+			return parent;
+		}
+		protected: 
+			OptionalReference<ThisType> parent;
 	};
 
 	using DefaultContextType = Context<
 			AnyType, 
-			SyntaxNode, 
+			ConstantValueType, 
 			SyntaxNode, 
 			SyntaxNode, 
 			SyntaxNode, 
@@ -80,15 +120,6 @@ namespace Warp::Runtime::Compiler
 	using AlternativeType = DefaultContextType::AlternativeType;
 	using SingleParameterType = DefaultContextType::SingleParameterType;
 	using ContextType = DefaultContextType;
-	using NumericValueContextType = Context<
-			AnyType, 
-			NumericValue, 
-			SyntaxNode, 
-			SyntaxNode, 
-			SyntaxNode, 
-			std::string, 
-			std::unordered_map
-		>;
 }
 
 #endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__CONTEXT__HPP

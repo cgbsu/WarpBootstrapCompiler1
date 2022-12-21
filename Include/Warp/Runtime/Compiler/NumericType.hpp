@@ -559,6 +559,24 @@ namespace Warp::Runtime::Compiler
 			return *this;
 		}
 
+		template<typename ReturnParameterType>
+		constexpr auto visit(auto visitor, auto... additional_arguments) const
+				-> std::optional<ReturnParameterType>
+		{
+			if(number.has_value() == true)
+			{
+				return std::visit([&](const auto& number_concrete)
+				{
+					return std::optional<ReturnParameterType>{visitor(
+							number_concrete, 
+							CleanType<decltype(number_concrete)>::type, 
+							additional_arguments...
+						)};
+				}, number.value());
+			}
+			return std::nullopt;
+		}
+
 		constexpr NumericValue operator*(const NumericValue& other) const {
 			return operate<[](const auto& left, const auto& right) { return left * right; }>(other);
 		}
@@ -606,6 +624,16 @@ namespace Warp::Runtime::Compiler
 		}
 		constexpr operator std::optional<BoolType>() const {
 			return to<BoolType>();
+		}
+		std::string to_string() const noexcept
+		{
+			return visit<std::string>(
+					[](const auto& concrete_value, auto tag) { 
+						std::stringstream buffer;
+						buffer << "NumericValue{" << Warp::Utilities::to_string(concrete_value) << ":" << Warp::Utilities::to_string(tag) << "}";
+						return buffer.str();
+					}
+				).value();
 		}
 	};
 }

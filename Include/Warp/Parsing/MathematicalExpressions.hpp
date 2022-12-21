@@ -396,6 +396,8 @@ namespace Warp::Parsing
 
 		constexpr static const auto identifier = term<Identifier::Identifier>;
 
+		constexpr static const auto function_call = term<Call::Function>;
+
 		constexpr static const auto open_parenthesis 
 				= term<Brackets::OpenParenthesis>;
 		constexpr static const auto close_parenthesis 
@@ -432,6 +434,7 @@ namespace Warp::Parsing
 
 		constexpr static const auto non_terminal_terms = std::tuple_cat(
 				BaseType::non_terminal_terms, 
+				ctpg::nterms(function_call), 
 				unique_non_terminal_terms
 			); 
 

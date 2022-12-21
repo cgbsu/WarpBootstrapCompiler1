@@ -125,6 +125,9 @@ namespace Warp::Utilities
 	
 	template<typename ParameterType>
 	concept OptionalConcept = is_optional<ParameterType>;
+
+	template<typename ParameterType>
+	using OptionalReference = std::optional<std::reference_wrapper<ParameterType>>;
 }
 
 #endif // WARP__UTILITIES__HEADER__UTILITIES__TEMPLATES__HPP

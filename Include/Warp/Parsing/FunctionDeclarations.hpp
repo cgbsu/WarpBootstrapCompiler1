@@ -36,12 +36,6 @@ namespace Warp::Parsing
 					':', 
 					ctpg::associativity::no_assoc
 				>, 
-			TreeTerm<
-					Call::Comma, 
-					CharTerm, 
-					',', 
-					ctpg::associativity::no_assoc
-				>, 
 			TreeTerm< 
 					Brackets::OpenCurleyBracket, 
 					CharTerm, 
@@ -71,6 +65,18 @@ namespace Warp::Parsing
 					NonTerminalTerm, 
 					std::unique_ptr<AlternativeType>, 
 					FixedString{"Alternative"}
+				>, 
+			TreeTerm<
+					Call::Comma, 
+					CharTerm, 
+					',', 
+					ctpg::associativity::no_assoc
+				>, 
+			TypeTreeTerm<
+					Call::IntermediateFunction, 
+					NonTerminalTerm, 
+					std::unique_ptr<Node<NodeType::FunctionCall>>, 
+					FixedString{"IntermediateFunctionFunctionCall"}
 				>
 		>;
 
@@ -143,10 +149,12 @@ namespace Warp::Parsing
 		constexpr static const auto colon = term<Declaration::Colon>;
 		constexpr static const auto comma = term<Call::Comma>;
 		constexpr static const auto constant = term<Construct::Constant>;
+		constexpr static const auto intermediate_prototype = term<FunctionDeclaration::IntermediatePrototype>;
 		constexpr static const auto prototype = term<FunctionDeclaration::Prototype>;
 		constexpr static const auto alternative = term<FunctionDeclaration::Alternative>;
-		constexpr static const auto intermediate_prototype = term<FunctionDeclaration::IntermediatePrototype>;
 		constexpr static const auto context = term<Construct::Context>;
+		constexpr static const auto intermediate_function_call = term<Call::IntermediateFunction>;
+		constexpr static const auto function_call = term<Call::Function>;
 
 		constexpr static const auto unique_terms = ctpg::terms(
 				let_keyword, 
@@ -168,7 +176,9 @@ namespace Warp::Parsing
 				intermediate_prototype, 
 				prototype, 
 				alternative, 
-				context
+				context, 
+				intermediate_function_call, 
+				function_call
 			);
 
 		constexpr static const auto non_terminal_terms = concatinate_tuples(
@@ -176,6 +186,49 @@ namespace Warp::Parsing
 						NumericLiteral/all previous non-terminal-terms */
 				unique_non_terminal_terms
 			);
+
+		constexpr static const auto make_function_call()
+		{
+			return ctpg::rules(
+					intermediate_function_call(identifier, open_parenthesis)
+					>=[](auto name, auto open_parenthesis_) {
+						return std::make_unique<Node<NodeType::FunctionCall>>(std::move(Node<NodeType::FunctionCall>()));
+					}, 
+					function_call(intermediate_function_call, close_parenthesis)
+					>=[](auto&& call, auto clos_parenthesis_) {
+						return std::move(call);
+					}
+				);
+		}
+
+		template<typename MathematicalExpressionGeneratorParameterType>
+		constexpr static const auto call_from_math_term()
+		{
+			using TagType = typename MathematicalExpressionGeneratorParameterType
+					::TypeSpecificMathematicalExpressionTermTags;
+			constexpr const auto reduction_tag 
+					= MathematicalExpressionGeneratorParameterType::reduce_to_term_tag;
+			constexpr const auto expression_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Expression>;
+			constexpr const auto math_term_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Term>;
+			constexpr const auto sum_term 
+					= MathematicalExpressionGeneratorParameterType::template term<TagType::Sum>;
+			constexpr const auto reduce_to_term
+					= MathematicalExpressionGeneratorParameterType::template term<reduction_tag>;
+			return ctpg::rules(
+					intermediate_function_call(intermediate_function_call, expression_term, comma)
+					>=[](auto&& function_call_, auto&& expression, auto comma_) {
+						function_call_->arguments.push_back(std::move(expression.node));
+						return std::move(function_call_);
+					}, 
+					function_call(intermediate_function_call, expression_term, close_parenthesis)
+					>=[](auto&& function_call_, auto&& expression, auto close_parenthesis_) {
+						function_call_->arguments.push_back(std::move(expression.node));
+						return std::move(function_call_);
+					}
+				);
+		}
 
 		template<typename MathematicalExpressionGeneratorParameterType>
 		constexpr static const auto function_from_math_term()
@@ -238,7 +291,7 @@ namespace Warp::Parsing
 					return ConstantType{
 							std::string{name}, 
 							to_tag(OperationalValueTag::InferFromEvaluation), 
-							std::move(constant_call(std::string{std::string_view{value}}))
+							std::move(ConstantValueType{std::move(constant_call(std::string{std::string_view{value}}))})
 						};
 				};
 
@@ -307,16 +360,22 @@ namespace Warp::Parsing
 		{
 			return concatinate_tuples(
 					function_from_math_term<WholeMathematicalParserType>(), 
+					call_from_math_term<WholeMathematicalParserType>(), 
 					#ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
 						function_from_math_term<IntegerMathematicalParserType>(), 
+						call_from_math_term<IntegerMathematicalParserType>(), 
 						function_from_math_term<FixedPointMathematicalParserType>(), 
+						call_from_math_term<FixedPointMathematicalParserType>(), 
 						function_from_math_term<CharacterMathematicalParserType>(), 
+						call_from_math_term<CharacterMathematicalParserType>(), 
 					#endif
 					function_from_math_term<BoolMathematicalParserType>(), 
+					call_from_math_term<BoolMathematicalParserType>(), 
 					to_context_rules(constant), 
 					to_context_rules(alternative), 
 					declare_function(), 
 					parse_parameter(), 
+					make_function_call(), 
 					ctpg::rules(
 							alias_value
 					)

@@ -362,7 +362,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		Executor(const auto* context, const Node<NodeType::ConstantCall>* node, bool debug)
 				: value(retrieve_value<ReduceToType>(
 						context, 
-						context->constants.at(node->name).value.get(), 
+						context->constants.at(node->name).value.get(), // TODO: Use retrieve_value here!
 						debug
 					)) {
 			if(debug == true)
@@ -376,6 +376,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		}
 	};
 
+	template<typename ValueParameterType = NumericValue>
 	constexpr auto arguments_to_values(
 			const auto* context, 
 			const Node<NodeType::FunctionCall>* node, 
@@ -386,7 +387,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		for(const auto& argument : node->arguments)
 		{
 			argument_values.push_back(
-					retrieve_value<NumericValue>(
+					retrieve_value<ValueParameterType>(
 							context, 
 							argument, 
 							debug
@@ -396,12 +397,10 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		return argument_values;
 	}
 
-
-
 	constexpr auto fill_arguments(
 			auto&& argument_context, 
 			const auto& alternative, 
-			const auto& argument_values, 
+			auto& argument_values, 
 			const size_t parameter_index, 
 			const size_t argument_count
 		)
@@ -409,7 +408,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		auto next_context = argument_context->inject(
 				alternative.get_parameters()[parameter_index].name, 
 				to_tag(OperationalValueTag::InferFromEvaluation), 
-				argument_values[parameter_index]
+				ConstantValueType{std::nullopt, argument_values[parameter_index]}
 			);
 		if(parameter_index < argument_count)
 		{
@@ -426,13 +425,14 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 	}
 
 	constexpr auto fill_arguments(
+			const auto& parent_constext, 
 			const auto& alternative, 
 			const auto& argument_values, 
 			const size_t argument_count
 		)
 	{
 		return fill_arguments(
-				std::make_unique<NumericValueContextType>(), 
+				std::make_unique<ContextType>(parent_constext), 
 				alternative, 
 				argument_values, 
 				0, 
@@ -448,19 +448,74 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		Executor(const Node<NodeType::FunctionCall>* node, bool debug) = delete;
 		Executor(const auto* context, const Node<NodeType::FunctionCall>* node, bool debug)
 		{
-			std::cerr << "Not yet implemented!\n";
-			//const auto argument_count = node->arguments.size();
-			//const auto& alternatives = context->functions.at(node->name)
-			//		.get_alternatives()[argument_count];
-			//for(const auto& alternative : alternatives)
-			//{
-			//alternatives = retrieve_value<ReduceToType>(
-			//context
-			//.value.get(), 
-			//		debug
-			//	)) {
-			//if(debug == true)
-			//	std::cout << "Constant Call for " << node->name << " , has value? " << value.has_value() << "\n";
+			const auto argument_count = node->arguments.size();
+			auto argument_values = arguments_to_values(context, node, debug);
+			const auto& function = context->functions.at(node->name);
+			const auto& alternatives = function->get_alternatives()[argument_count];
+			if(debug == true) {
+				std::cout << "Function Call: Attempting to call function " 
+						<< function->get_name() << " with " << argument_count << " arguments\n";
+			}
+			for(const auto& alternative : alternatives)
+			{
+				bool satisfied = true;
+				auto argument_value_context = fill_arguments(
+						*context, 
+						alternative, 
+						argument_values, 
+						argument_count
+					);
+				for(const auto& parameter : alternative.get_parameters())
+				{
+					const auto parameter_satisfied = retrieve_value<BoolType>(
+							argument_value_context,  
+							alternative.expression, 
+							debug
+						);
+					if(debug == true)
+					{
+						std::cout << "Function Call: Parameter: " << parameter.get_name();
+						auto argument_value_ = argument_value_context.retrieve_constant(parameter.get_name()).value();
+						if(argument_value_.has_value() == true)
+							std::cerr << " argument value not found!";
+						else
+							std::cout << " with value " << argument_value_.value().to_string();
+					}
+					if(parameter_satisfied.has_value() == true)
+					{
+						if(parameter_satisfied.value() == WarpBool::True)
+						{
+							if(debug == true)
+								std::cout << " satisfied!\n";
+							continue;
+						}
+					}
+					if(debug == true)
+						std::cout << " NOT satisfied!\n";
+					satisfied = false;
+					break;
+				}
+				if(satisfied == true)
+				{
+					value = retrieve_value<ReduceToType>(
+							argument_value_context,  
+							alternative.expression, 
+							debug
+						);
+				}
+				else if(debug == true)
+					std::cout << "Function Call: Alternative Not Satisfied, Trying next alternative (if there is one)\n";
+			}
+			if(debug == true)
+			{
+				std::cerr << "Function Call: No Alternative found for call too "
+						<< function->get_name() << " with " << argument_count << " arguments, with values: \n";
+				size_t argument_index = 0;
+				for(const auto& argument : argument_values) {
+					std::cerr << "Argument[" << argument_index << "]: " << argument.value().to_string() << "\n";
+					++argument_index;
+				}
+			}
 		}
 		std::optional<ReduceToType> to_value() {
 			return value;

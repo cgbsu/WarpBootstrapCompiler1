@@ -33,7 +33,7 @@ static const auto parse(std::string code, bool debug)
 {
 	return dynamic_runtime_parse<
 			FunctionDeclarationParserType, 
-			FunctionDeclaration::Alternative
+			Call::Function
 		>(code, debug);
 }
 
