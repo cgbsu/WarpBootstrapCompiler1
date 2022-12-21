@@ -66,11 +66,24 @@ namespace Warp::Testing
 			FixedString StringParameterConstant, 
 			auto ReduceToTagParameterConstant
 		>
-	/*constexpr*/ auto runtime_parse(bool debug = false)
+	auto runtime_parse(bool debug = false)
 	{
 		return parser<ParserParameterType, ReduceToTagParameterConstant>.parse(
 				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
 				ctpg::buffers::string_buffer(StringParameterConstant.string), 
+				std::cerr
+			);
+	}
+
+	template<
+			typename ParserParameterType, 
+			auto ReduceToTagParameterConstant
+		>
+	auto dynamic_runtime_parse(std::string to_parse, bool debug = false)
+	{
+		return parser<ParserParameterType, ReduceToTagParameterConstant>.parse(
+				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
+				ctpg::buffers::string_buffer(to_parse.c_str()), 
 				std::cerr
 			);
 	}
@@ -86,6 +99,20 @@ namespace Warp::Testing
 				context, 
 				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
 				ctpg::buffers::string_buffer(StringParameterConstant.string), 
+				std::cerr
+			));
+	}
+
+	template<
+			typename ParserParameterType, 
+			auto ReduceToTagParameterConstant
+		>
+	auto dynamic_runtime_parse(auto& context, std::string to_parse, bool debug = false)
+	{
+		return std::move(parser<ParserParameterType, ReduceToTagParameterConstant>.context_parse(
+				context, 
+				((debug == true) ? ctpg::parse_options{}.set_verbose() : ctpg::parse_options{}), 
+				ctpg::buffers::string_buffer(to_parse.c_str()), 
 				std::cerr
 			));
 	}

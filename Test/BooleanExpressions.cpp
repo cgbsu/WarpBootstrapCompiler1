@@ -137,6 +137,13 @@ TEST(BooleanExpressionTests, Comparisons)
 	bool_test<FixedString{"23809u = 23809u"}>(WarpBool::True, debug);
 	bool_test<FixedString{"23809u = 38890u"}>(WarpBool::False, debug);
 	bool_test<FixedString{"38890u = 23809u"}>(WarpBool::False, debug);
+	bool_test<FixedString{"38890u = 23809u"}>(WarpBool::False, debug);
+
+	parse_bool<FixedString{"5498u < (test_constant)"}>(debug); /* TODO: For now, the compiler can not 
+																infer the data type of test_constant, 
+																so another data type must be shown 
+																first (as a the data-type is applied 
+																too the whole expression. */
 };
 
 TEST(BooleanExpressionTests, LogicalOperatorsWithComparisons)

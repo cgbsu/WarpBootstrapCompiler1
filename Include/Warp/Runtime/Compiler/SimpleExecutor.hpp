@@ -82,7 +82,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
 					if(debug == true)
 						std::cout << "Tag: " << to_string(tag) << "\n";
-					if constexpr(tag != NodeType::ConstantCall)//(no_context_constructible<decltype(node), Executor<ReduceToParameterType, tag>> == true)
+					if constexpr(tag != NodeType::ConstantCall && tag != NodeType::FunctionCall)//(no_context_constructible<decltype(node), Executor<ReduceToParameterType, tag>> == true)
 					{
 						using ExecutorType = decltype(Executor<
 								ReduceToParameterType, 
@@ -367,6 +367,100 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 					)) {
 			if(debug == true)
 				std::cout << "Constant Call for " << node->name << " , has value? " << value.has_value() << "\n";
+		}
+		std::optional<ReduceToType> to_value() {
+			return value;
+		}
+		operator std::optional<ReduceToType>() {
+			return to_value();
+		}
+	};
+
+	constexpr auto arguments_to_values(
+			const auto* context, 
+			const Node<NodeType::FunctionCall>* node, 
+			bool debug
+		)
+	{
+		std::vector<std::optional<NumericValue>> argument_values;
+		for(const auto& argument : node->arguments)
+		{
+			argument_values.push_back(
+					retrieve_value<NumericValue>(
+							context, 
+							argument, 
+							debug
+						)
+				);
+		}
+		return argument_values;
+	}
+
+
+
+	constexpr auto fill_arguments(
+			auto&& argument_context, 
+			const auto& alternative, 
+			const auto& argument_values, 
+			const size_t parameter_index, 
+			const size_t argument_count
+		)
+	{
+		auto next_context = argument_context->inject(
+				alternative.get_parameters()[parameter_index].name, 
+				to_tag(OperationalValueTag::InferFromEvaluation), 
+				argument_values[parameter_index]
+			);
+		if(parameter_index < argument_count)
+		{
+			return fill_arguments(
+					std::move(next_context), 
+					alternative, 
+					argument_count, 
+					parameter_index + 1, 
+					argument_count
+				);
+		}
+		else 
+			return next_context;
+	}
+
+	constexpr auto fill_arguments(
+			const auto& alternative, 
+			const auto& argument_values, 
+			const size_t argument_count
+		)
+	{
+		return fill_arguments(
+				std::make_unique<NumericValueContextType>(), 
+				alternative, 
+				argument_values, 
+				0, 
+				argument_count
+			);
+	}
+
+	template<typename ReduceToParameterType>
+	struct Executor<ReduceToParameterType, NodeType::FunctionCall>
+	{
+		using ReduceToType = ReduceToParameterType;
+		std::optional<ReduceToType> value;
+		Executor(const Node<NodeType::FunctionCall>* node, bool debug) = delete;
+		Executor(const auto* context, const Node<NodeType::FunctionCall>* node, bool debug)
+		{
+			std::cerr << "Not yet implemented!\n";
+			//const auto argument_count = node->arguments.size();
+			//const auto& alternatives = context->functions.at(node->name)
+			//		.get_alternatives()[argument_count];
+			//for(const auto& alternative : alternatives)
+			//{
+			//alternatives = retrieve_value<ReduceToType>(
+			//context
+			//.value.get(), 
+			//		debug
+			//	)) {
+			//if(debug == true)
+			//	std::cout << "Constant Call for " << node->name << " , has value? " << value.has_value() << "\n";
 		}
 		std::optional<ReduceToType> to_value() {
 			return value;

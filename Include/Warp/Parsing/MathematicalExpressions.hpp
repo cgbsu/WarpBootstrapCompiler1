@@ -104,6 +104,12 @@ namespace Warp::Parsing
 					NonTerminalTerm, 
 					std::string, 
 					FixedString{"ConstantCall"}
+				>, 
+			TypeTreeTerm<
+					Call::Function, 
+					NonTerminalTerm, 
+					SyntaxNode, 
+					FixedString{"FunctionCall"}
 				>
 			>;
 

@@ -22,17 +22,19 @@ namespace Warp::Runtime::Compiler
 		using NameDependancyType = NameDependancyParameterType;
 		ConstraintStorageType constraint;
 
-		constexpr Constraint() noexcept : constraint(nullptr) {}
-		constexpr Constraint(const Constraint& other) noexcept = default;
-		constexpr Constraint(Constraint&& other) noexcept = default;
-		constexpr Constraint& operator=(const Constraint& other) noexcept = default;
-		constexpr Constraint& operator=(Constraint&& other) noexcept = default;
+		//constexpr Constraint() noexcept : constraint(nullptr) {}
+		//constexpr Constraint(const Constraint& other) noexcept = default;
+		//constexpr Constraint(Constraint&& other) noexcept = default;
+		//constexpr Constraint(ConstraintStorageParameterType&& constraint) noexcept : constraint(constraint) {}
+		//constexpr Constraint& operator=(const Constraint& other) noexcept = default;
+		//constexpr Constraint& operator=(Constraint&& other) noexcept = default;
 
-		constexpr const std::vector<NameDependancyType>& get_name_dependancies() const noexcept {
-			return name_dependancies;
-		}
-		protected: 
-			std::vector<NameDependancyType> name_dependancies;
+		// TODO: Traverse tree and get name dependancies for easy lookup. //
+		//constexpr const std::vector<NameDependancyType>& get_name_dependancies() const noexcept {
+		//	return name_dependancies;
+		//}
+		//protected: 
+		//	std::vector<NameDependancyType> name_dependancies;
 	};
 }
 

@@ -31,7 +31,8 @@ namespace Warp::Parsing
 	};
 
 	enum class Declaration {
-		SemiColon
+		SemiColon, 
+		Colon
 	};
 
 	enum class Construct {
@@ -41,7 +42,8 @@ namespace Warp::Parsing
 
 	enum class Call {
 		Constant, 
-		Comma
+		Comma, 
+		Function
 	};
 
 	enum class TemplateInstantiationTag

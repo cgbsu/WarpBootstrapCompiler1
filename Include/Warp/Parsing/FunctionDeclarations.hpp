@@ -12,7 +12,8 @@ namespace Warp::Parsing
 	{
 		UnconstrainedSingleParameter, 
 		IntermediatePrototype, 
-		Prototype
+		Prototype, 
+		Alternative
 	};
 
 	using FunctionDeclaritionTermsType_ = BooleanExpressionTermsType 
@@ -27,6 +28,12 @@ namespace Warp::Parsing
 					Declaration::SemiColon, 
 					CharTerm, 
 					';', 
+					ctpg::associativity::no_assoc
+				>, 
+			TreeTerm<
+					Declaration::Colon, 
+					CharTerm, 
+					':', 
 					ctpg::associativity::no_assoc
 				>, 
 			TreeTerm<
@@ -58,6 +65,12 @@ namespace Warp::Parsing
 					NonTerminalTerm, 
 					std::unique_ptr<AlternativePrototypeType>, 
 					FixedString{"AlternativePrototype"}
+				>, 
+			TypeTreeTerm<
+					FunctionDeclaration::Alternative, 
+					NonTerminalTerm, 
+					std::unique_ptr<AlternativeType>, 
+					FixedString{"Alternative"}
 				>
 		>;
 
@@ -127,9 +140,11 @@ namespace Warp::Parsing
 		constexpr static const auto open_curley_bracket = term<Brackets::OpenCurleyBracket>;
 		constexpr static const auto close_curley_bracket = term<Brackets::ClosedCurleyBracket>;
 		constexpr static const auto semi_colon = term<Declaration::SemiColon>;
+		constexpr static const auto colon = term<Declaration::Colon>;
 		constexpr static const auto comma = term<Call::Comma>;
 		constexpr static const auto constant = term<Construct::Constant>;
 		constexpr static const auto prototype = term<FunctionDeclaration::Prototype>;
+		constexpr static const auto alternative = term<FunctionDeclaration::Alternative>;
 		constexpr static const auto intermediate_prototype = term<FunctionDeclaration::IntermediatePrototype>;
 		constexpr static const auto context = term<Construct::Context>;
 
@@ -137,7 +152,10 @@ namespace Warp::Parsing
 				let_keyword, 
 				equal, 
 				semi_colon, 
-				comma
+				colon, 
+				comma, 
+				open_curley_bracket, 
+				close_curley_bracket
 			); 
 
 		constexpr static const auto terms = concatinate_tuples(
@@ -149,6 +167,7 @@ namespace Warp::Parsing
 				constant, 
 				intermediate_prototype, 
 				prototype, 
+				alternative, 
 				context
 			);
 
@@ -159,7 +178,7 @@ namespace Warp::Parsing
 			);
 
 		template<typename MathematicalExpressionGeneratorParameterType>
-		constexpr static const auto constant_from_math_term()
+		constexpr static const auto function_from_math_term()
 		{
 			using TagType = typename MathematicalExpressionGeneratorParameterType
 					::TypeSpecificMathematicalExpressionTermTags;
@@ -185,6 +204,14 @@ namespace Warp::Parsing
 								std::move(type_tag), 
 								std::move(expression.node)
 							});
+					}, 
+					alternative(prototype, open_curley_bracket, expression_term, close_curley_bracket)
+					>=[](auto&& function_prototype, auto open_curley_bracket_, auto expression, auto close_curley_bracket_) 
+					{
+						return std::make_unique<AlternativeType>(std::move(AlternativeType(
+								std::move(*function_prototype.get()), 
+								std::move(expression.node)
+							)));
 					}
 				);
 		}
@@ -217,13 +244,33 @@ namespace Warp::Parsing
 
 		consteval static const auto parse_parameter()
 		{
+			constexpr const auto expression_term 
+					= BooleanExpressionParserType::template term<BooleanExpression::Expression>;
 			return ctpg::rules(
+					intermediate_prototype(intermediate_prototype, identifier, colon, open_curley_bracket, expression_term, close_curley_bracket, comma)
+					>= [](auto&& prototype_, auto name, auto colon_, auto open_, auto expression, auto close_, auto comma_)
+					{
+						prototype_->parameters.push_back(SingleParameterType{
+								std::string{name}, 
+								ConstraintType{std::move(expression)}
+							}); 
+						return prototype_;
+					}, 
+					prototype(intermediate_prototype, identifier, colon, open_curley_bracket, expression_term, close_curley_bracket, close_parenthesis)
+					>= [](auto&& prototype_, auto name, auto colon_, auto open_, auto expression, auto close_, auto close_parenthesis_)
+					{
+						prototype_->parameters.push_back(SingleParameterType{
+								std::string{name}, 
+								ConstraintType{std::move(expression)}
+							}); 
+						return prototype_;
+					}, 
 					intermediate_prototype(intermediate_prototype, identifier, comma)
 					>= [](auto&& prototype_, auto name, auto comma_)
 					{
 						prototype_->parameters.push_back(SingleParameterType{
 								std::string{name}, 
-								ConstraintType()
+								ConstraintType{nullptr}
 							}); 
 						return prototype_;
 					}, 
@@ -232,7 +279,7 @@ namespace Warp::Parsing
 					{
 						prototype_->parameters.push_back(SingleParameterType{
 								std::string{name}, 
-								ConstraintType()
+								ConstraintType{nullptr}
 							});
 						return prototype_;
 					}
@@ -259,14 +306,15 @@ namespace Warp::Parsing
 		consteval static const auto unique_rules()
 		{
 			return concatinate_tuples(
-					constant_from_math_term<WholeMathematicalParserType>(), 
+					function_from_math_term<WholeMathematicalParserType>(), 
 					#ifndef WARP__PARSING__HEADER__PARSING__BOOLEAN__EXPRESSIONS__HPP__DEBUG__ON
-						constant_from_math_term<IntegerMathematicalParserType>(), 
-						constant_from_math_term<FixedPointMathematicalParserType>(), 
-						constant_from_math_term<CharacterMathematicalParserType>(), 
+						function_from_math_term<IntegerMathematicalParserType>(), 
+						function_from_math_term<FixedPointMathematicalParserType>(), 
+						function_from_math_term<CharacterMathematicalParserType>(), 
 					#endif
-					constant_from_math_term<BoolMathematicalParserType>(), 
+					function_from_math_term<BoolMathematicalParserType>(), 
 					to_context_rules(constant), 
+					to_context_rules(alternative), 
 					declare_function(), 
 					parse_parameter(), 
 					ctpg::rules(

@@ -27,6 +27,21 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 			return SyntaxNode{*this};
 		}
 	};
+
+	template<>
+	struct Node<NodeType::FunctionCall> : public BaseNode
+	{
+		constexpr static const auto tag = NodeType::FunctionCall;
+		std::string name;
+		std::vector<SyntaxNode> arguments;
+		constexpr Node() noexcept = default;
+		constexpr Node(const Node& other) noexcept = default;
+		Node(Node&& other) noexcept = default;
+		constexpr ~Node() = default;
+		constexpr Node& operator=(const Node& other) noexcept = default;
+		Node& operator=(Node&& other) noexcept = default;
+		constexpr Node(std::string name) noexcept : name(name) {}
+	};
 }
 
 namespace std

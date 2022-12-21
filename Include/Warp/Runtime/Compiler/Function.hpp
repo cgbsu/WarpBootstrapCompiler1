@@ -37,7 +37,7 @@ namespace Warp::Runtime::Compiler
 		{
 			const size_t parameter_count = alternative->parameter_count();
 			if(alternatives.size() <= parameter_count)
-				alternatives.reserve(parameter_count);
+				alternatives.reserve(parameter_count + 1);
 			alternatives[parameter_count].push_back(std::move(alternative));
 			return alternatives;
 		}

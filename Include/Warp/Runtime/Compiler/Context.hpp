@@ -77,8 +77,18 @@ namespace Warp::Runtime::Compiler
 	using ConstantType = DefaultContextType::ConstantType;
 	using ConstraintType = DefaultContextType::ConstraintType;
 	using AlternativePrototypeType = DefaultContextType::AlternativePrototypeType;
+	using AlternativeType = DefaultContextType::AlternativeType;
 	using SingleParameterType = DefaultContextType::SingleParameterType;
 	using ContextType = DefaultContextType;
+	using NumericValueContextType = Context<
+			AnyType, 
+			NumericValue, 
+			SyntaxNode, 
+			SyntaxNode, 
+			SyntaxNode, 
+			std::string, 
+			std::unordered_map
+		>;
 }
 
 #endif // WARP__RUNTIME__COMPILER__HEADER__RUNTIME__CONTEXT__HPP

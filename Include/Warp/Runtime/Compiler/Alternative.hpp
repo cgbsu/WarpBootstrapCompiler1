@@ -24,10 +24,13 @@ namespace Warp::Runtime::Compiler
 				FunctionTreeStorageParameterType function_body
 			) : 
 					name(from.name), 
-					parameters(std::move(from.parameters)), 
 					parameter_count_(parameters.size()), 
-					function_body(function_body) {}
+					parameters(std::move(from.parameters)), 
+					function_body(std::move(function_body)) {}
 
+		constexpr const IdentifierType get_name() const noexcept {
+			return name;
+		}
 		constexpr const FunctionTreeStorageType& get_function_body() const noexcept {
 			return function_body;
 		}
@@ -40,8 +43,8 @@ namespace Warp::Runtime::Compiler
 
 		protected: 
 			IdentifierType name;
-			std::vector<SingleParameterType> parameters;
 			size_t parameter_count_;
+			std::vector<SingleParameterType> parameters;
 			FunctionTreeStorageType function_body;
 	};
 

@@ -324,7 +324,7 @@ constexpr static const auto compare_prototype = [](
 };
 
 template<auto TestParameterConstant>
-constexpr static const auto parse_prototype(bool debug = false)
+constexpr static const auto parse_prototype(bool debug)
 {
 	return runtime_parse<
 			FunctionDeclarationParserType, 
@@ -337,25 +337,309 @@ TEST(FunctionDeclarations, Prototype)
 {
 	bool debug = false;
 	check_parse<compare_prototype>(
-			parse_prototype<FixedString{"let my_function()"}>() /*Actual*/, 
+			parse_prototype<FixedString{"let my_function()"}>(debug) /*Actual*/, 
 			make_alternative_prototype_with_no_parameters<SingleParameterType>("my_function"), /*Expected*/
 			debug
 		);
 };
 
+#define TEST_0
+#ifndef TEST_0
 TEST(FunctionDeclarations, PrototypeWithUnconstrainedParameters)
 {
 	bool debug = false;
-	auto expected = make_alternative_prototype(
-			std::string{"my_function"}, 
-			std::move(SingleParameterType{std::string{"my_first_parameter"}, ConstraintType()})
-		); /*Expected*/
 	check_parse<compare_prototype>(
-			parse_prototype<FixedString{"let my_function(my_first_parameter)"}>() /*Actual*/, 
-			std::move(expected), 
+			parse_prototype<FixedString{"let my_function(my_first_parameter)"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(SingleParameterType{
+							std::string{"my_first_parameter"}, 
+							ConstraintType()
+						})
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter, my_second_parameter)"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(SingleParameterType{
+							std::string{"my_first_parameter"}, 
+							ConstraintType()
+						}), 
+					std::move(SingleParameterType{
+							std::string{"my_second_parameter"}, 
+							ConstraintType()
+						})
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter, my_second_parameter, my_third_parameter)"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(SingleParameterType{
+							std::string{"my_first_parameter"}, 
+							ConstraintType()
+						}), 
+					std::move(SingleParameterType{
+							std::string{"my_second_parameter"}, 
+							ConstraintType()
+						}), 
+					std::move(SingleParameterType{
+							std::string{"my_third_parameter"}, 
+							ConstraintType()
+						})
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter, my_second_parameter, my_third_parameter, my_fourth_parameter)"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(SingleParameterType{
+							std::string{"my_first_parameter"}, 
+							ConstraintType()
+						}), 
+					std::move(SingleParameterType{
+							std::string{"my_second_parameter"}, 
+							ConstraintType()
+						}), 
+					std::move(SingleParameterType{
+							std::string{"my_third_parameter"}, 
+							ConstraintType()
+						}), 
+					std::move(SingleParameterType{
+							std::string{"my_fourth_parameter"}, 
+							ConstraintType()
+						})
+				)), /*Expected*/
 			debug
 		);
 }
+#endif // TEST_0
+template<auto TestParameterConstant>
+constexpr auto parse_boolean_expression(bool debug)
+{
+	return runtime_parse<
+			FunctionDeclarationParserType, 
+			TestParameterConstant, 	
+			BooleanExpression::Expression
+		>(debug);
+}
+
+template<auto TestParameterConstant>
+constexpr auto constraint_from_boolean_expression(bool debug)
+{
+	return ConstraintType{
+			std::move(parse_boolean_expression<TestParameterConstant>(debug).value())
+		};
+}
+
+template<auto TestParameterConstant>
+constexpr auto single_parameter_from_boolean_expression(std::string name, bool debug)
+{
+	return SingleParameterType{
+			name, 
+			ConstraintType{std::move(
+					parse_boolean_expression<TestParameterConstant>(debug).value()
+				)}
+		};
+}
+#define TEST_1
+#ifndef TEST_1
+TEST(FunctionDeclarations, PrototypeWithOneConstrainedParameter)
+{
+	bool debug = false;
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter : {1u > 0u})"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"1u > 0u"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter : {203u < (test_constant)})"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"203u < (test_constant)"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter : {0u = (0u + test_constant - second_test_constant)})"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"0u = (0u + test_constant - second_test_constant)"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter : {(0u + test_constant) = (0u + second_test_constant)})"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"(0u + test_constant) = (0u + second_test_constant)"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter : {1 < 0 && 2 > 1})"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"1 < 0 && 2 > 1"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter : {1 < 0 && 2 > 1 || 3 < 8})"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"1 < 0 && 2 > 1 || 3 < 8"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+}
+#endif // TEST_1
+//#define TEST_2
+#ifndef TEST_2
+TEST(FunctionDeclarations, PrototypeWithMultipleConstrainedParameter)
+{
+	bool debug = false;
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter : {1u > 0u}, my_second_parameter : {8u > 2u})"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"1u > 0u"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						)), 
+					std::move(single_parameter_from_boolean_expression<FixedString{"8u > 2u"}>(
+							std::string{"my_second_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function(my_first_parameter : {1u > 0u || 342 > 32}, my_second_parameter : {8u > 2u && 34u < 3u})"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"1u > 0u || 342 > 32"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						)), 
+					std::move(single_parameter_from_boolean_expression<FixedString{"8u > 2u && 34u < 3u"}>(
+							std::string{"my_second_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function("
+												"my_first_parameter : {1u > 0u || 342 > 32}, "
+												"my_second_parameter : {8u > 0u + test_constant && 34u < 3u}"
+											")"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"1u > 0u || 342 > 32"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						)), 
+					std::move(single_parameter_from_boolean_expression<FixedString{"8u > 0u + test_constant && 34u < 3u"}>(
+							std::string{"my_second_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function("
+												"my_first_parameter : {1u > 0u || 342 > 32}, "
+												"my_second_parameter : {8u + another_test_constant > 0u + test_constant && 34u < 3u}"
+											")"}>(debug) /*Actual*/, 
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{"1u > 0u || 342 > 32"}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						)), 
+					std::move(single_parameter_from_boolean_expression<FixedString{"8u > 0u + test_constant && 34u < 3u"}>(
+							std::string{"my_second_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+	check_parse<compare_prototype>(
+			parse_prototype<FixedString{"let my_function("
+												"my_first_parameter : {"
+														"1u + my_constant_5 > 0u + my_constant_6 "
+																"|| 342u + my_constant_0 > 32u + my_constant_1 "
+																"|| (0u + my_constant_2) / (0u + my_constant_3) = 0u + my_constant_4"
+													"}, "
+												"my_second_parameter : {"
+														"8u + another_test_constant > 0u + test_constant && 34u < 3u"
+													"}, "
+												"my_third_parameter : {"
+														"(0u + something > 0u || 0u + somthing_else > 0u) "
+																	"|| 0u + constant_0 = 0u + constant_1 "
+																	"&& 0u + constnat_0 < 42u * my_constant_2}"
+													"}"
+											")"}>(debug) /*Actual*/, 
+			
+			std::move(make_alternative_prototype(
+					std::string{"my_function"}, 
+					std::move(single_parameter_from_boolean_expression<FixedString{
+							"1u + my_constant_5 > 0u + my_constant_6 "
+									"|| 342u + my_constant_0 > 32u + my_constant_1 "
+									"|| (0u + my_constant_2) / (0u + my_constant_3) = 0u + my_constant_4"
+						}>(
+							std::string{"my_first_parameter"}, 
+							debug
+						)), 
+					std::move(single_parameter_from_boolean_expression<FixedString{
+							"8u + another_test_constant > 0u + test_constant && 34u < 3u"
+						}>(
+							std::string{"my_second_parameter"}, 
+							debug
+						)), 
+					std::move(single_parameter_from_boolean_expression<FixedString{
+							"(0u + something > 0u || 0u + somthing_else > 0u) "
+										"|| 0u + constant_0 = 0u + constant_1 "
+										"&& 0u + constnat_0 < 42u * my_constant_2}"
+						}>(
+							std::string{"my_third_parameter"}, 
+							debug
+						))
+				)), /*Expected*/
+			debug
+		);
+}
+#endif // TEST_2
+
+//TEST(FunctionDeclarations, SimpleFunctionDeclarations)
+//{
+//}
 
 #endif // WARP__TESTING__HEADER__TESTING__TEST__FUNCTION__DECLARATIONS__HPP__DEBUG__ON
 

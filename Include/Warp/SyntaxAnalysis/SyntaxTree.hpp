@@ -32,7 +32,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 		LogicalAnd, 
 		LogicalOr, 
 		LogicalNot, 
-		LogicalExpression
+		LogicalExpression, 
+		FunctionCall
 	};
 
 	static std::string to_string(NodeType node_type)
@@ -103,6 +104,9 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 			case LogicalNot : {
 				return "NodeType::LogicalNot";
 			}
+			case FunctionCall : {
+				return "NodeType::FunctionCall";
+			}
 			default : {
 				return "ERROR_NO_NODE_WITH_THIS_TAG!!!";
 			}
@@ -136,7 +140,8 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				NodeType::LogicalAnd, 
 				NodeType::LogicalOr, 
 				NodeType::LogicalNot, 
-				NodeType::LogicalExpression
+				NodeType::LogicalExpression, 
+				NodeType::FunctionCall
 			>;
 		constexpr virtual ViewType to_view() const noexcept = 0;
 		constexpr virtual NodeType get_tag() const noexcept = 0;
