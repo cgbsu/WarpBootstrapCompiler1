@@ -26,14 +26,20 @@ namespace Warp::SyntaxTranslation::LLVM
 
 	struct Context
 	{
-		std::unique_ptr<llvm::LLVMContext> context;
-		std::unique_ptr<llvm::Module> module;
-    	std::unique_ptr<llvm::IRBuilder<>> builder;
+		llvm::LLVMContext* context;
+		llvm::Module* module;
+    	llvm::IRBuilder<>* builder;
     	std::unordered_map<std::string, llvm::Value*> symbol_table;
     	Context()
-    	        : context(std::make_unique<llvm::LLVMContext>()),
-    	        module(std::make_unique<llvm::Module>("WarpModule", *context.get())),
-    	        builder(std::make_unique<llvm::IRBuilder<>>(*context.get())) {}
+    	        : context(new llvm::LLVMContext()),
+    	        module(new llvm::Module("WarpModule", *context)),
+    	        builder(new llvm::IRBuilder<>(*context)) {}
+		~Context() // TODO: auto_ptr badness
+		{
+			delete context;
+			delete module;
+			delete builder;
+		}
 	};
 
 	enum class Target { LLVM };
