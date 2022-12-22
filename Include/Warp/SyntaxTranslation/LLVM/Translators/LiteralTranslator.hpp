@@ -123,17 +123,6 @@ namespace Warp::SyntaxTranslation::LLVM
 			return to_value();
 		}
 	};
-	template<typename ReduceToParameterType, NodeType NotImplementedTagParameterConstant>
-	struct Translator<Target::LLVM, ReduceToParameterType, NotImplementedTagParameterConstant>
-	{
-		Translator(
-				Context* constructing_context, // Weird bug with llvm
-				const auto* top_level_syntax_context, 
-				const Node<NotImplementedTagParameterConstant>* node, 
-				bool debug
-			) { std::cerr << "Target LLVM: Not yet implemented\n"; }
-		std::optional<ReduceToParameterType> to_value() const {std::cerr << "NOT IMPLEMENTED!\n"; return std::nullopt; }
-	};
 }
 #endif // WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__TRANSLATORS__LITERAL_TRANSLATOR__HPP
 

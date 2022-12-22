@@ -4,6 +4,7 @@
 #include <llvm/ADT/APFixedPoint.h>
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/APSInt.h>
+#include <llvm/Transforms/Utils/IntegerDivision.h>
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
@@ -26,20 +27,21 @@ namespace Warp::SyntaxTranslation::LLVM
 
 	struct Context
 	{
+		std::string name;
 		llvm::LLVMContext context;
 		llvm::Module module;
     	llvm::IRBuilder<> builder;
     	std::unordered_map<std::string, llvm::Value*> symbol_table;
-    	Context()
-    	        : context(),
-    	        module("WarpModule", context),
+    	Context(std::string name = "WarpModule") : 
+				name(name), 
+				context(),
+    	        module(name, context),
     	        builder(context) {}
 	};
 
 	enum class Target { LLVM };
 	template<auto TargetParameterConstant, typename ReduceToParameterType, NodeType>
 	struct Translator {};
-	
 	
 	template<auto TargetParameterConstant, typename ReduceToParameterType>
 	static auto translate(
@@ -76,10 +78,8 @@ namespace Warp::SyntaxTranslation::LLVM
 								node, 
 								debug
 							);
-						std::cout << "Translated, extracting value.\n";
-						auto val = translator.to_value(); 
-						std::cout << "Got val, returing.\n";
-						return nullptr;
+						std::cout << "Translated, returning value.\n";
+						return translator.to_value();
 					}
 					else
 					{

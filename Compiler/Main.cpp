@@ -1,6 +1,6 @@
 #include <Warp/Parsing/FunctionDeclarations.hpp>
 #include <Warp/Testing/TestParser.hpp>
-#include <Warp/SyntaxTranslation/LLVM/Translators/LiteralTranslator.hpp>
+#include <Warp/SyntaxTranslation/LLVM/Translators/MathematicalExpressions.hpp>
 using namespace Warp::Parsing;
 using namespace Warp::Testing;
 using namespace Warp::SyntaxAnalysis::SyntaxTree;
@@ -30,7 +30,7 @@ int main(int argc, char** args)
 	ContextType test_context;
 	auto parse_result = runtime_parse<
 			FunctionDeclarationParserType, 
-			FixedString{"42"}, 
+			FixedString{"40u + 2u"}, 
 			FunctionDeclarationParserType::WholeMathematicalParserType::TypeSpecificMathematicalExpressionTermTags::Expression
 		>(true);
 	if(parse_result.has_value() == true)

@@ -398,53 +398,53 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		return argument_values;
 	}
 
-	//constexpr ContextType fill_arguments(
-	//		auto argument_context, 
-	//		const auto& alternative, 
-	//		const auto& argument_values, 
-	//		const size_t parameter_index, 
-	//		const size_t argument_count
-	//	)
-	//{
-	//	auto next_context = argument_context.inject(
-	//			std::move(ConstantType{
-	//					alternative->get_parameters()[parameter_index].name, 
-	//					to_tag(OperationalValueTag::InferFromEvaluation), 
-	//					std::move(ConstantValueType{
-	//							std::move(SyntaxNode{nullptr}), 
-	//							std::optional<NumericValue>(argument_values[parameter_index])
-	//						})
-	//				})
-	//		);
-	//	if(parameter_index < argument_count)
-	//	{
-	//		return std::move(fill_arguments(
-	//				std::move(next_context), 
-	//				alternative, 
-	//				argument_values, 
-	//				parameter_index + 1, 
-	//				argument_count
-	//			));
-	//	}
-	//	else 
-	//		return next_context;
-	//}
+	constexpr ContextType fill_arguments(
+			auto argument_context, 
+			const auto& alternative, 
+			const auto& argument_values, 
+			const size_t parameter_index, 
+			const size_t argument_count
+		)
+	{
+		auto next_context = argument_context.inject(
+				std::move(ConstantType{
+						alternative->get_parameters()[parameter_index].name, 
+						to_tag(OperationalValueTag::InferFromEvaluation), 
+						std::move(ConstantValueType{
+								std::move(SyntaxNode{nullptr}), 
+								std::optional<NumericValue>(argument_values[parameter_index])
+							})
+					})
+			);
+		if(parameter_index < argument_count)
+		{
+			return std::move(fill_arguments(
+					std::move(next_context), 
+					alternative, 
+					argument_values, 
+					parameter_index + 1, 
+					argument_count
+				));
+		}
+		else 
+			return next_context;
+	}
 
-	//constexpr ContextType fill_arguments(
-	//		const auto& parent_constext, 
-	//		const auto& alternative, 
-	//		const auto& argument_values, 
-	//		const size_t argument_count
-	//	)
-	//{
-	//	return fill_arguments(
-	//			std::move(ContextType(parent_constext)), 
-	//			alternative, 
-	//			argument_values, 
-	//			0, 
-	//			argument_count
-	//		);
-	//}
+	constexpr ContextType fill_arguments(
+			const auto& parent_constext, 
+			const auto& alternative, 
+			const auto& argument_values, 
+			const size_t argument_count
+		)
+	{
+		return fill_arguments(
+				std::move(ContextType(parent_constext)), 
+				alternative, 
+				argument_values, 
+				0, 
+				argument_count
+			);
+	}
 
 	template<typename ReduceToParameterType>
 	struct Executor<ReduceToParameterType, NodeType::FunctionCall>
@@ -455,22 +455,26 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		Executor(const auto* context, const Node<NodeType::FunctionCall>* node, bool debug)
 		{
 			const auto argument_count = node->arguments.size();
+			std::cout << "Argument Count " << argument_count << "\n";
 			auto argument_values = arguments_to_values(context, node, debug);
-			//const auto& function = context->functions.at(node->name);
-			//const auto& alternatives = function->get_alternatives()[argument_count];
-			//if(debug == true) {
-			//	std::cout << "Function Call: Attempting to call function " 
-			//			<< function->get_name() << " with " << argument_count << " arguments\n";
-			//}
-			//for(const auto& alternative : alternatives)
-			//{
-			//	bool satisfied = true;
-			//	auto argument_value_context = fill_arguments(
-			//			*context, 
-			//			alternative, 
-			//			argument_values, 
-			//			argument_count
-			//		);
+			std::cout << "Argument values\n";
+			const auto& function = context->template retrieve_function(node->name);
+			std::cout << "Function\n";
+			const auto& alternatives = function.value().get().get_alternatives()[argument_count];
+			std::cout << "Alternatives\n";
+			if(debug == true) {
+				std::cout << "Function Call: Attempting to call function " 
+						<< function.value().get().get_name() << " with " << argument_count << " arguments\n";
+			}
+			for(const auto& alternative : alternatives)
+			{
+				bool satisfied = true;
+				auto argument_value_context = fill_arguments(
+						*context, 
+						alternative, 
+						argument_values, 
+						argument_count
+					);
 				//for(const auto& parameter : alternative->get_parameters())
 				//{
 				//	const auto parameter_satisfied = retrieve_value<BoolType>(
@@ -511,7 +515,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 				//}
 				//else if(debug == true)
 				//	std::cout << "Function Call: Alternative Not Satisfied, Trying next alternative (if there is one)\n";
-			//}
+			}
 			//if(debug == true)
 			//{
 			//	std::cerr << "Function Call: No Alternative found for call too "

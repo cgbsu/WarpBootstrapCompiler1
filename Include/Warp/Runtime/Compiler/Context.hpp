@@ -92,20 +92,38 @@ namespace Warp::Runtime::Compiler
 			constants.insert({name, std::move(constant)});
 			return std::move(*this);
 		}
-		constexpr const OptionalReference<FunctionType> retrieve_function(IdentifierType name) const noexcept
+		template<size_t CurrentDepthParameterConstant = 0, size_t MaxDepthParameterConstant = 10>
+		const OptionalReference<FunctionType> retrieve_function(IdentifierType name) const noexcept
 		{
 			if(functions.contains(name) == true)
-				return OptionalReference<FunctionType>{functions.at(name)};
-			if(parent.has_value() == true)
-				return parent.retrieve_function(name);
-			return OptionalReference<FunctionType>{std::nullopt};
+				return OptionalReference<FunctionType>(*functions.at(name).get());
+			if constexpr(CurrentDepthParameterConstant < MaxDepthParameterConstant)
+			{
+				if(parent.has_value() == true)
+				{
+					return parent.value().get().template retrieve_function<
+							CurrentDepthParameterConstant + 1, 
+							MaxDepthParameterConstant
+						>(name);
+				}
+			}
+			return OptionalReference<FunctionType>(std::nullopt);
 		}
-		constexpr const OptionalReference<ConstantType> retrieve_constant(IdentifierType name) const noexcept
+		template<size_t CurrentDepthParameterConstant = 0, size_t MaxDepthParameterConstant = 10>
+		const OptionalReference<ConstantType> retrieve_constant(IdentifierType name) const noexcept
 		{
 			if(constants.contains(name) == true)
-				return OptionalReference<ConstantType>{constants.at(name)};
-			if(parent.has_value() == true)
-				return parent.retrieve_constant(name);
+				return OptionalReference<ConstantType>(constants.at(name));
+			if constexpr(CurrentDepthParameterConstant < MaxDepthParameterConstant)
+			{
+				if(parent.has_value() == true)
+				{
+					return parent.value().get().template retrieve_constant<
+							CurrentDepthParameterConstant + 1, 
+							MaxDepthParameterConstant
+						>(name);
+				}
+			}
 			return OptionalReference<ConstantType>{std::nullopt};
 		}
 		const auto get_parent() const noexcept {
