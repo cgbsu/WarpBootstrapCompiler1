@@ -30,3 +30,14 @@
 *.exe
 *.out
 *.app
+
+# Build Directories
+build/
+buildtester/
+ninjabuild/
+myscripts/
+compilerbuild/
+Old/
+trace/
+./cache/
+
