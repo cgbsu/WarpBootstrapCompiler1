@@ -1,0 +1,85 @@
+{
+ "graph_lock": {
+  "nodes": {
+   "0": {
+    "options": "cpputest:fPIC=True\ncpputest:with_extensions=True\ncpputest:with_leak_detection=True\nlibiconv:fPIC=True\nlibiconv:shared=False\nlibxml2:c14n=True\nlibxml2:catalog=True\nlibxml2:docbook=True\nlibxml2:fPIC=True\nlibxml2:ftp=True\nlibxml2:html=True\nlibxml2:http=True\nlibxml2:iconv=True\nlibxml2:icu=False\nlibxml2:include_utils=True\nlibxml2:iso8859x=True\nlibxml2:legacy=True\nlibxml2:lzma=False\nlibxml2:mem-debug=False\nlibxml2:output=True\nlibxml2:pattern=True\nlibxml2:push=True\nlibxml2:python=False\nlibxml2:reader=True\nlibxml2:regexps=True\nlibxml2:run-debug=False\nlibxml2:sax1=True\nlibxml2:schemas=True\nlibxml2:schematron=True\nlibxml2:shared=False\nlibxml2:threads=True\nlibxml2:tree=True\nlibxml2:valid=True\nlibxml2:writer=True\nlibxml2:xinclude=True\nlibxml2:xpath=True\nlibxml2:xptr=True\nlibxml2:zlib=True\nllvm-core:components=all\nllvm-core:exceptions=True\nllvm-core:expensive_checks=False\nllvm-core:fPIC=True\nllvm-core:lto=Off\nllvm-core:rtti=True\nllvm-core:shared=False\nllvm-core:static_stdlib=False\nllvm-core:targets=all\nllvm-core:threads=True\nllvm-core:unwind_tables=True\nllvm-core:use_llvm_cmake_files=False\nllvm-core:use_perf=False\nllvm-core:use_sanitizer=None\nllvm-core:with_ffi=False\nllvm-core:with_xml2=True\nllvm-core:with_zlib=True\nzlib:fPIC=True\nzlib:shared=False",
+    "requires": [
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ],
+    "path": "../conanfile.txt",
+    "context": "host"
+   },
+   "1": {
+    "ref": "ctpg/1.3.7",
+    "options": "",
+    "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
+    "prev": "0",
+    "context": "host"
+   },
+   "2": {
+    "ref": "ctre/3.7",
+    "options": "",
+    "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
+    "prev": "0",
+    "context": "host"
+   },
+   "3": {
+    "ref": "cpputest/4.0",
+    "options": "fPIC=True\nwith_extensions=True\nwith_leak_detection=True",
+    "package_id": "7f06ab4d29b1f14af224d13dc05f362c6832ed41",
+    "prev": "0",
+    "context": "host"
+   },
+   "4": {
+    "ref": "matchit/1.0.1",
+    "options": "",
+    "package_id": "5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9",
+    "prev": "0",
+    "context": "host"
+   },
+   "5": {
+    "ref": "llvm-core/13.0.0",
+    "options": "components=all\nexceptions=True\nexpensive_checks=False\nfPIC=True\nlto=Off\nrtti=True\nshared=False\nstatic_stdlib=False\ntargets=all\nthreads=True\nunwind_tables=True\nuse_llvm_cmake_files=False\nuse_perf=False\nuse_sanitizer=None\nwith_ffi=False\nwith_xml2=True\nwith_zlib=True\nlibiconv:fPIC=True\nlibiconv:shared=False\nlibxml2:c14n=True\nlibxml2:catalog=True\nlibxml2:docbook=True\nlibxml2:fPIC=True\nlibxml2:ftp=True\nlibxml2:html=True\nlibxml2:http=True\nlibxml2:iconv=True\nlibxml2:icu=False\nlibxml2:include_utils=True\nlibxml2:iso8859x=True\nlibxml2:legacy=True\nlibxml2:lzma=False\nlibxml2:mem-debug=False\nlibxml2:output=True\nlibxml2:pattern=True\nlibxml2:push=True\nlibxml2:python=False\nlibxml2:reader=True\nlibxml2:regexps=True\nlibxml2:run-debug=False\nlibxml2:sax1=True\nlibxml2:schemas=True\nlibxml2:schematron=True\nlibxml2:shared=False\nlibxml2:threads=True\nlibxml2:tree=True\nlibxml2:valid=True\nlibxml2:writer=True\nlibxml2:xinclude=True\nlibxml2:xpath=True\nlibxml2:xptr=True\nlibxml2:zlib=True\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "6efbb14f313e71b5e1dbf77c1c011f47614b7c7c",
+    "prev": "0",
+    "requires": [
+     "6",
+     "7"
+    ],
+    "context": "host"
+   },
+   "6": {
+    "ref": "zlib/1.2.12",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "2a19826344ff00be1c04403f2f8e7008ed3a7cc6",
+    "prev": "0",
+    "context": "host"
+   },
+   "7": {
+    "ref": "libxml2/2.9.10",
+    "options": "c14n=True\ncatalog=True\ndocbook=True\nfPIC=True\nftp=True\nhtml=True\nhttp=True\niconv=True\nicu=False\ninclude_utils=True\niso8859x=True\nlegacy=True\nlzma=False\nmem-debug=False\noutput=True\npattern=True\npush=True\npython=False\nreader=True\nregexps=True\nrun-debug=False\nsax1=True\nschemas=True\nschematron=True\nshared=False\nthreads=True\ntree=True\nvalid=True\nwriter=True\nxinclude=True\nxpath=True\nxptr=True\nzlib=True\nlibiconv:fPIC=True\nlibiconv:shared=False\nzlib:fPIC=True\nzlib:shared=False",
+    "package_id": "c4a7cacf01760cbd7354b11a55bf653f7df2bf5d",
+    "prev": "0",
+    "requires": [
+     "6",
+     "8"
+    ],
+    "context": "host"
+   },
+   "8": {
+    "ref": "libiconv/1.17",
+    "options": "fPIC=True\nshared=False",
+    "package_id": "2a19826344ff00be1c04403f2f8e7008ed3a7cc6",
+    "prev": "0",
+    "context": "host"
+   }
+  },
+  "revisions_enabled": false
+ },
+ "version": "0.4",
+ "profile_host": "[settings]\narch=x86_64\narch_build=x86_64\nbuild_type=Release\ncompiler=gcc\ncompiler.libcxx=libstdc++\ncompiler.version=12\nos=Linux\nos_build=Linux\n[options]\n[build_requires]\n[env]\n"
+}

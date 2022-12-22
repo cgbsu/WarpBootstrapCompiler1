@@ -29,24 +29,105 @@ using FunctionDeclarationParserType = FunctionDeclarationParser<
 		NumericTypeTag
 	>;
 
+template<auto ParseType>
 static const auto parse(std::string code, bool debug)
 {
 	return dynamic_runtime_parse<
 			FunctionDeclarationParserType, 
-			Call::Function
+			ParseType
 		>(code, debug);
 }
 
 int main(int argc, char** args)
 {
 	bool debug = false;
-	std::string code_buffer;
+	const std::string exit_string = "thanks :-)";
+	NumericTypeTag reduction_data_type = NumericTypeTag::Whole;
+	ContextType test_module;
 	while(true)
 	{
-		std::getline(std::cin, code_buffer);
-		parse(code_buffer, debug);
+		std::string code_buffer;
+		size_t choice = 0;
+		std::cout << "Please enter what you would like to do: \n"
+					<< "\t[0]: PARSE prototype declaration\n"
+					<< "\t[1]: PARSE alternative declaration\n"
+					<< "\t[2]: PARSE function call\n"
+					<< "\t[3]: PARSE constant declaration\n"
+					<< "\t[4]: EVALUATE function/constant declaration\n"
+					<< "\t[5]: EVALUATE expression\n" 
+					<< "\t[6]: TOGGLE debug mode (currently: " << debug << ")\n"
+					<< "\t[7]: EXIT\n--> ";
+		std::cin >> choice;
+		if(choice != 7 && choice != 6)
+			std::getline(std::cin, code_buffer);
+		if(code_buffer == exit_string)
+			break;
+		switch(choice)
+		{
+			case 0 : {
+				parse<FunctionDeclaration::Prototype>(code_buffer, debug);
+				break;
+			}
+			case 1 : { 
+				parse<FunctionDeclaration::Alternative>(code_buffer, debug);
+				break;
+			}
+			case 2 : {
+				parse<Call::Function>(code_buffer, debug);
+				break;
+			}
+			case 3 
+			: {
+				std::cerr << "Sorry, not yet implemented\n";
+				//auto constant = test_module.retrieve_constant(code_buffer);
+				//if(constant.has_value() == true)
+				//{
+				//	if(constant.value().value.has_value() == true)
+				//		std::cout << "-> " << constant.value.value.value().to_string() << "\n";
+				//	else {
+				//		auto result = retrieve_value<NumericValue>(&test_module, constant.value().expression, debug);
+				//		constant.value().value = ConstantValueType{
+				//}
+				//else
+				//	std::cerr << "No such constant.\n";
+				break;
+			}
+			case 4 
+			: {
+				auto next_module_ = parse<Construct::Context>(code_buffer, debug);
+				if(next_module_.has_value() == false)
+					std::cerr << "Failed to parse.\n";
+				ContextType next_module = std::move(next_module_.value());
+				for(auto&& constant : next_module.constants)
+					test_module.constants.insert(std::move(constant));
+				for(auto&& function : next_module.functions)
+					test_module.functions.insert(std::move(function));
+				break;
+			}
+			case 5 
+			: {
+				auto call = parse<Call::Function>(code_buffer, debug);
+				auto value = std::move(retrieve_value<NumericValue>(
+						&test_module, call.value().get(), debug));
+				if(value.has_value() == true)
+					std::cout << "-> " << value.value().to_string() << "\n";
+				else 
+					std::cerr << "Error, failed to retrieve a value.\n";
+				break;
+			}
+			case 6 : {
+				debug = !debug;
+				break;
+			}
+			case 7 : {
+				return 0;
+			}
+			default : {
+				std::cout << "Sorry I did not understand that choice, please try again.\n";
+				break;
+			}
+		}
 		std::cout << "Done\n";
-		code_buffer = "";
 	}
 	return 0;
 }

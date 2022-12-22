@@ -1,0 +1,6 @@
+/root/workdir/compilerbuild/CMakeFiles/libwarp.dir
+/root/workdir/compilerbuild/CMakeFiles/test.dir
+/root/workdir/compilerbuild/CMakeFiles/tester.dir
+/root/workdir/compilerbuild/CMakeFiles/warp_compiler.dir
+/root/workdir/compilerbuild/CMakeFiles/edit_cache.dir
+/root/workdir/compilerbuild/CMakeFiles/rebuild_cache.dir

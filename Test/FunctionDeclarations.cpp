@@ -333,6 +333,78 @@ constexpr static const auto parse_prototype(bool debug)
 		>(debug);
 }
 
+template<auto TestParameterConstant>
+constexpr static const auto parse_context(bool debug)
+{
+	return runtime_parse<
+			FunctionDeclarationParserType, 
+			TestParameterConstant, 
+			Construct::Context
+		>(debug);
+}
+
+template<auto TestParameterConstant>
+constexpr static const auto parse_call(bool debug)
+{
+	return runtime_parse<
+			FunctionDeclarationParserType, 
+			TestParameterConstant, 
+			Call::Function
+		>(debug);
+}
+
+template<auto TestParameterConstant>
+constexpr static const bool check_function_call_value(
+		const auto& context, 
+		auto expected, 
+		bool debug, 
+		std::source_location source_location = std::source_location::current()
+	)
+{
+	const auto call = parse_call<FixedString{TestParameterConstant}>(debug);
+	if(call.has_value() == false)
+	{
+		if(debug == true)
+		{
+			std::cerr << "Failed to parse function call " 
+					<< source_location.file_name() 
+					<< ":" 
+					<< source_location.line() 
+					<< "\n";
+		}
+		return false;
+	}
+	const auto result = retrieve_value<NumericValue>(
+			&context.value(), 
+			call.value(), 
+			debug
+		);
+	if(result.has_value() == false)
+	{
+		if(debug == true)
+		{
+			std::cerr << "Failed to retrieve value " 
+					<< source_location.file_name() 
+					<< ":" 
+					<< source_location.line() 
+					<< "\n";
+		}
+		return false;
+	}
+	bool success = (expected == reult);
+	if(success == true && debug == true)
+	{
+		std::cerr << "Expected not equal to actual " 
+				<< "Expected: " << result.value().to_string() 
+				<< "Actual: " << expected.to_string() 
+				<< source_location.file_name() 
+				<< ":" 
+				<< source_location.line() 
+				<< "\n";
+	}
+	return success;
+}
+
 TEST(FunctionDeclarations, Prototype)
 {
 	bool debug = false;
@@ -637,9 +709,19 @@ TEST(FunctionDeclarations, PrototypeWithMultipleConstrainedParameter)
 }
 #endif // TEST_2
 
-//TEST(FunctionDeclarations, SimpleFunctionDeclarations)
-//{
-//}
+TEST(FunctionDeclarations, SimpleFunctionDeclarations)
+{
+	bool debug = false;
+	auto context = parse_context<
+			"let my_function() { 4 }"
+		>(debug);
+	CHECK(context.has_value() == false);
+	CHECK(check_function_call_value<FixedString{"my_function"}>(
+			context, 
+			NumericValue{4u}
+			debug
+		));
+}
 
 #endif // WARP__TESTING__HEADER__TESTING__TEST__FUNCTION__DECLARATIONS__HPP__DEBUG__ON
 

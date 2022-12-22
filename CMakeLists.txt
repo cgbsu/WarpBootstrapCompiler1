@@ -44,6 +44,7 @@ target_precompile_headers(libwarp PUBLIC ${HeaderFiles})
 add_executable(test ${TestSourceFiles})
 target_sources(test PUBLIC ${TestSourceFiles})
 target_link_libraries(test libwarp ${CONAN_LIBS})
+target_precompile_headers(test PUBLIC ${HeaderFiles})
 
 #add_executable(stack_logger ${StackLoggerSourceFiles})
 #target_sources(stack_logger PUBLIC ${StackLoggerSourceFiles})
@@ -56,4 +57,10 @@ target_link_libraries(test libwarp ${CONAN_LIBS})
 add_executable(tester ${TesterSourceFiles})
 target_sources(tester PUBLIC ${TesterSourceFiles})
 target_link_libraries(tester libwarp ${CONAN_LIBS})
+target_precompile_headers(tester PUBLIC ${HeaderFiles})
+
+add_executable(warp_compiler ${CompilerSourceFiles})
+target_sources(warp_compiler PUBLIC ${CompilerSourceFiles})
+target_link_libraries(warp_compiler libwarp ${CONAN_LIBS})
+target_precompile_headers(warp_compiler PUBLIC ${HeaderFiles})
 

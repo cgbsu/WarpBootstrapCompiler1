@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#ninja test &> output.cpp
+#
+#cat output.cpp | grep error | grep "\.hpp\|\.cpp" | grep -v ctpg\.hpp
+
+./buildalarm.py "ninja warp_compiler" -pr "(((?<!ctpg)(\\.hpp|\\.cpp)).+(error))|(\\[\\d+\\/\\d+\\])" -oft 512 256 -ot 512 256
+
