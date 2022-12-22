@@ -17,19 +17,44 @@ namespace Warp::SyntaxTranslation::LLVM
 					|| CanidateParameterConstant == NodeType::LiteralBool;
 
 	template<NodeType LiteralTagParameterConstant>
-	llvm::Value* to_llvm_value(Context& context, NumericValue from)
+	llvm::Value* to_llvm_value(Context* context, NumericValue from)
 	{
-		if constexpr(LiteralTagParameterConstant == NodeType::LiteralWhole) {
+		if constexpr(LiteralTagParameterConstant == NodeType::LiteralWhole)
+		{
+			std::cout << "Build APInt\n";
 			auto value = from.to<NumericTypeResolver<NumericTypeTag::Whole>::Type>().value();
-			return llvm::ConstantInt::get(*context.context.get(), llvm::APInt(value.bits, value.number, false));
+			return llvm::ConstantInt::get(
+					context->context, 
+					llvm::APInt(
+							static_cast<unsigned>(value.bits), 
+							static_cast<uint64_t>(value.number), 
+							false
+						)
+				);
 		}
-		else if constexpr(LiteralTagParameterConstant == NodeType::LiteralInteger) {
+		else if constexpr(LiteralTagParameterConstant == NodeType::LiteralInteger)
+		{
 			auto value = from.to<NumericTypeResolver<NumericTypeTag::Integer>::Type>().value();
-			return llvm::ConstantInt::get(*context.context.get(), llvm::APInt(value.bits, value.number, true));
+			return llvm::ConstantInt::get(
+					context->context, 
+					llvm::APInt(
+							static_cast<unsigned>(value.bits), 
+							static_cast<uint64_t>(value.number), 
+							true
+						)
+				);
 		}
-		else if constexpr(LiteralTagParameterConstant == NodeType::LiteralCharacter) {
+		else if constexpr(LiteralTagParameterConstant == NodeType::LiteralCharacter)
+		{
 			auto value = from.to<NumericTypeResolver<NumericTypeTag::Character>::Type>().value();
-			return llvm::ConstantInt::get(*context.context.get(), llvm::APInt(value.bits, value.number, false));
+			return llvm::ConstantInt::get(
+					context->context, 
+					llvm::APInt(
+							static_cast<unsigned>(value.bits), 
+							static_cast<uint64_t>(value.number), 
+							false
+						)
+				);
 		}
 		else if constexpr(LiteralTagParameterConstant == NodeType::LiteralFixed)
 		{
@@ -48,13 +73,21 @@ namespace Warp::SyntaxTranslation::LLVM
 			//	);
 			//llvm::APFixedPoint& fixed_reference = fixed;
 			//return llvm::ConstantInt::get(
-			//		*context.context.get(), 
+			//		context->context
 			//		static_cast<llvm::APInt&>(static_cast<llvm::APSInt&>(fixed_reference))
 			//	);
 		}
-		else if constexpr(LiteralTagParameterConstant == NodeType::LiteralBool) {
+		else if constexpr(LiteralTagParameterConstant == NodeType::LiteralBool)
+		{
 			auto value = from.to<NumericTypeResolver<NumericTypeTag::Bool>::Type>().value();
-			return llvm::ConstantInt::get(*context.context.get(), llvm::APInt(value.bits, value.number, false));
+			return llvm::ConstantInt::get(
+					context->context, 
+					llvm::APInt(
+							static_cast<unsigned>(value.bits), 
+							static_cast<uint64_t>(value.number), 
+							false
+						)
+				);
 		}
 		else
 			return nullptr;
@@ -70,12 +103,12 @@ namespace Warp::SyntaxTranslation::LLVM
 		using NumericType = Node<tag>::NumericType;
 		llvm::Value* value;
 		Translator(
-				Context& constructing_context, // Weird bug with llvm
+				Context* constructing_context, // Weird bug with llvm
 				const auto* top_level_syntax_context, 
-				const Node<LiteralTagParameterConstant>& node, 
+				const Node<LiteralTagParameterConstant>* node, 
 				bool debug
-			) : value(to_llvm_value<LiteralTagParameterConstant>(node.value)) {}
-		std::optional<ReduceToType> to_value()
+			) : value(to_llvm_value<LiteralTagParameterConstant>(constructing_context, node->value)) {}
+		std::optional<ReduceToType> to_value() const
 		{
 			if constexpr(std::is_same_v<ReduceToType, llvm::Value*> == true)
 			{
@@ -94,11 +127,12 @@ namespace Warp::SyntaxTranslation::LLVM
 	struct Translator<Target::LLVM, ReduceToParameterType, NotImplementedTagParameterConstant>
 	{
 		Translator(
-				Context& constructing_context, // Weird bug with llvm
+				Context* constructing_context, // Weird bug with llvm
 				const auto* top_level_syntax_context, 
 				const Node<NotImplementedTagParameterConstant>* node, 
 				bool debug
 			) { std::cerr << "Target LLVM: Not yet implemented\n"; }
+		std::optional<ReduceToParameterType> to_value() const {std::cerr << "NOT IMPLEMENTED!\n"; return std::nullopt; }
 	};
 }
 #endif // WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__TRANSLATORS__LITERAL_TRANSLATOR__HPP

@@ -63,22 +63,33 @@ namespace Warp::Runtime::Compiler
 		constexpr Context(const ThisType& parent) : parent(parent) {}
 		constexpr Context() : parent(std::nullopt) {}
 
+		void subsume(Context other)
+		{
+			for(auto&& function : other.functions)
+				functions.insert(std::move(function));
+			for(auto&& constant : other.constants)
+				constants.insert(std::move(constant));
+		}
+
 		Context inject(std::unique_ptr<AlternativeType> alternative)
 		{
-			if(functions.contains(alternative->get_name()) == false)
+			const auto name = alternative->get_name();
+			if(functions.contains(name) == false)
 			{
 				auto new_pair = std::make_pair(
-						alternative->get_name(), 
+						name, 
 						std::move(std::make_unique<FunctionType>(std::move(alternative)))
 					);
 				functions.insert(std::move(new_pair));
 			}
 			else
-				functions.at(alternative->get_name())->add_alternative(std::move(alternative));
+				functions.at(name)->add_alternative(std::move(alternative));
 			return std::move(*this);
 		}
-		Context inject(ConstantType constant) {
-			constants.insert({constant.name, std::move(constant)});
+		Context inject(ConstantType constant)
+		{
+			auto name = constant.name;
+			constants.insert({name, std::move(constant)});
 			return std::move(*this);
 		}
 		constexpr const OptionalReference<FunctionType> retrieve_function(IdentifierType name) const noexcept

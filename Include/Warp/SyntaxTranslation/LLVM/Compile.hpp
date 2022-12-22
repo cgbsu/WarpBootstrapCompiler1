@@ -26,20 +26,14 @@ namespace Warp::SyntaxTranslation::LLVM
 
 	struct Context
 	{
-		llvm::LLVMContext* context;
-		llvm::Module* module;
-    	llvm::IRBuilder<>* builder;
+		llvm::LLVMContext context;
+		llvm::Module module;
+    	llvm::IRBuilder<> builder;
     	std::unordered_map<std::string, llvm::Value*> symbol_table;
     	Context()
-    	        : context(new llvm::LLVMContext()),
-    	        module(new llvm::Module("WarpModule", *context)),
-    	        builder(new llvm::IRBuilder<>(*context)) {}
-		~Context() // TODO: auto_ptr badness
-		{
-			delete context;
-			delete module;
-			delete builder;
-		}
+    	        : context(),
+    	        module("WarpModule", context),
+    	        builder(context) {}
 	};
 
 	enum class Target { LLVM };
@@ -49,15 +43,15 @@ namespace Warp::SyntaxTranslation::LLVM
 	
 	template<auto TargetParameterConstant, typename ReduceToParameterType>
 	static auto translate(
-			Context& constructing_context, 
-			const auto& top_level_syntax_tree_context, 
-			const BaseNode& node, 
+			Context* constructing_context, 
+			const auto* top_level_syntax_tree_context, 
+			const BaseNode* node, 
 			bool debug
 		) -> std::optional<ReduceToParameterType>
 	{
 		return visit<
 				ReduceToParameterType, 
-				[](auto node, const auto& top_level_syntax_tree_context, Context& constructing_context, bool debug)
+				[](auto node, const auto* top_level_syntax_tree_context, Context* constructing_context, bool debug)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
 					if(debug == true)
@@ -67,7 +61,7 @@ namespace Warp::SyntaxTranslation::LLVM
 							ReduceToParameterType, 
 							tag
 						>(
-								std::move(constructing_context), 
+								constructing_context, 
 								top_level_syntax_tree_context, 
 								node, 
 								debug
@@ -75,12 +69,17 @@ namespace Warp::SyntaxTranslation::LLVM
 					using ReductionType = decltype(std::declval<TranslatorType>().to_value());
 					if constexpr(std::is_convertible_v<std::optional<ReduceToParameterType>, ReductionType>)
 					{
-						return TranslatorType(
-								std::move(constructing_context), 
+						std::cout << "Recducing\n";
+						auto translator = TranslatorType(
+								constructing_context, 
 								top_level_syntax_tree_context, 
 								node, 
 								debug
-							).to_value(); 
+							);
+						std::cout << "Translated, extracting value.\n";
+						auto val = translator.to_value(); 
+						std::cout << "Got val, returing.\n";
+						return nullptr;
 					}
 					else
 					{
@@ -93,9 +92,8 @@ namespace Warp::SyntaxTranslation::LLVM
 						return std::nullopt;
 					}
 				}
-			>(node.to_view(), top_level_syntax_tree_context, std::move(constructing_context), debug);
+			>(node->to_view(), top_level_syntax_tree_context, constructing_context, debug);
 	}
 }
-
 #endif // WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__COMPILE__HPP
 

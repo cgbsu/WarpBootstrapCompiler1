@@ -23,7 +23,7 @@ static const auto parse(std::string code, bool debug)
 		>(code, debug);
 }
 
-LLVM::Context context;
+extern LLVM::Context context;
 
 int main(int argc, char** args)
 {
@@ -35,15 +35,18 @@ int main(int argc, char** args)
 		>(true);
 	if(parse_result.has_value() == true)
 	{
-		auto result = LLVM::translate<LLVM::Target::LLVM, llvm::Value*>(
-				context, 
-				test_context, 
-				*parse_result.value().node.get(), 
+		LLVM::translate<LLVM::Target::LLVM, llvm::Value*>(
+				&context, 
+				&test_context, 
+				parse_result.value().node.get(), 
 				true
 			);
-		context.module->print(llvm::errs(), nullptr);
+		std::cout << "Done with translation\n";
+		context.module.print(llvm::errs(), nullptr);
 	}
 	std::cout << "Done!\n";
 	return 0;
 }
+
+LLVM::Context context = LLVM::Context();
 

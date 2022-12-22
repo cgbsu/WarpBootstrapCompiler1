@@ -38,6 +38,22 @@ static const auto parse(std::string code, bool debug)
 		>(code, debug);
 }
 
+template<auto ParseType>
+static const bool debug_parse(std::string code, bool debug)
+{
+	if(auto result = parse<ParseType>(code, debug); 
+			result.has_value() == true && debug == true
+		)
+	{
+		std::cout << "Successful Parse\n";
+		return true;
+	}
+	else if(debug == true)
+		std::cerr << "Parsing failure!";
+	return false;
+	
+}
+
 int main(int argc, char** args)
 {
 	bool debug = false;
@@ -67,15 +83,16 @@ int main(int argc, char** args)
 		switch(choice)
 		{
 			case 0 : {
-				parse<FunctionDeclaration::Prototype>(code_buffer, debug);
+				debug_parse<FunctionDeclaration::Prototype>(code_buffer, debug);
 				break;
 			}
-			case 1 : { 
-				parse<FunctionDeclaration::Alternative>(code_buffer, debug);
+			case 1 
+			: { 
+				debug_parse<FunctionDeclaration::Alternative>(code_buffer, debug); 
 				break;
 			}
 			case 2 : {
-				parse<Call::Function>(code_buffer, debug);
+				debug_parse<Call::Function>(code_buffer, debug);
 				break;
 			}
 			case 3 
@@ -97,20 +114,23 @@ int main(int argc, char** args)
 			case 4 
 			: {
 				auto next_module_ = parse<Construct::Context>(code_buffer, debug);
+				std::cout << "Got next module.\n";
 				if(next_module_.has_value() == false)
 					std::cerr << "Failed to parse.\n";
 				ContextType next_module = std::move(next_module_.value());
-				for(auto&& constant : next_module.constants)
-					test_module.constants.insert(std::move(constant));
-				for(auto&& function : next_module.functions)
-					test_module.functions.insert(std::move(function));
+				std::cout << "Unwrapped next_module\n";
+				test_module.subsume(std::move(next_module));
+				std::cout << "Done\n";
 				break;
 			}
 			case 5 
 			: {
 				auto call = parse<Call::Function>(code_buffer, debug);
 				auto value = std::move(retrieve_value<NumericValue>(
-						&test_module, call.value().get(), debug));
+						&test_module, 
+						call.value().get(), 
+						debug
+					));
 				if(value.has_value() == true)
 					std::cout << "-> " << value.value().to_string() << "\n";
 				else 

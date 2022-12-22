@@ -13,7 +13,8 @@ namespace Warp::Runtime::Compiler
 	{
 		using AlternativeType = AlternativeParameterType;
 		using IdentifierType = IdentifierParameterType;
-		using AlternativeMatrixType = std::vector<std::vector<std::unique_ptr<AlternativeType>>>;
+		using AlternativesOfUniformArityRowType = std::vector<std::unique_ptr<AlternativeType>>;
+		using AlternativeMatrixType = std::vector<AlternativesOfUniformArityRowType>;
 
 		constexpr Function() noexcept = default;
 		constexpr Function(std::unique_ptr<AlternativeType> alternative) noexcept : name(alternative->get_name()) {
@@ -36,8 +37,8 @@ namespace Warp::Runtime::Compiler
 		const AlternativeMatrixType& add_alternative(std::unique_ptr<AlternativeType> alternative)
 		{
 			const size_t parameter_count = alternative->parameter_count();
-			if(alternatives.size() <= parameter_count)
-				alternatives.reserve(parameter_count + 1);
+			while(alternatives.size() <= (parameter_count + 1))
+				alternatives.push_back(AlternativesOfUniformArityRowType{});
 			alternatives[parameter_count].push_back(std::move(alternative));
 			return alternatives;
 		}

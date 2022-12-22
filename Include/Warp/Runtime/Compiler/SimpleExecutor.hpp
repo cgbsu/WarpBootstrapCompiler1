@@ -377,26 +377,26 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		}
 	};
 
-	//template<typename ValueParameterType = NumericValue>
-	//constexpr auto arguments_to_values(
-	//		const auto* context, 
-	//		const Node<NodeType::FunctionCall>* node, 
-	//		bool debug
-	//	)
-	//{
-	//	std::vector<std::optional<NumericValue>> argument_values;
-	//	for(const auto& argument : node->arguments)
-	//	{
-	//		argument_values.push_back(
-	//				retrieve_value<ValueParameterType>(
-	//						context, 
-	//						argument.get(), 
-	//						debug
-	//					)
-	//			);
-	//	}
-	//	return argument_values;
-	//}
+	template<typename ValueParameterType = NumericValue>
+	constexpr auto arguments_to_values(
+			const auto* context, 
+			const Node<NodeType::FunctionCall>* node, 
+			bool debug
+		)
+	{
+		std::vector<std::optional<NumericValue>> argument_values;
+		for(const auto& argument : node->arguments)
+		{
+			argument_values.push_back(
+					retrieve_value<ValueParameterType>(
+							context, 
+							argument.get(), 
+							debug
+						)
+				);
+		}
+		return argument_values;
+	}
 
 	//constexpr ContextType fill_arguments(
 	//		auto argument_context, 
@@ -454,8 +454,8 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		Executor(const Node<NodeType::FunctionCall>* node, bool debug) = delete;
 		Executor(const auto* context, const Node<NodeType::FunctionCall>* node, bool debug)
 		{
-			//const auto argument_count = node->arguments.size();
-			//auto argument_values = arguments_to_values(context, node, debug);
+			const auto argument_count = node->arguments.size();
+			auto argument_values = arguments_to_values(context, node, debug);
 			//const auto& function = context->functions.at(node->name);
 			//const auto& alternatives = function->get_alternatives()[argument_count];
 			//if(debug == true) {
