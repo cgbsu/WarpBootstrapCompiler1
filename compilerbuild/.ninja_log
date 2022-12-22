@@ -54,3 +54,9 @@
 1	9130	1671669989401665449	CMakeFiles/warp_compiler.dir/Source/SyntaxNodes/LogicalExpression.cpp.o	8ed22fecfee7cd77
 1	8874	1671670259529785298	CMakeFiles/warp_compiler.dir/Compiler/Main.cpp.o	cf9274a4814d5bbc
 8874	9180	1671670259849785440	bin/warp_compiler	2d62755cdc1b7c38
+2	80	1671672426402786327	CMakeFiles/libwarp.dir/Source/SyntaxNodes/LogicalExpression.cpp.o	afb765cb29529858
+80	244	1671672426566786404	lib/liblibwarp.a	36cd1b8bfea8a0a3
+2	8827	1671672435142790459	CMakeFiles/warp_compiler.dir/Source/SyntaxNodes/LogicalExpression.cpp.o	8ed22fecfee7cd77
+2	14	1671673533639317259	CMakeFiles/libwarp.dir/Source/SyntaxNodes/LogicalExpression.cpp.o	afb765cb29529858
+14	81	1671673533703317290	lib/liblibwarp.a	36cd1b8bfea8a0a3
+2	8863	1671673542475321578	CMakeFiles/warp_compiler.dir/Source/SyntaxNodes/LogicalExpression.cpp.o	8ed22fecfee7cd77

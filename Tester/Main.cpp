@@ -48,6 +48,7 @@ int main(int argc, char** args)
 	{
 		std::string code_buffer;
 		size_t choice = 0;
+		std::string choice_buffer;
 		std::cout << "Please enter what you would like to do: \n"
 					<< "\t[0]: PARSE prototype declaration\n"
 					<< "\t[1]: PARSE alternative declaration\n"
@@ -57,7 +58,8 @@ int main(int argc, char** args)
 					<< "\t[5]: EVALUATE expression\n" 
 					<< "\t[6]: TOGGLE debug mode (currently: " << debug << ")\n"
 					<< "\t[7]: EXIT\n--> ";
-		std::cin >> choice;
+		std::getline(std::cin, choice_buffer);
+		choice = static_cast<size_t>(std::stoi(choice_buffer));
 		if(choice != 7 && choice != 6)
 			std::getline(std::cin, code_buffer);
 		if(code_buffer == exit_string)

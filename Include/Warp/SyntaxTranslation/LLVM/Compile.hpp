@@ -43,7 +43,7 @@ namespace Warp::SyntaxTranslation::LLVM
 	
 	template<auto TargetParameterConstant, typename ReduceToParameterType>
 	static auto translate(
-			Context constructing_context, 
+			Context& constructing_context, 
 			const auto& top_level_syntax_tree_context, 
 			const BaseNode& node, 
 			bool debug
@@ -51,7 +51,7 @@ namespace Warp::SyntaxTranslation::LLVM
 	{
 		return visit<
 				ReduceToParameterType, 
-				[](auto node, const auto& top_level_syntax_tree_context, Context constructing_context, bool debug)
+				[](auto node, const auto& top_level_syntax_tree_context, Context& constructing_context, bool debug)
 				{ 
 					constexpr const auto tag = CleanType<decltype(node)>::tag;
 					if(debug == true)

@@ -98,7 +98,7 @@ namespace Warp::SyntaxTranslation::LLVM
 				const auto* top_level_syntax_context, 
 				const Node<NotImplementedTagParameterConstant>* node, 
 				bool debug
-			) { std::cerr << "Target LLVM: Not yet implemented\h"; }
+			) { std::cerr << "Target LLVM: Not yet implemented\n"; }
 	};
 }
 #endif // WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__TRANSLATORS__LITERAL_TRANSLATOR__HPP
