@@ -60,7 +60,7 @@ namespace Warp::Runtime::Compiler
 		HashMap<IdentifierType, ConstantType> constants;
 		HashMap<IdentifierType, std::unique_ptr<FunctionType>> functions;
 		
-		constexpr Context(const ThisType& parent) : parent(parent) {}
+		constexpr Context(ThisType* parent) : parent(parent) {}
 		constexpr Context() : parent(std::nullopt) {}
 
 		void subsume(Context other)
@@ -101,7 +101,7 @@ namespace Warp::Runtime::Compiler
 			{
 				if(parent.has_value() == true)
 				{
-					return parent.value().get().template retrieve_function<
+					return parent.value()->template retrieve_function<
 							CurrentDepthParameterConstant + 1, 
 							MaxDepthParameterConstant
 						>(name);
@@ -118,7 +118,7 @@ namespace Warp::Runtime::Compiler
 			{
 				if(parent.has_value() == true)
 				{
-					return parent.value().get().template retrieve_constant<
+					return parent.value()->template retrieve_constant<
 							CurrentDepthParameterConstant + 1, 
 							MaxDepthParameterConstant
 						>(name);
@@ -130,7 +130,7 @@ namespace Warp::Runtime::Compiler
 			return parent;
 		}
 		protected: 
-			OptionalReference<ThisType> parent;
+		std::optional<ThisType*> parent;
 	};
 
 	using DefaultContextType = Context<
@@ -148,6 +148,7 @@ namespace Warp::Runtime::Compiler
 	using AlternativePrototypeType = DefaultContextType::AlternativePrototypeType;
 	using AlternativeType = DefaultContextType::AlternativeType;
 	using SingleParameterType = DefaultContextType::SingleParameterType;
+	using FunctionType = DefaultContextType::FunctionType;
 	using ContextType = DefaultContextType;
 }
 

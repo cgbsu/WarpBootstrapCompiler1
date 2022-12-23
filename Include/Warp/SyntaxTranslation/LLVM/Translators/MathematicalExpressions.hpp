@@ -16,10 +16,6 @@ namespace Warp::SyntaxTranslation::LLVM
 			|| CanidateParameterConstant == NodeType::Add 
 			|| CanidateParameterConstant == NodeType::Subtract;
 
-	constexpr static const char integral_multiply_operation_name[] = "multmp";
-	constexpr static const char integral_add_operation_name[] = "addtmp";
-	constexpr static const char integral_sub_operation_name[] = "subtmp";
-
 	template<NodeType AritmaticOperationTag>
 	requires(is_binary_arithmatic_operator<AritmaticOperationTag> == true)
 	llvm::Value* to_binary_arithmatic_operation(Context* context, llvm::Value* left, llvm::Value* right)
@@ -31,7 +27,7 @@ namespace Warp::SyntaxTranslation::LLVM
 				return context->builder.CreateMul(
 						left, 
 						right, 
-						integral_multiply_operation_name
+						"multmp"
 					);
 			}
 			case NodeType::Divide : {
@@ -44,7 +40,7 @@ namespace Warp::SyntaxTranslation::LLVM
 				return context->builder.CreateAdd(
 						left, 
 						right, 
-						integral_add_operation_name
+						"addtmp"
 					);
 			}
 			case NodeType::Subtract
@@ -52,8 +48,71 @@ namespace Warp::SyntaxTranslation::LLVM
 				return context->builder.CreateSub(
 						left, 
 						right, 
-						integral_sub_operation_name
+						"subtmp"
 					);
+			}
+			case NodeType::GreaterThan
+			: {
+				llvm::Value* comparison = context->builder.CreateICmpSGT(
+						left, 
+						right, 
+						"tmpgt"
+				);
+				return comparison;
+			}
+			case NodeType::LessThan
+			: {
+				llvm::Value* comparison = context->builder.CreateICmpSLT(
+						left, 
+						right, 
+						"tmplt"
+				);
+				return comparison;
+			}
+			case NodeType::LessThankOrEqualTo // TODO: Rename to LessThankOrEqualTo
+			: {
+				llvm::Value* comparison = context->builder.CreateICmpSLE(
+						left, 
+						right, 
+						"tmpleq"
+				);
+				return comparison;
+			}
+			case NodeType::GreaterThanOrEqualTo
+			: {
+				llvm::Value* comparison = context->builder.CreateICmpSGE(
+						left, 
+						right, 
+						"tmpgeq"
+				);
+				return comparison;
+			}
+			case NodeType::Equal
+			: {
+				llvm::Value* comparison = context->builder.CreateICmpEQ(
+						left, 
+						right, 
+						"tmpeq"
+				);
+				return comparison;
+			}
+			case NodeType::LogicalAnd
+			: {
+				llvm::Value* comparison = context->builder.CreateLogicalAnd(
+						left, 
+						right, 
+						"tmpand"
+				);
+				return comparison;
+			}
+			case NodeType::LogicalOr
+			: {
+				llvm::Value* comparison = context->builder.CreateLogicalOr(
+						left, 
+						right, 
+						"tmpor"
+				);
+				return comparison;
 			}
 			default : {
 				return nullptr;
@@ -99,18 +158,6 @@ namespace Warp::SyntaxTranslation::LLVM
 		operator std::optional<ReduceToType>() {
 			return to_value();
 		}
-	};
-
-	template<typename ReduceToParameterType, NodeType NotImplementedTagParameterConstant>
-	struct Translator<Target::LLVM, ReduceToParameterType, NotImplementedTagParameterConstant>
-	{
-		Translator(
-				Context* constructing_context, // Weird bug with llvm
-				const auto* top_level_syntax_context, 
-				const Node<NotImplementedTagParameterConstant>* node, 
-				bool debug
-			) { std::cerr << "Target LLVM: Not yet implemented\n"; }
-		std::optional<ReduceToParameterType> to_value() const {std::cerr << "NOT IMPLEMENTED!\n"; return std::nullopt; }
 	};
 }
 

@@ -398,52 +398,57 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 		return argument_values;
 	}
 
-	constexpr ContextType fill_arguments(
-			auto argument_context, 
-			const auto& alternative, 
-			const auto& argument_values, 
-			const size_t parameter_index, 
-			const size_t argument_count
-		)
-	{
-		auto next_context = argument_context.inject(
-				std::move(ConstantType{
-						alternative->get_parameters()[parameter_index].name, 
-						to_tag(OperationalValueTag::InferFromEvaluation), 
-						std::move(ConstantValueType{
-								std::move(SyntaxNode{nullptr}), 
-								std::optional<NumericValue>(argument_values[parameter_index])
-							})
-					})
-			);
-		if(parameter_index < argument_count)
-		{
-			return std::move(fill_arguments(
-					std::move(next_context), 
-					alternative, 
-					argument_values, 
-					parameter_index + 1, 
-					argument_count
-				));
-		}
-		else 
-			return next_context;
-	}
+	//constexpr ContextType fill_arguments(
+	//		auto argument_context, 
+	//		const auto& alternative, 
+	//		const auto& argument_values, 
+	//		const size_t parameter_index, 
+	//		const size_t argument_count
+	//	)
+	//{
+	//	auto null_node = std::unique_ptr<BaseNode>(nullptr);
+	//	auto value = std::optional<NumericValue>(argument_values[parameter_index]);
+	//	auto next_context = argument_context.inject(
+	//			std::move(ConstantType{
+	//					alternative->get_parameters()[parameter_index].name, 
+	//					to_tag(OperationalValueTag::InferFromEvaluation), 
+	//					std::move(ConstantValueType{
+	//							std::move(null_node), 
+	//							value
+	//						})
+	//				})
+	//		);
+	//	if(parameter_index < argument_count)
+	//	{
+	//		return std::move(fill_arguments(
+	//				std::move(next_context), 
+	//				alternative, 
+	//				argument_values, 
+	//				parameter_index + 1, 
+	//				argument_count
+	//			));
+	//	}
+	//	else 
+	//		return next_context;
+	//}
 
 	constexpr ContextType fill_arguments(
-			const auto& parent_constext, 
+			const auto* parent_context, 
 			const auto& alternative, 
 			const auto& argument_values, 
 			const size_t argument_count
 		)
 	{
-		return fill_arguments(
-				std::move(ContextType(parent_constext)), 
-				alternative, 
-				argument_values, 
-				0, 
-				argument_count
-			);
+		using CastAwayConstType = std::remove_const<decltype(parent_context)>::type;
+		ContextType context((DefaultContextType*) parent_context); // Dont like to do this but it needs to be done.
+		return std::move(context);
+		//return fill_arguments(
+		//		std::move(ContextType(parent_constext)), 
+		//		alternative, 
+		//		argument_values, 
+		//		0, 
+		//		argument_count
+		//	);
 	}
 
 	template<typename ReduceToParameterType>
@@ -470,7 +475,7 @@ namespace Warp::Runtime::Compiler::SimpleExecutor
 			{
 				bool satisfied = true;
 				auto argument_value_context = fill_arguments(
-						*context, 
+						context, 
 						alternative, 
 						argument_values, 
 						argument_count
