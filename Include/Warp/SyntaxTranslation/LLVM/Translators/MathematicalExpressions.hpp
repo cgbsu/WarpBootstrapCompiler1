@@ -154,7 +154,17 @@ namespace Warp::SyntaxTranslation::LLVM
 								debug
 							).value()
 					)) {}
-		std::optional<ReduceToType> to_value() const {return std::nullopt;}
+		std::optional<ReduceToType> to_value() const
+		{
+			if constexpr(std::is_same_v<ReduceToType, llvm::Value*> == true)
+			{
+				if(value == nullptr)
+					return std::nullopt;
+				return value;
+			}
+			else
+				return std::nullopt;
+		}
 		operator std::optional<ReduceToType>() {
 			return to_value();
 		}

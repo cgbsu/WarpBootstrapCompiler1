@@ -42,7 +42,7 @@ int main(int argc, char** args)
 			std::cout << "FAILURE TO RETRIEVE FUNCTION\n";
 			return 1;
 		}
-		LLVM::translate_function(&context, test_function_.value());
+		LLVM::translate_function(&context, &parsed_context, true, test_function_.value());
 		//LLVM::translate<LLVM::Target::LLVM, llvm::Value*>(
 		//		&context, 
 		//		&test_context, 

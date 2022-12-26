@@ -83,9 +83,10 @@ namespace Warp::SyntaxTranslation::LLVM
 					}
 					else
 					{
+						std::cerr << "Error in translate, non-convertable reduction type\n";
 						if(debug == true)
 						{
-							std::cerr << "retrieve_value(context): Type not convertable: " 
+							std::cerr << "translate(context): Type not convertable: " 
 									<< friendly_type_name<ReduceToParameterType>() << " from " 
 									<< friendly_type_name<ReductionType>() << "\n";
 						}

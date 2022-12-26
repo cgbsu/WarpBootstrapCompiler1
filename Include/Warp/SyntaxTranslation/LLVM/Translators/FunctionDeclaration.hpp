@@ -39,47 +39,85 @@ namespace Warp::SyntaxTranslation::LLVM
 	}
 
 
-	llvm::Function* translate_alternatives(
+
+	std::optional<llvm::Function*> translate_alternative(
 			Context* constructing_context, 
-			std::string name, 
-			const size_t argument_count, 
-			const FunctionType::AlternativesOfUniformArityRowType& alternatives
+			const auto* top_level_syntax_tree_context, 
+			bool debug, 
+			const std::unique_ptr<AlternativeType>& alternative, 
+			size_t alternative_index
 		)
 	{
-		std::vector<std::string> parameter_names;
+		const size_t parameter_count = alternative->parameter_count();
+		std::stringstream name_buffer;
+		name_buffer << alternative->get_name() << "_" << parameter_count << "_" << alternative_index;
+		const std::string name = name_buffer.str();
 
-///////////////////////////////
-        std::vector<llvm::Type*> parameter_types(argument_count, llvm::Type::getInt32Ty(constructing_context->context));
+        std::vector<llvm::Type*> parameter_types(parameter_count, llvm::Type::getInt32Ty(constructing_context->context));
         llvm::FunctionType* function_type = llvm::FunctionType::get(
                 llvm::Type::getInt32Ty(constructing_context->context),    
                 parameter_types,
                 false
             );
-        if(!function_type || function_type == nullptr)
+        if(!function_type || function_type == nullptr) {
             std::cerr << "Error: Invalid function type!\n";
+			return std::nullopt;
+		}
 		llvm::Function* function = llvm::Function::Create(
 				function_type, 
 				llvm::Function::ExternalLinkage, 
 				name.data(), 
 				constructing_context->module
 			);
-        size_t ii = 0;
         constructing_context->symbol_table.clear();
+		size_t ii = 0;
         for(auto& parameter : function->args())
         {
-			std::stringstream buffer;
-			buffer << name << "_" << argument_count << "_parameter_" << ii;
-			parameter_names.push_back(buffer.str());
-            parameter.setName(parameter_names[ii].data());
-            constructing_context->symbol_table[parameter_names[ii]] = &parameter;
-            std::cout << parameter_names[ii] << "\n";
+			const std::string parameter_name = alternative->get_parameters()[ii].name;
+            parameter.setName(parameter_name.data());
+            constructing_context->symbol_table[parameter_name] = &parameter;
+            std::cout << parameter_name << "\n";
+			++ii;
         }
         llvm::BasicBlock* block = llvm::BasicBlock::Create(constructing_context->context, "entry", function);
         constructing_context->builder.SetInsertPoint(block);
-		//context->builder->CreateRet(body->codegen());
+		const auto body_ = translate<Target::LLVM, llvm::Value*>(
+				constructing_context, 
+				top_level_syntax_tree_context, 
+				alternative->get_function_body().get(), 
+				debug
+			);
+		if(body_.has_value() == false) {
+			std::cerr << "Error: Could not parse function body.\n";
+			return std::nullopt;
+		}
+		constructing_context->builder.CreateRet(body_.value());
         llvm::verifyFunction(*function);
         return function;
-/////////////////////////////
+	}
+
+	
+	std::vector<std::optional<llvm::Function*>> translate_alternatives(
+			Context* constructing_context, 
+			const auto* top_level_syntax_tree_context, 
+			bool debug, 
+			std::string name, 
+			const size_t argument_count, 
+			const FunctionType::AlternativesOfUniformArityRowType& alternatives
+		)
+	{
+		std::vector<std::optional<llvm::Function*>> compiled_alternatives;
+		for(size_t ii = 0; ii < alternatives.size(); ++ii)
+		{
+			compiled_alternatives.push_back(translate_alternative(
+					constructing_context, 
+					top_level_syntax_tree_context, 
+					debug, 
+					alternatives[ii], 
+					ii
+				));
+		}
+		return compiled_alternatives;
 	}
 
 
@@ -122,7 +160,12 @@ namespace Warp::SyntaxTranslation::LLVM
 	//			}
 	//}
 
-	void translate_function(Context* constructing_context, const FunctionType& to_translate)
+	void translate_function(
+			Context* constructing_context, 
+			const auto* top_level_syntax_tree_context, 
+			bool debug, 
+			const FunctionType& to_translate
+		)
 	{
 		size_t argument_count = 0;
 		for(const auto& alternatives : to_translate.get_alternatives())
@@ -131,6 +174,8 @@ namespace Warp::SyntaxTranslation::LLVM
 			{
 				translate_alternatives(
 						constructing_context, 
+						top_level_syntax_tree_context, 
+						debug,
 						to_translate.get_name(), 
 						argument_count, 
 						alternatives
