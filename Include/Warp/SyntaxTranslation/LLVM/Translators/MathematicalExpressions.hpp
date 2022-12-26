@@ -14,7 +14,12 @@ namespace Warp::SyntaxTranslation::LLVM
 			= CanidateParameterConstant == NodeType::Multiply 
 			|| CanidateParameterConstant == NodeType::Divide 
 			|| CanidateParameterConstant == NodeType::Add 
-			|| CanidateParameterConstant == NodeType::Subtract;
+			|| CanidateParameterConstant == NodeType::Subtract
+			|| CanidateParameterConstant == NodeType::Equal
+			|| CanidateParameterConstant == NodeType::LessThan 
+			|| CanidateParameterConstant == NodeType::GreaterThan 
+			|| CanidateParameterConstant == NodeType::LessThankOrEqualTo 
+			|| CanidateParameterConstant == NodeType::GreaterThanOrEqualTo;
 
 	template<NodeType AritmaticOperationTag>
 	requires(is_binary_arithmatic_operator<AritmaticOperationTag> == true)

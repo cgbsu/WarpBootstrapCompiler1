@@ -25,6 +25,11 @@ namespace Warp::SyntaxTranslation::LLVM
 	using namespace Warp::Utilities;
 	using namespace Warp::Runtime::Compiler;
 
+	struct FunctionParameter {
+		std::string name;
+		llvm::Type* type;
+	};
+
 	struct Context
 	{
 		std::string name;
@@ -32,11 +37,18 @@ namespace Warp::SyntaxTranslation::LLVM
 		llvm::Module module;
     	llvm::IRBuilder<> builder;
     	std::unordered_map<std::string, llvm::Value*> symbol_table;
+		std::unordered_map<std::string, std::string> replace_names;
     	Context(std::string name = "WarpModule") : 
 				name(name), 
 				context(),
     	        module(name, context),
     	        builder(context) {}
+		std::string to_name(const std::string from_name) const noexcept
+		{
+			if(replace_names.contains(from_name) == true)
+				return replace_names.at(from_name);
+			return from_name;
+		}
 	};
 
 	enum class Target { LLVM };

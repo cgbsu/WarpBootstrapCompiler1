@@ -75,7 +75,7 @@ namespace Warp::SyntaxAnalysis::SyntaxTree
 				return "NodeType::Expression";
 			}
 			case ConstantCall : {
-				return "NodeType::ConstantCa";
+				return "NodeType::ConstantCall";
 			}
 			case LessThan : {
 				return "NodeType::LessThan";

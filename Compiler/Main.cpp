@@ -16,7 +16,7 @@ extern LLVM::Context context;
 int main(int argc, char** args)
 {
 	auto parse_result_ = parse_context(
-			std::string{"let my_function() { 42u * 42u };"}, 
+			std::string{"let my_function(my_parameter) { 42u * my_parameter };"}, 
 			true
 		);
 	std::string test_function_name = "my_function";
