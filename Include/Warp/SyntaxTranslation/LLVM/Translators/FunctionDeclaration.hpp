@@ -41,12 +41,11 @@ namespace Warp::SyntaxTranslation::LLVM
 
 	llvm::Function* translate_alternatives(
 			Context* constructing_context, 
+			std::string name, 
 			const size_t argument_count, 
 			const FunctionType::AlternativesOfUniformArityRowType& alternatives
 		)
 	{
-
-		std::string name = alternatives[0]->get_name();
 		std::vector<std::string> parameter_names;
 
 ///////////////////////////////
@@ -58,7 +57,12 @@ namespace Warp::SyntaxTranslation::LLVM
             );
         if(!function_type || function_type == nullptr)
             std::cerr << "Error: Invalid function type!\n";
-		llvm::Function* function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, name.data(), module);
+		llvm::Function* function = llvm::Function::Create(
+				function_type, 
+				llvm::Function::ExternalLinkage, 
+				name.data(), 
+				constructing_context->module
+			);
         size_t ii = 0;
         constructing_context->symbol_table.clear();
         for(auto& parameter : function->args())
@@ -67,11 +71,11 @@ namespace Warp::SyntaxTranslation::LLVM
 			buffer << name << "_" << argument_count << "_parameter_" << ii;
 			parameter_names.push_back(buffer.str());
             parameter.setName(parameter_names[ii].data());
-            constructing_context->symbol_table[parameters_names[ii]] = &parameter;
+            constructing_context->symbol_table[parameter_names[ii]] = &parameter;
             std::cout << parameter_names[ii] << "\n";
         }
         llvm::BasicBlock* block = llvm::BasicBlock::Create(constructing_context->context, "entry", function);
-        constructing_context->builder->SetInsertPoint(block);
+        constructing_context->builder.SetInsertPoint(block);
 		//context->builder->CreateRet(body->codegen());
         llvm::verifyFunction(*function);
         return function;
@@ -118,18 +122,19 @@ namespace Warp::SyntaxTranslation::LLVM
 	//			}
 	//}
 
-	void translate_function(Context* constructing_context, const std::unique_ptr<FunctionType>& to_translate)
+	void translate_function(Context* constructing_context, const FunctionType& to_translate)
 	{
 		size_t argument_count = 0;
 		for(const auto& alternatives : to_translate.get_alternatives())
 		{
-			if(alterantives.size() > 0)
+			if(alternatives.size() > 0)
 			{
 				translate_alternatives(
 						constructing_context, 
+						to_translate.get_name(), 
 						argument_count, 
 						alternatives
-					)
+					);
 				++argument_count;
 			}
 		}

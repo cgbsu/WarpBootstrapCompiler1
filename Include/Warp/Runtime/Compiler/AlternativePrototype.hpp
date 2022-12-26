@@ -1,12 +1,14 @@
 #include <Warp/Common.hpp>
 #include <Warp/Runtime/Compiler/SingleParameter.hpp>
 #include <Warp/Utilities/ArrayView.hpp>
+#include <Warp/Utilities/TemplateUtilities.hpp>
 
 #ifndef WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__ALTERNATIVE_PROTOTYPE__HPP
 #define WARP__RUNTIME__COMPILER__HEADER__RUNTIME__COMPILER__ALTERNATIVE_PROTOTYPE__HPP
 
 namespace Warp::Runtime::Compiler
 {
+	using namespace Warp::Utilities;
 	template<
 			typename SingleParameterParameterType, 
 			typename IdentifierParameterType
