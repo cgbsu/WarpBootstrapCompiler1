@@ -486,7 +486,7 @@ namespace Warp::SyntaxTranslation::LLVM
 							);
 						std::cout << "CAST 2\n";
 						auto element = context->builder.CreateGEP( // TODO: Stop using a depracted function
-								//size_1_array_type, 
+								size_1_array_type, 
 								//first_element, 
 								//lookup_table_global, 
 								first_element_array, 
