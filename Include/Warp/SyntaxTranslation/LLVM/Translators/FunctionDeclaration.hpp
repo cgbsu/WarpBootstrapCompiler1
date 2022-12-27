@@ -397,43 +397,159 @@ namespace Warp::SyntaxTranslation::LLVM
 						++option;
 						}
 						auto table_pointer_type = llvm::PointerType::get(
-								lookup_table_global->getType(), 
+								lookup_table.value()->getType(), 
 								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
 							);
-						auto element_pointer_type = llvm::PointerType::get(
+						auto opauqe_pointer_type = llvm::PointerType::get(
 								constructing_context->context, 
 								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
 							);
 						auto function_pointer_type = llvm::PointerType::get(
-								alternative_functions[0].value()->getType(), 
+								function_type, //alternative_functions[0].value()->getType(), 
 								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
 							);
+						auto type_from_gep = llvm::GetElementPtrInst::getTypeAtIndex(
+								//table_pointer_type, 
+
+								((llvm::ArrayType*) lookup_table_global->getType()->getElementType()), 
+								static_cast<uint64_t>(0)
+							);
 						//auto element_pointer_type = alternative_functions[0].value()->getType();
-						std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(element_pointer_type) << "\n";
+						//std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(element_pointer_type) << "\n";
+						std::cout << "Hello\n";
+						std::cout << "GEP NUll? " << (type_from_gep == nullptr) << "\n";
+						//std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(type_from_gep) << "\n";
 						//std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(lookup_table_global->getType()) << "\n";
 						auto index_array = std::vector<llvm::Value*>{option_index};
-						auto generate = context->builder.CreateGEP( // TODO: Stop using a depracted function
-								//function_type, //function->getType(), //element_pointer_type, 
-								lookup_table_global, 
-								index_array, 
-								"option_address"
+						std::cout << "Hello 0\n";
+						//auto generate = context->builder.CreateGEP( // TODO: Stop using a depracted function
+						//		//lookup_table_global->getElementType(), 
+						//		//function_type, 
+						//		//type_from_gep, 
+						//		//function->getType(), 
+						//		//element_pointer_type, 
+						//		//alternative_functions[0].value()->getType(), 
+
+						//		//function_pointer_type, 
+						//		//opauqe_pointer_type, 
+						//		((llvm::ArrayType*) lookup_table_global->getType()->getElementType()), 
+						//		//((llvm::ArrayType*) type_from_gep)->getElementType(),
+						//		//function_pointer_type, 
+						//		lookup_table_global, 
+						//		index_array, 
+						//		"option_array_address"
+						//	);
+						//std::cout << "Hello 1\n";
+						//auto element = context->builder.CreateGEP( // TODO: Stop using a depracted function
+						//		//function_type, 
+						//		//type_from_gep, 
+						//		function->getType(), 
+						//		//((llvm::ArrayType*) lookup_table_global->getType()->getElementType())->getElementType(), 
+						//		//element_pointer_type, 
+						//		//alternative_functions[0].value()->getType(), 
+						//		//opauqe_pointer_type, 
+
+						//		//function_pointer_type, 
+						//		//opauqe_pointer_type, 
+						//		//((llvm::ArrayType*) type_from_gep)->getElementType(),
+						//		//function_pointer_type, 
+						//		generate, 
+						//		index_array, 
+						//		"option_address"
+						//	);
+						//std::cout << "Hello 2\n";
+						//std::vector<unsigned> first_element_index{0};
+						//std::cout << "ABOUT TO MAKE FE\n";
+						//auto first_element = context->builder.CreateExtractValue(
+						//		lookup_table_global, 
+						//		first_element_index
+						//	);
+						//std::cout << "First element\n";
+						auto first_element = context->builder.CreatePointerBitCastOrAddrSpaceCast(
+								(llvm::Value*) lookup_table_global, 
+								(llvm::Type*) function->getType(), 
+								"cast"
 							);
+						std::cout << "CAST\n";
+						//auto element = context->builder.Insert(
+						//		llvm::GetElementPtrInst::Create(
+						//				function->getType(), 
+						//				//(llvm::Type*) function->getType(), 
+						//				//lookup_table_global->getType(), 
+						//				//alternative_functions[0].value()->getType(), 
+						//				//(llvm::ArrayType*) lookup_table_global, 
+						//				//((llvm::ArrayType*) lookup_table_global)->getElementType(), 
+						//				first_element, 
+						//				index_array
+						//			)
+						//		);
+						//std::cout << "Element\n";
+						std::vector<llvm::Value*> zero_value{
+								llvm::ConstantInt::get(
+										context->context, 
+										llvm::APInt(
+												32, 
+												0, 
+												false
+											)
+									)
+							};
+						auto size_pointer = context->builder.CreateGEP( 
+								(llvm::Type*) function->getType(), 
+								llvm::ConstantPointerNull::get(function->getType()), 
+								zero_value, 
+								"size_pointer"
+							);
+						std::cout << "Zero GEP\n";
+						auto integer_size = context->builder.CreatePtrToInt( 
+								size_pointer, 
+								llvm::Type::getInt32Ty(context->context), 
+								"size"
+							);
+						auto offset = context->builder.CreateMul(
+								integer_size, 
+								option_index
+							);
+						auto function_address = context->builder.CreateAdd(
+								offset, 
+								context->builder.CreatePtrToInt(
+										first_element, 
+										llvm::Type::getInt32Ty(context->context), 
+										"base_address"
+									), 
+								"function_address"
+							);
+						//auto element = context->builder.CreateGEP( 
+						//		(llvm::Type*) function->getType(), 
+						//		first_element, 
+						//		index_array
+						//	);
+						std::cout << "GEP\n";
 						auto loaded_option = context->builder.CreateLoad(
-								element_pointer_type, 
-								generate, 
+								//element_pointer_type, 
+								//opauqe_pointer_type, 
+								function_type, //(llvm::Type*) function->getType(), 
+								//first_element, 
+								//element, 
+								//first_element, 
+								context->builder.CreateIntToPtr(
+										function_address, 
+										(llvm::Type*) function->getType()
+									), 
 								"option"
 							);
-						auto loaded_function_casted_pointer = context->builder.CreatePointerBitCastOrAddrSpaceCast(
-								loaded_option, 
-								element_pointer_type, 
-								"option_function_pointer"
-							);
+						std::cout << "Load\n";
+						//auto loaded_function_casted_pointer = context->builder.CreatePointerBitCastOrAddrSpaceCast(
+						//		loaded_option, 
+						//		opauqe_pointer_type, 
+						//		"option_function_pointer"
+						//	);
 						std::vector<llvm::Value*> arguments;
 						for(auto& parameter : constructing_context->symbol_table)
 							arguments.push_back(parameter.second);
 						return context->builder.CreateCall(
 								function_type, 
-								loaded_function_casted_pointer, 
+								loaded_option, 
 								llvm::ArrayRef(arguments)
 							);
 					}, 
