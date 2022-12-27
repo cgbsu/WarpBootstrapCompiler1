@@ -37,6 +37,7 @@ namespace Warp::SyntaxTranslation::LLVM
 		llvm::Module module;
     	llvm::IRBuilder<> builder;
     	std::unordered_map<std::string, llvm::Value*> symbol_table;
+    	std::unordered_map<std::string, llvm::Function*> function_table;
 		std::unordered_map<std::string, std::string> replace_names;
     	Context(std::string name = "WarpModule") : 
 				name(name), 
@@ -48,6 +49,13 @@ namespace Warp::SyntaxTranslation::LLVM
 			if(replace_names.contains(from_name) == true)
 				return replace_names.at(from_name);
 			return from_name;
+		}
+		std::optional<llvm::Function*> retrieve_function(std::string name, const size_t argument_count)
+		{
+			std::string alternative_name = name + std::string{"_"} + std::to_string(argument_count);
+			if(function_table.contains(alternative_name) == true)
+				return function_table.at(alternative_name);
+			return std::nullopt;
 		}
 	};
 

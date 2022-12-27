@@ -1,4 +1,4 @@
-#include <Warp/SyntaxTranslation/LLVM/Translators/ConstantCall.hpp>
+#include <Warp/SyntaxTranslation/LLVM/Translators/FunctionCall.hpp>
 
 #ifndef WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__TRANSLATORS__FUNCTION_DECLARATION__HPP
 #define WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__TRANSLATORS__FUNCTION_DECLARATION__HPP
@@ -504,19 +504,30 @@ namespace Warp::SyntaxTranslation::LLVM
 			);
 	}
 
-	void translate_function(
+	struct WarpLLVMFunction {
+		const std::string name;
+		std::vector<llvm::Function*> alternatives;
+	};
+
+	std::optional<WarpLLVMFunction> translate_function(
 			Context* constructing_context, 
 			const auto* top_level_syntax_tree_context, 
 			bool debug, 
 			const FunctionType& to_translate
 		)
 	{
+		WarpLLVMFunction function{to_translate.get_name()};
 		size_t argument_count = 0;
 		for(const auto& alternatives : to_translate.get_alternatives())
 		{
+			function.alternatives.push_back(nullptr);
 			if(alternatives.size() > 0)
 			{
-				translate_alternatives(
+				std::string alternative_name 
+						= to_translate.get_name() 
+						+ std::string{"_"} 
+						+ std::to_string(argument_count);
+				auto new_alternative_ = translate_alternatives(
 						constructing_context, 
 						top_level_syntax_tree_context, 
 						debug,
@@ -524,9 +535,18 @@ namespace Warp::SyntaxTranslation::LLVM
 						to_translate.get_name(), 
 						alternatives
 					);
+				if(new_alternative_.has_value() == false)
+					return std::nullopt;
+				auto new_alternative = new_alternative_.value();
+				constructing_context->function_table.insert({
+						alternative_name, 
+						new_alternative
+					});
+				function.alternatives[argument_count] = new_alternative;
 			}
 			++argument_count;
 		}
+		return function;
 	}
 
 	template<typename ReduceToParameterType, NodeType NotImplementedTagParameterConstant>
