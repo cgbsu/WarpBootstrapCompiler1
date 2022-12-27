@@ -46,8 +46,17 @@ my_function_1:                          # @my_function_1
 # %bb.0:                                # %entry
 	pushq	%rax
 	.cfi_def_cfa_offset 16
-	movq	my_function_1_table@GOTPCREL(%rip), %rax
-	callq	*(%rax)
+	cmpl	$10, %edi
+	setge	%al
+	xorl	%ecx, %ecx
+	cmpl	$42, %edi
+	setl	%dl
+	setge	%cl
+	andb	%al, %dl
+	movzbl	%dl, %eax
+	leal	(%rax,%rcx,2), %eax
+	movq	my_function_1_table@GOTPCREL(%rip), %rcx
+	callq	*(%rcx,%rax,8)
 	popq	%rcx
 	.cfi_def_cfa_offset 8
 	retq

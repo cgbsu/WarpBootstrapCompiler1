@@ -44,11 +44,10 @@ entry:
   %5 = zext i1 %my_parameter_constrainttmp7 to i32
   %6 = mul i32 %5, 2
   %7 = add i32 %4, %6
-  %8 = mul i32 0, %7
-  %function_address = add i32 %8, ptrtoint ([3 x i32 (i32)*]* @my_function_1_table to i32)
-  %9 = inttoptr i32 %function_address to i32 (i32)*
-  %option = load i32 (i32), i32 (i32)* %9, align 2147483648
-  %10 = call i32 %option(i32 %parameter_2)
-  ret i32 %10
+  %option_address = getelementptr [1 x i32 (i32)*], [1 x i32 (i32)*]* bitcast ([3 x i32 (i32)*]* @my_function_1_table to [1 x i32 (i32)*]*), i32 %7
+  %cast_from_array = bitcast [1 x i32 (i32)*]* %option_address to i32 (i32)*
+  %option = load i32 (i32)*, i32 (i32)* %cast_from_array, align 8
+  %8 = call i32 %option(i32 %parameter_2)
+  ret i32 %8
 }
 
