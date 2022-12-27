@@ -17,9 +17,9 @@ int main(int argc, char** args)
 {
 	auto parse_result_ = parse_context(
 			std::string{
-					"let my_function(my_parameter : {(0u + my_parameter) < 10u}) { 42u * my_parameter };"
-					"let my_function(my_parameter : {(0u + my_parameter) >= 10u && (0u + my_parameter) < 42u}) { 10u + my_parameter };"
-					"let my_function(my_parameter : {(0u + my_parameter) > 42u}) { 20u + my_parameter };"
+					"let my_function(my_parameter : {(0u32 + my_parameter) < 10u32}) { 42u32 * my_parameter };"
+					"let my_function(my_parameter : {(0u32 + my_parameter) >= 10u32 && (0u32 + my_parameter) < 42u32}) { 10u32 + my_parameter };"
+					"let my_function(my_parameter : {(0u32 + my_parameter) > 42u32}) { (0u32 + my_parameter) + my_parameter };"
 				}, 
 			false
 		);

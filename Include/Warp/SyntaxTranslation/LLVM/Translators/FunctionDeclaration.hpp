@@ -17,62 +17,45 @@ namespace Warp::SyntaxTranslation::LLVM
 			llvm::Type* return_type
 		)
 	{
-	std::cout << "INDEX 7\n";
         std::vector<llvm::Type*> parameter_types;
 		std::vector<std::string> parameter_names;
-	std::cout << "INDEX 8\n";
-	std::cout << "Function parameters size: " << function_parameters.size() << "\n";
 		for(const auto& parameter : function_parameters) {
-	std::cout << "INDEX 9\n";
 			parameter_types.push_back(parameter.type);
-	std::cout << "INDEX 10\n";
 			parameter_names.push_back(parameter.name.data());
-		std::cout << "Pushed parameter with name: " << parameter_names.back() << "\n";
-	std::cout << "INDEX 11\n";
 		}
-	std::cout << "INDEX 12\n";
         llvm::FunctionType* function_type = llvm::FunctionType::get(
 				return_type, 
                 parameter_types,
                 false
             );
-	std::cout << "INDEX 13\n";
         if(!function_type || function_type == nullptr) {
             std::cerr << "Error: Invalid function type!\n";
 			return std::nullopt;
 		}
-	std::cout << "INDEX 14\n";
 		llvm::Function* function = llvm::Function::Create(
 				function_type, 
 				llvm::Function::ExternalLinkage, 
 				name.data(), 
 				constructing_context->module
 			);
-	std::cout << "INDEX 15\n";
         constructing_context->symbol_table.clear();
-	std::cout << "INDEX 16\n";
 		size_t ii = 0;
         for(auto& parameter : function->args())
         {
-	std::cout << "INDEX 17\n";
             parameter.setName(parameter_names[ii].data());
-	std::cout << "INDEX 18\n";
             constructing_context->symbol_table[parameter_names[ii]] = &parameter;
-	std::cout << "INDEX 19\n";
-            std::cout << parameter_names[ii] << "\n";
-	std::cout << "INDEX 20\n";
 			++ii;
-	std::cout << "INDEX 21\n";
         }
-	std::cout << "INDEX 22\n";
         llvm::BasicBlock* block = llvm::BasicBlock::Create(constructing_context->context, "entry", function);
-	std::cout << "INDEX 23\n";
         constructing_context->builder.SetInsertPoint(block);
-	std::cout << "INDEX 24\n";
-		constructing_context->builder.CreateRet(generate_return_value(constructing_context));
-	std::cout << "INDEX 25\n";
+		constructing_context->builder.CreateRet(generate_return_value(
+				constructing_context, 
+				function, 
+				parameter_types, 
+				parameter_names, 
+				return_type
+			));
         llvm::verifyFunction(*function);
-	std::cout << "INDEX 26\n";
         return function;
 	}
 	
@@ -87,16 +70,12 @@ namespace Warp::SyntaxTranslation::LLVM
 				constructing_context->context, 
 				1
 			);
-	std::cout << "Const 0\n";
 		llvm::Value* condition = llvm::ConstantInt::getTrue(
 				constructing_context->context
 			);
-	std::cout << "Const 1\n";
 		for(const auto& parameter : parameters)
 		{
-	std::cout << "Const 1.0\n";
 			std::string name = parameter.name + std::string{"_constrainttmp"};
-	std::cout << "Const 1.1\n";
 			std::optional<llvm::Value*> parameter_constraint_ = std::nullopt;
 			if(parameter.constraint.constraint.get() != nullptr)
 			{
@@ -113,22 +92,17 @@ namespace Warp::SyntaxTranslation::LLVM
 						constructing_context->context
 					);
 			}
-		std::cout << "Const 1.1.0\n";
 			if(parameter_constraint_.has_value() == false) {
 				std::cerr << "Error! Failed to generate parameter constraint!\n";
 				return nullptr;
 			}
-		std::cout << "Const 1.1.1\n";
 			llvm::Value* parameter_constraint = parameter_constraint_.value();
-	std::cout << "Const 1.2\n";
 			condition = constructing_context->builder.CreateLogicalAnd(
 					condition, 
 					parameter_constraint, 
 					name.c_str()
 				);
-	std::cout << "Const 1.3\n";
 		}
-	std::cout << "Const 2\n";
 		return condition;
 	}
 
@@ -170,7 +144,6 @@ namespace Warp::SyntaxTranslation::LLVM
 			const std::string parameter_name = alternative->get_parameters()[ii].name;
             parameter.setName(parameter_name.data());
             constructing_context->symbol_table[parameter_name] = &parameter;
-            std::cout << parameter_name << "\n";
 			++ii;
         }
         llvm::BasicBlock* block = llvm::BasicBlock::Create(constructing_context->context, "entry", function);
@@ -298,22 +271,15 @@ namespace Warp::SyntaxTranslation::LLVM
 			const std::vector<llvm::Type*>& parameter_types
 		)
 	{
-	std::cout << "ZIP 0\n";
 		const size_t parameter_count = parameter_names.size();
-	std::cout << "ZIP 1\n";
 		if(parameter_count != parameter_types.size()) {
 			std::cerr << "Internal Error! Mismatch in actual vs. expected number of parameters.\n";
 			return std::nullopt;
 		}
-	std::cout << "ZIP 2\n";
 		std::vector<FunctionParameter> parameters;
-	std::cout << "ZIP 3\n";
 		for(size_t ii = 0; ii < parameter_count; ++ii) {
-	std::cout << "ZIP 3.0\n";
 			parameters.push_back({parameter_names[ii], parameter_types[ii]});
-	std::cout << "ZIP 3.1\n";
 		}
-	std::cout << "ZIP 4\n";
 		return parameters;
 	}
 
@@ -330,14 +296,12 @@ namespace Warp::SyntaxTranslation::LLVM
 	{
 		size_t alternative_count = alternatives.size();
 		if(alternative_count <= 0) {
-			std::cout << "No alternatives with argument_count " << argument_count << "\n";
 			return std::nullopt;
 		}
 		llvm::Type* index_type = llvm::IntegerType::get(
 				constructing_context->context, 
 				bits_in_index
 			);
-	std::cout << "INDEX 0\n";
 		const auto alternative_functions = translate_alternative_bodies_to_functions(
 				constructing_context, 
 				top_level_syntax_tree_context, 
@@ -346,7 +310,6 @@ namespace Warp::SyntaxTranslation::LLVM
 				argument_count, 
 				alternatives
 			);
-	std::cout << "INDEX 1\n";
 		const auto lookup_table = create_lookup_table_for_alternative(
 				constructing_context, 
 				top_level_syntax_tree_context, 
@@ -355,86 +318,124 @@ namespace Warp::SyntaxTranslation::LLVM
 				argument_count, 
 				alternative_functions
 			);
-	std::cout << "INDEX 2\n";
 		const auto parameter_names = create_parameter_names(argument_count);
-	std::cout << "INDEX 2.0 Arg Count " << argument_count << " Pnames.size(): " << parameter_names.size() << "\n";
-	std::cout << "INDEX 3\n";
 		const auto parameter_types = list_of_type(constructing_context, argument_count);
-	std::cout << "INDEX 4\n";
 		const auto parameters = zip_to_paramerers(parameter_names, parameter_types);
-		//std::cout << "INDEX 4.0 Size: "<< parameters.value().size() << "\n";
-	std::cout << "INDEX 5\n";
 		if(lookup_table.has_value() == false) {
 			std::cerr << "Error! No lookup table for alternative!\n";
 			return std::nullopt;
 		}
+		std::stringstream lookup_table_name_buffer;
+		lookup_table_name_buffer << name << "_" << argument_count << "_table";
+		std::string lookup_table_name = lookup_table_name_buffer.str();
+		constructing_context->module.getOrInsertGlobal(
+				lookup_table_name.data(), 
+				lookup_table.value()->getType()
+			);
+		llvm::GlobalVariable* lookup_table_global = constructing_context->module.getNamedGlobal(lookup_table_name.data());
+		lookup_table_global->setInitializer(lookup_table.value());
+		lookup_table_global->setLinkage(llvm::GlobalValue::LinkageTypes::ExternalLinkage);
 		size_t option = 0;
 		llvm::Value* option_index = nullptr;
 		std::stringstream name_buffer;
 		name_buffer << name << "_" << argument_count;
 		const std::string alternative_name = name_buffer.str();
-	std::cout << "INDEX 6\n";
 		return make_function(
 				constructing_context, 
 				alternative_name, 
 				parameters.value(), 
-				[&](Context* context) -> llvm::Value* {
-						std::cout << "Gen 0!\n";
+				[&](
+						Context* context, 
+						llvm::Function* function, 
+						std::vector<llvm::Type*> parameter_types, 
+						std::vector<std::string> parameter_names, 
+						llvm::Type* return_type
+					) -> llvm::Value*
+				{
+						llvm::FunctionType* function_type = llvm::FunctionType::get(
+								return_type, 
+								llvm::ArrayRef(parameter_types), 
+								false
+							);
 						for(const auto& alternative : alternatives)
 						{
-						std::cout << "Gen 0.0!\n";
 							auto replacement_table = create_replacement_table(
 									debug, 
 									argument_count, 
 									*alternative.get(), 
 									parameter_names
 								);
-						std::cout << "Gen 0.1!\n";
 							if(replacement_table.has_value() == false) {
 								std::cerr << "Error! Failed to generate replacement table for parameters.\n";
 								return nullptr;
 							}
-						std::cout << "Gen 0.2!\n";
 							context->replace_names.swap(replacement_table.value());
-						//std::cout << "Gen 0.2.0\n";
-						std::cout << "Gen 0.3!\n";
 							llvm::Value* matches_constraint = constraint_condition(
 									context, 
 									top_level_syntax_tree_context, 
 									debug, 
 									alternative->get_parameters()
 								);
-						std::cout << "Gen 0.4!\n";
 							context->replace_names.clear();
-						std::cout << "Gen 0.5!\n";
 							llvm::Value* next_index = context->builder.CreateMul(
-									context->builder.CreateTruncOrBitCast(
+									context->builder.CreateIntCast(
 											matches_constraint, 
-											index_type
+											index_type, 
+											false
 										), 
 									llvm::ConstantInt::get(index_type, option)
 								);
-						std::cout << "Gen 0.6!\n";
 							if(option_index == nullptr) {
-								std::cout << "Gen 0.6.A.0!\n";
 								option_index = next_index;
-								std::cout << "Gen 0.6.A.1!\n";
 							}
 							else {
-								std::cout << "Gen 0.6.B.0!\n";
 								option_index = context->builder.CreateAdd(
 										option_index, 
 										next_index
 									);
-								std::cout << "Gen 0.6.B.1!\n";
 							}
 						++option;
-						std::cout << "Gen 0.7!\n";
 						}
-						std::cout << "Gen 1!\n";
-						auto generate = context->builder.CreateExtractElement(lookup_table.value(), option_index);
-						std::cout << "Gen 2\n";
-						return generate;
+						auto table_pointer_type = llvm::PointerType::get(
+								lookup_table_global->getType(), 
+								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
+							);
+						auto element_pointer_type = llvm::PointerType::get(
+								constructing_context->context, 
+								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
+							);
+						auto function_pointer_type = llvm::PointerType::get(
+								alternative_functions[0].value()->getType(), 
+								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
+							);
+						//auto element_pointer_type = alternative_functions[0].value()->getType();
+						std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(element_pointer_type) << "\n";
+						//std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(lookup_table_global->getType()) << "\n";
+						auto index_array = std::vector<llvm::Value*>{option_index};
+						auto generate = context->builder.CreateGEP( // TODO: Stop using a depracted function
+								//function_type, //function->getType(), //element_pointer_type, 
+								lookup_table_global, 
+								index_array, 
+								"option_address"
+							);
+						auto loaded_option = context->builder.CreateLoad(
+								element_pointer_type, 
+								generate, 
+								"option"
+							);
+						auto loaded_function_casted_pointer = context->builder.CreatePointerBitCastOrAddrSpaceCast(
+								loaded_option, 
+								element_pointer_type, 
+								"option_function_pointer"
+							);
+						std::vector<llvm::Value*> arguments;
+						for(auto& parameter : constructing_context->symbol_table)
+							arguments.push_back(parameter.second);
+						return context->builder.CreateCall(
+								function_type, 
+								loaded_function_casted_pointer, 
+								llvm::ArrayRef(arguments)
+							);
 					}, 
                 llvm::Type::getInt32Ty(constructing_context->context)
 			);
@@ -452,7 +453,6 @@ namespace Warp::SyntaxTranslation::LLVM
 		{
 			if(alternatives.size() > 0)
 			{
-				std::cout << "TRANSLATING alternatives with argcount " << argument_count << "\n";
 				translate_alternatives(
 						constructing_context, 
 						top_level_syntax_tree_context, 
@@ -462,8 +462,6 @@ namespace Warp::SyntaxTranslation::LLVM
 						alternatives
 					);
 			}
-			else
-				std::cout << "NO alternatives with  argcount " << argument_count << "\n";
 			++argument_count;
 		}
 	}
