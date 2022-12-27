@@ -88,7 +88,9 @@ namespace Warp::SyntaxTranslation::LLVM
 				1
 			);
 	std::cout << "Const 0\n";
-		llvm::Value* condition = llvm::ConstantInt::getTrue(constructing_context->context);
+		llvm::Value* condition = llvm::ConstantInt::getTrue(
+				constructing_context->context
+			);
 	std::cout << "Const 1\n";
 		for(const auto& parameter : parameters)
 		{
@@ -405,12 +407,12 @@ namespace Warp::SyntaxTranslation::LLVM
 						std::cout << "Gen 0.4!\n";
 							context->replace_names.clear();
 						std::cout << "Gen 0.5!\n";
-							llvm::Value* next_index = context->builder.CreateShl(
+							llvm::Value* next_index = context->builder.CreateMul(
 									context->builder.CreateTruncOrBitCast(
 											matches_constraint, 
 											index_type
 										), 
-									llvm::APInt(bits_in_index, option)
+									llvm::ConstantInt::get(index_type, option)
 								);
 						std::cout << "Gen 0.6!\n";
 							if(option_index == nullptr) {
@@ -420,7 +422,10 @@ namespace Warp::SyntaxTranslation::LLVM
 							}
 							else {
 								std::cout << "Gen 0.6.B.0!\n";
-								option_index = context->builder.CreateOr(option_index, next_index);
+								option_index = context->builder.CreateAdd(
+										option_index, 
+										next_index
+									);
 								std::cout << "Gen 0.6.B.1!\n";
 							}
 						++option;
