@@ -221,6 +221,40 @@ namespace Warp::SyntaxTranslation::LLVM
 				alternative_functions
 			);
 	}
+
+	llvm::Value* create_lookup_table_global(
+			Context* constructing_context, 
+			const auto* top_level_syntax_tree_context, 
+			bool debug, 
+			std::string name, 
+			const size_t argument_count, 
+			const std::vector<std::optional<llvm::Function*>>& alternative_functions
+		)
+	{
+		const auto lookup_table = create_lookup_table_for_alternative(
+				constructing_context, 
+				top_level_syntax_tree_context, 
+				debug, 
+				name, 
+				argument_count, 
+				alternative_functions
+			);
+		if(lookup_table.has_value() == false) {
+			std::cerr << "Error! No lookup table for alternative!\n";
+			return nullptr;
+		}
+		std::stringstream lookup_table_name_buffer;
+		lookup_table_name_buffer << name << "_" << argument_count << "_table";
+		std::string lookup_table_name = lookup_table_name_buffer.str();
+		constructing_context->module.getOrInsertGlobal(
+				lookup_table_name.data(), 
+				lookup_table.value()->getType()
+			);
+		llvm::GlobalVariable* lookup_table_global = constructing_context->module.getNamedGlobal(lookup_table_name.data());
+		lookup_table_global->setInitializer(lookup_table.value());
+		lookup_table_global->setLinkage(llvm::GlobalValue::LinkageTypes::ExternalLinkage);
+		return lookup_table_global;
+	}
 	
 	 auto create_replacement_table(
 			const bool debug, 
@@ -283,6 +317,111 @@ namespace Warp::SyntaxTranslation::LLVM
 		return parameters;
 	}
 
+	llvm::Value* call_function_pointer_from_array(
+			Context* context, 
+			llvm::Function* function, 
+			llvm::FunctionType* function_type, 
+			llvm::Value* function_pointer_array, 
+			std::vector<llvm::Value*> index_array
+		)
+	{
+		llvm::Type* function_pointer_type = (llvm::Type*) function->getType();
+		llvm::ArrayType* size_1_array_type = llvm::ArrayType::get(
+				function->getType(), 
+				1
+			);
+		auto function_pointer_array_type = llvm::PointerType::get(
+				size_1_array_type, 
+				context->module.getDataLayout().getDefaultGlobalsAddressSpace()
+			);
+		auto cast_to_array = context->builder.CreatePointerBitCastOrAddrSpaceCast(
+				function_pointer_array, 
+				function_pointer_array_type, 
+				"cast_to_array"
+			);
+		auto option_address = context->builder.CreateGEP( 
+				size_1_array_type, 
+				cast_to_array, 
+				index_array, 
+				"option_address"
+			);
+		auto cast_from_array = context->builder.CreatePointerBitCastOrAddrSpaceCast(
+				option_address, 
+				function_pointer_type, 
+				"cast_from_array"
+			);
+		auto loaded_option = context->builder.CreateLoad(
+				function_pointer_type, 
+				cast_from_array, 
+				"loaded_option"
+			);
+		std::vector<llvm::Value*> arguments;
+		for(auto& parameter : context->symbol_table)
+			arguments.push_back(parameter.second);
+		return context->builder.CreateCall(
+				function_type, 
+				loaded_option, 
+				llvm::ArrayRef(arguments)
+			);
+	}
+	
+	llvm::Value* function_index_value(
+			Context* context, 
+			const auto* top_level_syntax_tree_context, 
+			llvm::Function* function, 
+			std::vector<llvm::Type*> parameter_types, 
+			std::vector<std::string> parameter_names, 
+			llvm::Type* return_type, 
+			llvm::Type* index_type, 
+			const FunctionType::AlternativesOfUniformArityRowType& alternatives, 
+			const size_t argument_count, 
+			bool debug
+		)
+	{
+		size_t option = 0;
+		llvm::Value* option_index = nullptr;
+		for(const auto& alternative : alternatives)
+		{
+			auto replacement_table = create_replacement_table(
+					debug, 
+					argument_count, 
+					*alternative.get(), 
+					parameter_names
+				);
+			if(replacement_table.has_value() == false) {
+				std::cerr << "Error! Failed to generate replacement table for parameters.\n";
+				return nullptr;
+			}
+			context->replace_names.swap(replacement_table.value());
+			llvm::Value* matches_constraint = constraint_condition(
+					context, 
+					top_level_syntax_tree_context, 
+					debug, 
+					alternative->get_parameters()
+				);
+			context->replace_names.clear();
+			llvm::Value* next_index = context->builder.CreateMul(
+					context->builder.CreateIntCast(
+							matches_constraint, 
+							index_type, 
+							false
+						), 
+					llvm::ConstantInt::get(index_type, option)
+				);
+			if(option_index == nullptr) {
+				option_index = next_index;
+			}
+			else {
+				option_index = context->builder.CreateAdd(
+						option_index, 
+						next_index
+					);
+			}
+			++option;
+		}
+		return option_index;
+	}
+
 	std::optional<llvm::Function*> translate_alternatives(
 			Context* constructing_context, 
 			const auto* top_level_syntax_tree_context, 
@@ -310,33 +449,9 @@ namespace Warp::SyntaxTranslation::LLVM
 				argument_count, 
 				alternatives
 			);
-		const auto lookup_table = create_lookup_table_for_alternative(
-				constructing_context, 
-				top_level_syntax_tree_context, 
-				debug, 
-				name, 
-				argument_count, 
-				alternative_functions
-			);
 		const auto parameter_names = create_parameter_names(argument_count);
 		const auto parameter_types = list_of_type(constructing_context, argument_count);
 		const auto parameters = zip_to_paramerers(parameter_names, parameter_types);
-		if(lookup_table.has_value() == false) {
-			std::cerr << "Error! No lookup table for alternative!\n";
-			return std::nullopt;
-		}
-		std::stringstream lookup_table_name_buffer;
-		lookup_table_name_buffer << name << "_" << argument_count << "_table";
-		std::string lookup_table_name = lookup_table_name_buffer.str();
-		constructing_context->module.getOrInsertGlobal(
-				lookup_table_name.data(), 
-				lookup_table.value()->getType()
-			);
-		llvm::GlobalVariable* lookup_table_global = constructing_context->module.getNamedGlobal(lookup_table_name.data());
-		lookup_table_global->setInitializer(lookup_table.value());
-		lookup_table_global->setLinkage(llvm::GlobalValue::LinkageTypes::ExternalLinkage);
-		size_t option = 0;
-		llvm::Value* option_index = nullptr;
 		std::stringstream name_buffer;
 		name_buffer << name << "_" << argument_count;
 		const std::string alternative_name = name_buffer.str();
@@ -352,239 +467,37 @@ namespace Warp::SyntaxTranslation::LLVM
 						llvm::Type* return_type
 					) -> llvm::Value*
 				{
+						llvm::Value* lookup_table_global = create_lookup_table_global(
+								context, 
+								top_level_syntax_tree_context, 
+								debug, 
+								name, 
+								argument_count, 
+								alternative_functions
+							);
 						llvm::FunctionType* function_type = llvm::FunctionType::get(
 								return_type, 
 								llvm::ArrayRef(parameter_types), 
 								false
 							);
-						for(const auto& alternative : alternatives)
-						{
-							auto replacement_table = create_replacement_table(
-									debug, 
-									argument_count, 
-									*alternative.get(), 
-									parameter_names
-								);
-							if(replacement_table.has_value() == false) {
-								std::cerr << "Error! Failed to generate replacement table for parameters.\n";
-								return nullptr;
-							}
-							context->replace_names.swap(replacement_table.value());
-							llvm::Value* matches_constraint = constraint_condition(
-									context, 
-									top_level_syntax_tree_context, 
-									debug, 
-									alternative->get_parameters()
-								);
-							context->replace_names.clear();
-							llvm::Value* next_index = context->builder.CreateMul(
-									context->builder.CreateIntCast(
-											matches_constraint, 
-											index_type, 
-											false
-										), 
-									llvm::ConstantInt::get(index_type, option)
-								);
-							if(option_index == nullptr) {
-								option_index = next_index;
-							}
-							else {
-								option_index = context->builder.CreateAdd(
-										option_index, 
-										next_index
-									);
-							}
-						++option;
-						}
-						auto table_pointer_type = llvm::PointerType::get(
-								lookup_table.value()->getType(), 
-								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
+						llvm::Value* option_index = function_index_value(
+								context, 
+								top_level_syntax_tree_context, 
+								function, 
+								parameter_types, 
+								parameter_names, 
+								return_type, 
+								index_type, 
+								alternatives, 
+								argument_count, 
+								debug
 							);
-						auto opauqe_pointer_type = llvm::PointerType::get(
-								constructing_context->context, 
-								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
-							);
-						auto function_pointer_type = llvm::PointerType::get(
-								function_type, //alternative_functions[0].value()->getType(), 
-								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
-							);
-						auto type_from_gep = llvm::GetElementPtrInst::getTypeAtIndex(
-								//table_pointer_type, 
-
-								((llvm::ArrayType*) lookup_table_global->getType()->getElementType()), 
-								static_cast<uint64_t>(0)
-							);
-						//auto element_pointer_type = alternative_functions[0].value()->getType();
-						//std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(element_pointer_type) << "\n";
-						std::cout << "Hello\n";
-						std::cout << "GEP NUll? " << (type_from_gep == nullptr) << "\n";
-						//std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(type_from_gep) << "\n";
-						//std::cout << "Valid ElementType: " << llvm::PointerType::isValidElementType(lookup_table_global->getType()) << "\n";
-						auto index_array = std::vector<llvm::Value*>{option_index};
-						std::cout << "Hello 0\n";
-						//auto generate = context->builder.CreateGEP( // TODO: Stop using a depracted function
-						//		//lookup_table_global->getElementType(), 
-						//		//function_type, 
-						//		//type_from_gep, 
-						//		//function->getType(), 
-						//		//element_pointer_type, 
-						//		//alternative_functions[0].value()->getType(), 
-
-						//		//function_pointer_type, 
-						//		//opauqe_pointer_type, 
-						//		((llvm::ArrayType*) lookup_table_global->getType()->getElementType()), 
-						//		//((llvm::ArrayType*) type_from_gep)->getElementType(),
-						//		//function_pointer_type, 
-						//		lookup_table_global, 
-						//		index_array, 
-						//		"option_array_address"
-						//	);
-						//std::cout << "Hello 1\n";
-						//auto element = context->builder.CreateGEP( // TODO: Stop using a depracted function
-						//		//function_type, 
-						//		//type_from_gep, 
-						//		function->getType(), 
-						//		//((llvm::ArrayType*) lookup_table_global->getType()->getElementType())->getElementType(), 
-						//		//element_pointer_type, 
-						//		//alternative_functions[0].value()->getType(), 
-						//		//opauqe_pointer_type, 
-
-						//		//function_pointer_type, 
-						//		//opauqe_pointer_type, 
-						//		//((llvm::ArrayType*) type_from_gep)->getElementType(),
-						//		//function_pointer_type, 
-						//		generate, 
-						//		index_array, 
-						//		"option_address"
-						//	);
-						//std::cout << "Hello 2\n";
-						//std::vector<unsigned> first_element_index{0};
-						//std::cout << "ABOUT TO MAKE FE\n";
-						//auto first_element = context->builder.CreateExtractValue(
-						//		lookup_table_global, 
-						//		first_element_index
-						//	);
-						//std::cout << "First element\n";
-						llvm::ArrayType* size_1_array_type = llvm::ArrayType::get(
-								function->getType(), 
-								1
-							);
-						auto first_element = context->builder.CreatePointerBitCastOrAddrSpaceCast(
-								(llvm::Value*) lookup_table_global, 
-								(llvm::Type*) function->getType(), 
-								"cast"
-							);
-						std::cout << "CAST\n";
-						auto function_pointer_array_type = llvm::PointerType::get(
-								size_1_array_type, 
-								constructing_context->module.getDataLayout().getDefaultGlobalsAddressSpace()
-							);
-						auto first_element_array = context->builder.CreatePointerBitCastOrAddrSpaceCast(
-								(llvm::Value*) lookup_table_global, 
-								function_pointer_array_type, 
-								"cast_to_array"
-							);
-						std::cout << "CAST 2\n";
-						auto element = context->builder.CreateGEP( // TODO: Stop using a depracted function
-								size_1_array_type, 
-								//first_element, 
-								//lookup_table_global, 
-								first_element_array, 
-								index_array, 
-								"option_address"
-							);
-						std::cout << "GEP!!!\n";
-						auto element_from_array = context->builder.CreatePointerBitCastOrAddrSpaceCast(
-								element, 
-								(llvm::Type*) function->getType(), 
-								"cast_from_array"
-							);
-						std::cout << "CAST 3\n";
-						//auto element = context->builder.Insert(
-						//		llvm::GetElementPtrInst::Create(
-						//				function->getType(), 
-						//				//(llvm::Type*) function->getType(), 
-						//				//lookup_table_global->getType(), 
-						//				//alternative_functions[0].value()->getType(), 
-						//				//(llvm::ArrayType*) lookup_table_global, 
-						//				//((llvm::ArrayType*) lookup_table_global)->getElementType(), 
-						//				first_element, 
-						//				index_array
-						//			)
-						//		);
-						//std::cout << "Element\n";
-						///////std::vector<llvm::Value*> zero_value{
-						///////		llvm::ConstantInt::get(
-						///////				context->context, 
-						///////				llvm::APInt(
-						///////						32, 
-						///////						0, 
-						///////						false
-						///////					)
-						///////			)
-						///////	};
-						///////auto size_pointer = context->builder.CreateGEP( 
-						///////		(llvm::Type*) function->getType(), 
-						///////		llvm::ConstantPointerNull::get(function->getType()), 
-						///////		zero_value, 
-						///////		"size_pointer"
-						///////	);
-						///////std::cout << "Zero GEP\n";
-						///////auto integer_size = context->builder.CreatePtrToInt( 
-						///////		size_pointer, 
-						///////		llvm::Type::getInt32Ty(context->context), 
-						///////		"size"
-						///////	);
-						///////auto offset = context->builder.CreateMul(
-						///////		integer_size, 
-						///////		option_index
-						///////	);
-						///////auto function_address = context->builder.CreateAdd(
-						///////		offset, 
-						///////		context->builder.CreatePtrToInt(
-						///////				first_element, 
-						///////				llvm::Type::getInt32Ty(context->context), 
-						///////				"base_address"
-						///////			), 
-						///////		"function_address"
-						///////	);
-						/////////auto element = context->builder.CreateGEP( 
-						/////////		(llvm::Type*) function->getType(), 
-						/////////		first_element, 
-						/////////		index_array
-						/////////	);
-						///////std::cout << "GEP\n";
-						///////auto loaded_option = context->builder.CreateLoad(
-						///////		//element_pointer_type, 
-						///////		//opauqe_pointer_type, 
-						///////		function_type, //(llvm::Type*) function->getType(), 
-						///////		//first_element, 
-						///////		//element, 
-						///////		//first_element, 
-						///////		context->builder.CreateIntToPtr(
-						///////				function_address, 
-						///////				(llvm::Type*) function->getType()
-						///////			), 
-						///////		"option"
-						///////	);
-						///////std::cout << "Load\n";
-						//auto loaded_function_casted_pointer = context->builder.CreatePointerBitCastOrAddrSpaceCast(
-						//		loaded_option, 
-						//		opauqe_pointer_type, 
-						//		"option_function_pointer"
-						//	);
-						auto loaded_option = context->builder.CreateLoad(
-								(llvm::Type*) function->getType(), 
-								element_from_array, 
-								"option"
-							);
-						std::vector<llvm::Value*> arguments;
-						for(auto& parameter : constructing_context->symbol_table)
-							arguments.push_back(parameter.second);
-						return context->builder.CreateCall(
+						return call_function_pointer_from_array(
+								context, 
+								function, 
 								function_type, 
-								loaded_option, 
-								llvm::ArrayRef(arguments)
+								lookup_table_global, 
+								std::vector<llvm::Value*>{option_index}
 							);
 					}, 
                 llvm::Type::getInt32Ty(constructing_context->context)

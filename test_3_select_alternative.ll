@@ -46,8 +46,8 @@ entry:
   %7 = add i32 %4, %6
   %option_address = getelementptr [1 x i32 (i32)*], [1 x i32 (i32)*]* bitcast ([3 x i32 (i32)*]* @my_function_1_table to [1 x i32 (i32)*]*), i32 %7
   %cast_from_array = bitcast [1 x i32 (i32)*]* %option_address to i32 (i32)*
-  %option = load i32 (i32)*, i32 (i32)* %cast_from_array, align 8
-  %8 = call i32 %option(i32 %parameter_2)
+  %loaded_option = load i32 (i32)*, i32 (i32)* %cast_from_array, align 8
+  %8 = call i32 %loaded_option(i32 %parameter_2)
   ret i32 %8
 }
 
