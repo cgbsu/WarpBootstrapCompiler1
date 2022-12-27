@@ -30,6 +30,7 @@ namespace Warp::Parsing
 	};
 
 
+	using FunctionCallType = std::unique_ptr<Node<NodeType::FunctionCall>>;
 
 	using MathematicalExpressionTermsType_ = NumericLiteralTermsType
 		::Prepend<
@@ -108,7 +109,7 @@ namespace Warp::Parsing
 			TypeTreeTerm<
 					Call::Function, 
 					NonTerminalTerm, 
-					SyntaxNode, 
+					FunctionCallType, 
 					FixedString{"FunctionCall"}
 				>
 			>;
@@ -188,6 +189,7 @@ namespace Warp::Parsing
 			//constexpr Term(Node<NodeTypeParameterConstant> node) noexcept 
 			//		: node(std::make_unique<Node<NodeTypeParameterConstant>>(node)) {}
 			Term(InputType value) noexcept : node(literal_node(value)) {}
+			Term(FunctionCallType value) noexcept : node(std::move(value)) {}
 			constexpr Term() noexcept = default;
 			constexpr Term(Term& other) noexcept = default;
 			constexpr Term(Term&& other) noexcept = default;
@@ -235,6 +237,20 @@ namespace Warp::Parsing
 				return Term(std::make_unique<Node<NodeType::Divide>>(
 						std::move(node), 
 						std::move(other.node)
+					));
+			}
+			constexpr Term operator*(FunctionCallType& other) noexcept
+			{
+				return Term(std::make_unique<Node<NodeType::Multiply>>(
+						std::move(node), 
+						std::move(other)
+					));
+			}
+			constexpr Term operator/(FunctionCallType& other) noexcept
+			{
+				return Term(std::make_unique<Node<NodeType::Divide>>(
+						std::move(node), 
+						std::move(other)
 					));
 			}
 			constexpr Term operator-() noexcept {
@@ -300,6 +316,76 @@ namespace Warp::Parsing
 						constant_call(right), 
 						literal_node(right)
 					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(
+					FunctionCallType left, 
+					OperationHolder<OperateParameterConstant>, 
+					FunctionCallType right
+				) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						std::move(left), 
+						std::move(right)	
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(
+					InputType left, 
+					OperationHolder<OperateParameterConstant>, 
+					FunctionCallType right
+				) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						literal_node(left), 
+						std::move(right)	
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(
+					std::string left, 
+					OperationHolder<OperateParameterConstant>, 
+					FunctionCallType right
+				) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						constant_call(left), 
+						std::move(right)	
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(
+					Term& left, 
+					OperationHolder<OperateParameterConstant>, 
+					FunctionCallType right
+				) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						std::move(left.node), 
+						std::move(right)	
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(
+					FunctionCallType left, 
+					OperationHolder<OperateParameterConstant>, 
+					InputType right
+				) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						std::move(left), 
+						literal_node(right)
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(
+					FunctionCallType left, 
+					OperationHolder<OperateParameterConstant>, 
+					std::string right
+				) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						std::move(left), 
+						constant_call(right)
+					)) {}
+			template<NodeType OperateParameterConstant>
+			constexpr Sum(
+					FunctionCallType left, 
+					OperationHolder<OperateParameterConstant>, 
+					Term& right
+				) noexcept 
+				: node(std::make_unique<Node<OperateParameterConstant>>(
+						std::move(left), 
+						std::move(right.node)
+					)) {}
 			constexpr Sum() noexcept = default;
 			constexpr Sum(const Sum& other) noexcept = default;
 			constexpr Sum(Sum&& other) noexcept = default;
@@ -347,6 +433,20 @@ namespace Warp::Parsing
 				return Sum(std::make_unique<Node<NodeType::Subtract>>(
 						std::move(node), 
 						std::move(other.node)
+					));
+			}
+			constexpr Sum operator+(FunctionCallType&& other) noexcept
+			{
+				return Sum(std::make_unique<Node<NodeType::Add>>(
+						std::move(node), 
+						std::move(other)
+					));
+			}
+			constexpr Sum operator-(FunctionCallType&& other) noexcept
+			{
+				return Sum(std::make_unique<Node<NodeType::Subtract>>(
+						std::move(node), 
+						std::move(other)
 					));
 			}
 		};
@@ -496,6 +596,15 @@ namespace Warp::Parsing
 					{
 						auto call = constant_call(std::string{std::string_view{left}});
 						auto term = NodeConsumeParameterType{std::move(call)};
+						return OperateParameterConstant(
+								std::move(term), 
+								std::move(right)
+							);
+					}, 
+					operation_term(function_call, operator_term, input)
+					>= [](auto left, auto, auto right)
+					{
+						auto term = NodeConsumeParameterType(std::move(left));
 						return OperateParameterConstant(
 								std::move(term), 
 								std::move(right)

@@ -20,7 +20,7 @@ int main(int argc, char** args)
 					"let my_function(my_parameter : {(0u32 + my_parameter) < 10u32}) { 42u32 * my_parameter };"
 					"let my_function(my_parameter : {(0u32 + my_parameter) >= 10u32 && (0u32 + my_parameter) < 42u32}) { 10u32 + my_parameter };"
 					"let my_function(my_parameter : {(0u32 + my_parameter) >= 42u32}) { (0u32 + my_parameter) + my_parameter };"
-					"let my_function(my_parameter : {(0u32 + my_parameter) >= 1000u32}) { my_function(1u32) };"
+					"let my_function(my_parameter : {(0u32 + my_parameter) >= 1000u32}) { my_function(1u32) + 0u };"
 				}, 
 			false
 		);
