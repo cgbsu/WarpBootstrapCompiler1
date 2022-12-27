@@ -22,10 +22,13 @@ namespace Warp::SyntaxTranslation::LLVM
 				const auto* top_level_syntax_context, 
 				const Node<ConstantCallNodeTypeParameterConstant>* node, 
 				bool debug
-			) : value(constructing_context->symbol_table.at(constructing_context->to_name(node->name))) {
-			std::cout << "Name: " << constructing_context->to_name(node->name) << "\n";
+			)
+		{
+			std::cout << "Got name: " << node->name << "\n";
 			for(const auto& parameter : constructing_context->symbol_table)
 				std::cout << "In table: " << parameter.first << "\n";
+			std::cout << "To Name: " << constructing_context->to_name(node->name) << "\n";
+			value = constructing_context->symbol_table.at(constructing_context->to_name(node->name));
 		}
 		std::optional<ReduceToType> to_value() const
 		{

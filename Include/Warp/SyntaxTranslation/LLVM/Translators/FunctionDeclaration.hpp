@@ -21,6 +21,7 @@ namespace Warp::SyntaxTranslation::LLVM
         std::vector<llvm::Type*> parameter_types;
 		std::vector<std::string> parameter_names;
 	std::cout << "INDEX 8\n";
+	std::cout << "Function parameters size: " << function_parameters.size() << "\n";
 		for(const auto& parameter : function_parameters) {
 	std::cout << "INDEX 9\n";
 			parameter_types.push_back(parameter.type);
@@ -82,11 +83,12 @@ namespace Warp::SyntaxTranslation::LLVM
 			const std::vector<SingleParameterType>& parameters
 		)
 	{
-	std::cout << "Const 0\n";
-		llvm::Value* condition = llvm::ConstantInt::get(
+		llvm::Type* bool_type = llvm::IntegerType::get(
 				constructing_context->context, 
-				llvm::APInt(1, 1, true)
+				1
 			);
+	std::cout << "Const 0\n";
+		llvm::Value* condition = llvm::ConstantInt::getTrue(constructing_context->context);
 	std::cout << "Const 1\n";
 		for(const auto& parameter : parameters)
 		{
@@ -106,9 +108,8 @@ namespace Warp::SyntaxTranslation::LLVM
 			else // Writing a bug rn, potential for multiple indicies to work. //
 			{
 				parameter_constraint_ = llvm::ConstantInt::getTrue(
-						llvm::IntegerType::get(constructing_context->context, 
-						1
-					));
+						constructing_context->context
+					);
 			}
 		std::cout << "Const 1.1.0\n";
 			if(parameter_constraint_.has_value() == false) {
@@ -254,7 +255,7 @@ namespace Warp::SyntaxTranslation::LLVM
 		) -> std::optional<std::unordered_map<std::string, std::string>>
 	{
 		std::unordered_map<std::string, std::string> replace_names;
-		if(alternative.get_parameters().size() != (argument_count + 1)) {
+		if(alternative.get_parameters().size() != argument_count) {
 			std::cerr << "Internal Error: Parameter count does not match argument count\n";
 			return std::nullopt;
 		}
@@ -295,14 +296,22 @@ namespace Warp::SyntaxTranslation::LLVM
 			const std::vector<llvm::Type*>& parameter_types
 		)
 	{
+	std::cout << "ZIP 0\n";
 		const size_t parameter_count = parameter_names.size();
+	std::cout << "ZIP 1\n";
 		if(parameter_count != parameter_types.size()) {
 			std::cerr << "Internal Error! Mismatch in actual vs. expected number of parameters.\n";
 			return std::nullopt;
 		}
+	std::cout << "ZIP 2\n";
 		std::vector<FunctionParameter> parameters;
-		for(size_t ii = 0; parameter_count; ++ii)
+	std::cout << "ZIP 3\n";
+		for(size_t ii = 0; ii < parameter_count; ++ii) {
+	std::cout << "ZIP 3.0\n";
 			parameters.push_back({parameter_names[ii], parameter_types[ii]});
+	std::cout << "ZIP 3.1\n";
+		}
+	std::cout << "ZIP 4\n";
 		return parameters;
 	}
 
@@ -313,10 +322,19 @@ namespace Warp::SyntaxTranslation::LLVM
 			const size_t argument_count, 
 			std::string name, 
 			const FunctionType::AlternativesOfUniformArityRowType& alternatives, 
-			std::string base_parameter_name = std::string{"parameter_"}
+			std::string base_parameter_name = std::string{"parameter_"}, 
+			size_t bits_in_index = 32
 		)
 	{
 		size_t alternative_count = alternatives.size();
+		if(alternative_count <= 0) {
+			std::cout << "No alternatives with argument_count " << argument_count << "\n";
+			return std::nullopt;
+		}
+		llvm::Type* index_type = llvm::IntegerType::get(
+				constructing_context->context, 
+				bits_in_index
+			);
 	std::cout << "INDEX 0\n";
 		const auto alternative_functions = translate_alternative_bodies_to_functions(
 				constructing_context, 
@@ -337,10 +355,12 @@ namespace Warp::SyntaxTranslation::LLVM
 			);
 	std::cout << "INDEX 2\n";
 		const auto parameter_names = create_parameter_names(argument_count);
+	std::cout << "INDEX 2.0 Arg Count " << argument_count << " Pnames.size(): " << parameter_names.size() << "\n";
 	std::cout << "INDEX 3\n";
 		const auto parameter_types = list_of_type(constructing_context, argument_count);
 	std::cout << "INDEX 4\n";
 		const auto parameters = zip_to_paramerers(parameter_names, parameter_types);
+		//std::cout << "INDEX 4.0 Size: "<< parameters.value().size() << "\n";
 	std::cout << "INDEX 5\n";
 		if(lookup_table.has_value() == false) {
 			std::cerr << "Error! No lookup table for alternative!\n";
@@ -374,6 +394,7 @@ namespace Warp::SyntaxTranslation::LLVM
 							}
 						std::cout << "Gen 0.2!\n";
 							context->replace_names.swap(replacement_table.value());
+						//std::cout << "Gen 0.2.0\n";
 						std::cout << "Gen 0.3!\n";
 							llvm::Value* matches_constraint = constraint_condition(
 									context, 
@@ -384,7 +405,13 @@ namespace Warp::SyntaxTranslation::LLVM
 						std::cout << "Gen 0.4!\n";
 							context->replace_names.clear();
 						std::cout << "Gen 0.5!\n";
-							llvm::Value* next_index = context->builder.CreateShl(matches_constraint, option);
+							llvm::Value* next_index = context->builder.CreateShl(
+									context->builder.CreateTruncOrBitCast(
+											matches_constraint, 
+											index_type
+										), 
+									llvm::APInt(bits_in_index, option)
+								);
 						std::cout << "Gen 0.6!\n";
 							if(option_index == nullptr) {
 								std::cout << "Gen 0.6.A.0!\n";
@@ -396,6 +423,7 @@ namespace Warp::SyntaxTranslation::LLVM
 								option_index = context->builder.CreateOr(option_index, next_index);
 								std::cout << "Gen 0.6.B.1!\n";
 							}
+						++option;
 						std::cout << "Gen 0.7!\n";
 						}
 						std::cout << "Gen 1!\n";
@@ -419,6 +447,7 @@ namespace Warp::SyntaxTranslation::LLVM
 		{
 			if(alternatives.size() > 0)
 			{
+				std::cout << "TRANSLATING alternatives with argcount " << argument_count << "\n";
 				translate_alternatives(
 						constructing_context, 
 						top_level_syntax_tree_context, 
@@ -427,8 +456,10 @@ namespace Warp::SyntaxTranslation::LLVM
 						to_translate.get_name(), 
 						alternatives
 					);
-				++argument_count;
 			}
+			else
+				std::cout << "NO alternatives with  argcount " << argument_count << "\n";
+			++argument_count;
 		}
 	}
 

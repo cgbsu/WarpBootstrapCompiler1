@@ -16,8 +16,12 @@ extern LLVM::Context context;
 int main(int argc, char** args)
 {
 	auto parse_result_ = parse_context(
-			std::string{"let my_function(my_parameter) { 42u * my_parameter };"}, 
-			true
+			std::string{
+					"let my_function(my_parameter : {(0u + my_parameter) < 10u}) { 42u * my_parameter };"
+					"let my_function(my_parameter : {(0u + my_parameter) >= 10u && (0u + my_parameter) < 42u}) { 10u + my_parameter };"
+					"let my_function(my_parameter : {(0u + my_parameter) > 42u}) { 20u + my_parameter };"
+				}, 
+			false
 		);
 	std::string test_function_name = "my_function";
 	if(parse_result_.has_value() == true)

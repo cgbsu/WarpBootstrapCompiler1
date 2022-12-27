@@ -19,7 +19,9 @@ namespace Warp::SyntaxTranslation::LLVM
 			|| CanidateParameterConstant == NodeType::LessThan 
 			|| CanidateParameterConstant == NodeType::GreaterThan 
 			|| CanidateParameterConstant == NodeType::LessThankOrEqualTo 
-			|| CanidateParameterConstant == NodeType::GreaterThanOrEqualTo;
+			|| CanidateParameterConstant == NodeType::GreaterThanOrEqualTo 
+			|| CanidateParameterConstant == NodeType::LogicalOr 
+			|| CanidateParameterConstant == NodeType::LogicalAnd;
 
 	template<NodeType AritmaticOperationTag>
 	requires(is_binary_arithmatic_operator<AritmaticOperationTag> == true)
