@@ -526,13 +526,13 @@ namespace Warp::SyntaxTranslation::LLVM
 		if(selection_function_.has_value() == false)
 			return std::nullopt;
 		llvm::Function* selection_function = selection_function_.value();
-		if(llvm::verifyFunction(*selection_function) == false)
-		{
-			std::cerr << "Error: Failed to verify selection function " 
-						<< alternative_selection_function_name 
-						<< "\n";
-			return std::nullopt;
-		}
+		//if(llvm::verifyFunction(*selection_function) == false)
+		//{
+		//	std::cerr << "Error: Failed to verify selection function " 
+		//				<< alternative_selection_function_name 
+		//				<< "\n";
+		//	return std::nullopt;
+		//}
 		auto alternative_function_ = make_function(
 				constructing_context, 
 				alternative_name, 
@@ -566,13 +566,13 @@ namespace Warp::SyntaxTranslation::LLVM
 		if(alternative_function_.has_value() == false)
 			return std::nullopt;
 		llvm::Function* alternative_function = alternative_function_.value();
-		if(llvm::verifyFunction(*alternative_function_.value()) == false)
-		{
-			std::cerr << "Error: Failed to verify alternative function " 
-						<< alternative_function
-						<< "\n";
-			return std::nullopt;
-		}
+		//if(llvm::verifyFunction(*alternative_function_.value()) == false)
+		//{
+		//	std::cerr << "Error: Failed to verify alternative function " 
+		//				<< alternative_function
+		//				<< "\n";
+		//	return std::nullopt;
+		//}
 		return alternative_function;
 	}
 

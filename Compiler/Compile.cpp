@@ -107,10 +107,10 @@ namespace Warp::SyntaxTranslation::LLVM
 				return false;
 			}
 		}
-		if(llvm::verifyModule(context->module) == false) {
-			std::cerr << "Error: Failed to verify module!";
-			return false;
-		}
+		//if(llvm::verifyModule(context->module) == false) {
+		//	std::cerr << "Error: Failed to verify module!";
+		//	return false;
+		//}
 		initialize_llvm();
 		auto target_machine_ = initialize_target(
 				context->module, 

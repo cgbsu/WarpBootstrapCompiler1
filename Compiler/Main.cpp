@@ -13,8 +13,8 @@ std::optional<std::string> read_file(std::filesystem::path file_path);
 int main(int argc, char** args)
 {
 	auto warp_code_path = std::filesystem::path("Warp") / "Test0.warp";
-	//if(argc >= 2)
-	//	warp_code_path = std::filesystem::path(args[1]);
+	if(argc >= 2)
+		warp_code_path = std::filesystem::path(args[1]);
 	std::cout << "Warp Code Path: " << warp_code_path << "\n";
 	auto warp_code_ = read_file(warp_code_path);
 	if(warp_code_.has_value() == false)
