@@ -30,7 +30,6 @@ namespace Warp::SyntaxTranslation::LLVM
 		std::string error;
 		auto target = llvm::TargetRegistry::lookupTarget(target_triple, error);	
 		if(!target) {
-			std::cerr << "Error Looking Up Target: " << error << "\n";
 			llvm::errs() << error;
 			return std::nullopt;
 		}
@@ -54,24 +53,58 @@ namespace Warp::SyntaxTranslation::LLVM
 		std::string file_name = output_file_path.string();
 		std::error_code error_code;
 		llvm::raw_fd_ostream output_media_stream(file_name, error_code, llvm::sys::fs::OF_None);
-		if(error_code) {
-			std::cerr << "Failed to open file: " << error_code.message();
+		if(error_code)
 			llvm::errs() << "Failed to open file: " << error_code.message();
-		}
 		llvm::legacy::PassManager pass;
 		auto file_type = llvm::CGFT_ObjectFile;
 		if(target_machine->addPassesToEmitFile(pass, output_media_stream, nullptr, file_type)) {
-			std::cerr << "Error: The target machine can not emit files of this type!\n";
 			llvm::errs() << "Error: The target machine can not emit files of this type!\n";
 			return false;
 		}
 		pass.run(to_write);
 		output_media_stream.flush();
-		std::cout << "Wrote object code to " << file_name << "\n";
 		llvm::outs() << "Wrote object code to " << file_name << "\n";
 		return true;
 	}
 			
+	//std::filesystem::path default_clang_executable = std::filesystem::path("/") / "usr" / "bin" / "clang++-15";
+	//// Thank you https://stackoverflow.com/questions/11657529/how-to-generate-an-executable-from-an-llvmmodule
+	//void compile_to_executable(
+	//		std::string target_triple, 
+	//		std::filesystem::path warp_object_file, 
+	//		std::filesystem::path executable_name, 
+	//		std::filesystem::path clang_executable = default_clang_executable, 
+	//		std::vector<std::filesystem::path> other_files = {}, 
+	//		std::vector<std::string> additional_arguments = {}, 
+	//	)
+	//{
+	//	llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> diagnostic_options = new clang::DiagnosticOptions;
+	//	clang::TestDiagnosticPrinter* dianostic_client = new clang::TextDiagnosticPrinter(llvm::errs(), &*diagnostic_options);
+	//	llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> diagnostic_identifiers(new clang::DiagnosticIds());
+	//	clang::DiagnosticsEngine diagnostics(diagnostic_identifiers, &*diagnostic_options, diagnostic_client);
+	//	clang::driver::Driver driver(clang_executable.string(), target_triple, diagnostics);
+	//	
+	//	std::vector<const char*> arguments;
+	//	for(const auto& argument : additional_arguments)
+	//		arguments.push_back(argument.data());
+	//	std::vector<std::string> file_name_buffers;
+	//	for(const auto& other_file : other_files) {
+	//		file_name_buffers.push_back(other_file.string());
+	//		arguments.push_back(file_name_buffers.back().data())
+	//	}
+	//	std::string object_file_name_buffer = warp_object_file.string();
+	//	arguments.push_back(object_file_name_buffer.data());
+	//	std::string output = std::string{"-o "} + executable_name;
+	//	arguments.push_back(output.data());
+	//	auto arguments_reference = ArrayRef<const char*>{arguments};
+	//	std::unique_ptr<clang::driver::Compilation> compilation(dreiver.BuildCompilation(arguments_reference));
+	//	if(compilation && !compilation->containsError()) {
+	//		llvm::SmallVector<std::pair<int, const clang::driver::Command*>, 4> failing_commands;
+	//		driver.ExecuteCompilation(*compilation, failing_commands);
+	//	}
+	//	else
+	//		std::cout << "Error when attempting to generate executable.\n";
+	//}
 
 	bool compile(
 			Context* context, 

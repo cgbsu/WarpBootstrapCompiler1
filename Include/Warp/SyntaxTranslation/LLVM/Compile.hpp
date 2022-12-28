@@ -24,6 +24,9 @@
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Target/TargetMachine.h>
+//#include <clang/Driver/Driver.h>
+//#include <clang/Driver/Compilation.h>
+//#include <clang/Frontend/TextDiagnosticPrinter.h>
 
 #ifndef WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__COMPILE__HPP
 #define WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__COMPILE__HPP
@@ -62,7 +65,6 @@ namespace Warp::SyntaxTranslation::LLVM
 		std::optional<llvm::Function*> retrieve_function(std::string name, const size_t argument_count)
 		{
 			std::string alternative_name = name + std::string{"_"} + std::to_string(argument_count);
-			std::cout << "Looking for " << alternative_name << "\n";
 			if(function_table.contains(alternative_name) == true)
 				return function_table.at(alternative_name);
 			return std::nullopt;
@@ -101,14 +103,12 @@ namespace Warp::SyntaxTranslation::LLVM
 					using ReductionType = decltype(std::declval<TranslatorType>().to_value());
 					if constexpr(std::is_convertible_v<std::optional<ReduceToParameterType>, ReductionType>)
 					{
-						std::cout << "Recducing\n";
 						auto translator = TranslatorType(
 								constructing_context, 
 								top_level_syntax_tree_context, 
 								node, 
 								debug
 							);
-						std::cout << "Translated, returning value.\n";
 						return translator.to_value();
 					}
 					else

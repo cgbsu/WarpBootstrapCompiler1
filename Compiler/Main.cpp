@@ -25,10 +25,8 @@ int main(int argc, char** args)
 	}
 	auto object_code_path = std::filesystem::path(warp_code_path.string() + std::string{".o"});
 	std::cout << "Object Code Path: " << object_code_path << "\n";
-	//const static std::string default_triple = HOST_TRIPLET
 	const static std::string default_triple = llvm::sys::getDefaultTargetTriple();
-	std::cout << "Compiling Triplet: " << default_triple << "\n";
-	std::cout << "Compiling Code: \n" << warp_code_.value() << "\n";
+	std::cout << "Compiling With Triplet: " << default_triple << "\n";
 	bool success = LLVM::compile(&context, warp_code_.value(), object_code_path, default_triple);
 	if(success == true)
 		std::cout << "Success!\n";

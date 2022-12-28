@@ -21,7 +21,6 @@ namespace Warp::SyntaxTranslation::LLVM
 	{
 		if constexpr(LiteralTagParameterConstant == NodeType::LiteralWhole)
 		{
-			std::cout << "Build APInt\n";
 			auto value = from.to<NumericTypeResolver<NumericTypeTag::Whole>::Type>().value();
 			return llvm::ConstantInt::get(
 					context->context, 

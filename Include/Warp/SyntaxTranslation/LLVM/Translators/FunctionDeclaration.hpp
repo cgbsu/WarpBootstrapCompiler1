@@ -619,7 +619,6 @@ namespace Warp::SyntaxTranslation::LLVM
 										false 
 									)
 							).getCallee();
-				std::cout << "Submitted {" << alternative_name << "}\n";
 				constructing_context->function_table.insert({ // This is so it can be references by alternative options .//
 						alternative_name, 
 						alternative_declaration	
