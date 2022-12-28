@@ -447,7 +447,8 @@ namespace Warp::SyntaxTranslation::LLVM
 			const auto* top_level_syntax_tree_context, 
 			bool debug, 
 			const size_t argument_count, 
-			std::string name, 
+			std::string base_name, 
+			std::string alternative_name, 
 			const FunctionType::AlternativesOfUniformArityRowType& alternatives, 
 			std::string base_parameter_name = std::string{"parameter_"}, 
 			size_t bits_in_index = 32
@@ -466,7 +467,7 @@ namespace Warp::SyntaxTranslation::LLVM
 				constructing_context, 
 				top_level_syntax_tree_context, 
 				debug, 
-				name, 
+				base_name, 
 				argument_count, 
 				alternatives
 			);
@@ -477,7 +478,7 @@ namespace Warp::SyntaxTranslation::LLVM
 				constructing_context, 
 				top_level_syntax_tree_context, 
 				debug, 
-				name, 
+				base_name, 
 				argument_count, 
 				alternative_functions
 			);
@@ -491,9 +492,6 @@ namespace Warp::SyntaxTranslation::LLVM
 				llvm::ArrayRef(parameter_types), 
 				false
 			);
-		std::stringstream name_buffer;
-		name_buffer << name << "_" << argument_count;
-		const std::string alternative_name = name_buffer.str();
 		const std::string alternative_selection_function_name = alternative_name + std::string{"_select_index"};
 		std::optional<llvm::Function*> selection_function_ = make_function(
 				constructing_context, 
@@ -581,11 +579,19 @@ namespace Warp::SyntaxTranslation::LLVM
 		std::vector<llvm::Function*> alternatives;
 	};
 
+	const static std::string default_entry_point_function_name = std::string{"warp_main"}; /* There is a problem with the 
+			Warp parser where identifiers must be a certain length. */
+	const static std::string default_output_entry_point_function_name = std::string{"main"}; /* Because of the limits on the length of 
+			identifiers this is needed for the time being. */
+
 	std::optional<WarpLLVMFunction> translate_function(
 			Context* constructing_context, 
 			const auto* top_level_syntax_tree_context, 
 			bool debug, 
-			const FunctionType& to_translate
+			const FunctionType& to_translate, 
+			std::string entry_point_function_name = default_entry_point_function_name, 
+			std::string output_entry_point_function_name = default_output_entry_point_function_name, 
+			bool keep_entry_point_name_same = true
 		)
 	{
 		WarpLLVMFunction function{to_translate.get_name()};
@@ -595,10 +601,14 @@ namespace Warp::SyntaxTranslation::LLVM
 			function.alternatives.push_back(nullptr);
 			if(alternatives.size() > 0)
 			{
+				std::string base_name = to_translate.get_name();
 				std::string alternative_name 
-						= to_translate.get_name() 
+						= base_name
 						+ std::string{"_"} 
 						+ std::to_string(argument_count);
+				if(base_name == default_entry_point_function_name 
+						&& keep_entry_point_name_same == true)
+					alternative_name = output_entry_point_function_name;
 				const auto parameter_types = list_of_type(constructing_context, argument_count);
 				llvm::Function* alternative_declaration = (llvm::Function*)
 						constructing_context->module.getOrInsertFunction( // Declares but does not define the function.
@@ -619,7 +629,8 @@ namespace Warp::SyntaxTranslation::LLVM
 						top_level_syntax_tree_context, 
 						debug,
 						argument_count, 
-						to_translate.get_name(), 
+						base_name, 
+						alternative_name, 
 						alternatives
 					);
 				if(new_alternative_.has_value() == false)
@@ -633,8 +644,7 @@ namespace Warp::SyntaxTranslation::LLVM
 	}
 
 	template<typename ReduceToParameterType, NodeType NotImplementedTagParameterConstant>
-	struct Translator<Target::LLVM, ReduceToParameterType, NotImplementedTagParameterConstant>
-	{
+	struct Translator<Target::LLVM, ReduceToParameterType, NotImplementedTagParameterConstant> {
 		Translator(
 				Context* constructing_context, // Weird bug with llvm
 				const auto* top_level_syntax_context, 

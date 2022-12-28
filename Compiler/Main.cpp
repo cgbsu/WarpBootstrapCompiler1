@@ -39,27 +39,17 @@ int main(int argc, char** args)
 
 std::optional<std::string> read_file(std::filesystem::path file_path)
 {
-	std::cout << "DEBUG READ FILE 0\n";
 	if(std::filesystem::exists(file_path) == false)
 		return std::nullopt;
-	std::cout << "DEBUG READ FILE 1\n";
 	std::ifstream input_media_stream(file_path);
-	std::cout << "DEBUG READ FILE 2\n";
 	if(input_media_stream.is_open() == false && input_media_stream.good() == false)
 		return std::nullopt;
-	std::cout << "DEBUG READ FILE 3\n";
 	std::stringstream input_media_buffer;
-	std::cout << "DEBUG READ FILE 4\n";
 	std::string line;
-	std::cout << "DEBUG READ FILE 5\n";
 	while(input_media_stream.eof() == false) {
-	std::cout << "DEBUG READ FILE 6\n";
 		std::getline(input_media_stream, line);
-	std::cout << "DEBUG READ FILE 7\n";
 		input_media_buffer << line << "\n";
-	std::cout << "DEBUG READ FILE 8\n";
 	}
-	std::cout << "DEBUG READ FILE 9\n";
 	return input_media_buffer.str();
 }
 
