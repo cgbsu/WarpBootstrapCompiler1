@@ -52,11 +52,13 @@ namespace Warp::SyntaxTranslation::LLVM
 							llvm::ArrayRef<llvm::Value*>(arguments)
 						);
 				}
-				else
+				else {
 					call = nullptr;
+				}
 			}
-			else
+			else {
 				call = nullptr;
+			}
 		}
 		std::optional<ReduceToType> to_value() const
 		{

@@ -6,25 +6,16 @@
 my_function_1:                          # @my_function_1
 	.cfi_startproc
 # %bb.0:                                # %entry
-	pushq	%rax
+	pushq	%rbx
 	.cfi_def_cfa_offset 16
-	cmpl	$10, %edi
-	setge	%al
-	xorl	%ecx, %ecx
-	cmpl	$42, %edi
-	setl	%dl
-	setge	%cl
-	andb	%al, %dl
-	movzbl	%dl, %eax
-	leal	(%rax,%rcx,2), %eax
-	xorl	%ecx, %ecx
-	cmpl	$1000, %edi                     # imm = 0x3E8
-	setge	%cl
-	leal	(%rcx,%rcx,2), %ecx
-	addl	%eax, %ecx
-	movq	my_function_1_table@GOTPCREL(%rip), %rax
-	callq	*(%rax,%rcx,8)
-	popq	%rcx
+	.cfi_offset %rbx, -16
+	movl	%edi, %ebx
+	callq	my_function_1_select_index@PLT
+	cltq
+	movq	my_function_1_table@GOTPCREL(%rip), %rcx
+	movl	%ebx, %edi
+	callq	*(%rcx,%rax,8)
+	popq	%rbx
 	.cfi_def_cfa_offset 8
 	retq
 .Lfunc_end0:
@@ -77,13 +68,43 @@ my_function_1_3:                        # @my_function_1_3
 # %bb.0:                                # %entry
 	pushq	%rax
 	.cfi_def_cfa_offset 16
-	incl	%edi
+	decl	%edi
 	callq	my_function_1@PLT
 	popq	%rcx
 	.cfi_def_cfa_offset 8
 	retq
 .Lfunc_end4:
 	.size	my_function_1_3, .Lfunc_end4-my_function_1_3
+	.cfi_endproc
+                                        # -- End function
+	.globl	my_function_1_select_index      # -- Begin function my_function_1_select_index
+	.p2align	4, 0x90
+	.type	my_function_1_select_index,@function
+my_function_1_select_index:             # @my_function_1_select_index
+	.cfi_startproc
+# %bb.0:                                # %entry
+	cmpl	$10, %edi
+	setge	%al
+	xorl	%ecx, %ecx
+	xorl	%edx, %edx
+	cmpl	$42, %edi
+	setl	%cl
+	setge	%dl
+	andb	%cl, %al
+	movzbl	%al, %eax
+	imull	%eax, %ecx
+	leal	(%rcx,%rdx,2), %ecx
+	xorl	%eax, %eax
+	xorl	%edx, %edx
+	cmpl	$1000, %edi                     # imm = 0x3E8
+	setl	%al
+	setge	%dl
+	leal	(%rdx,%rdx,2), %edx
+	imull	%ecx, %eax
+	addl	%edx, %eax
+	retq
+.Lfunc_end5:
+	.size	my_function_1_select_index, .Lfunc_end5-my_function_1_select_index
 	.cfi_endproc
                                         # -- End function
 	.type	my_function_1_table,@object     # @my_function_1_table

@@ -35,7 +35,7 @@ FILE(GLOB_RECURSE CompilerSourceFiles ${CMAKE_SOURCE_DIR}/Compiler/*.cpp)
 FILE(GLOB_RECURSE StackLoggerSourceFiles ${CMAKE_SOURCE_DIR}/Tools/StackLogger/*.cpp)
 
 add_library(libwarp STATIC) 
-target_sources(libwarp PUBLIC ${SourceFiles}) #${SourceFiles} ${CacheSourceFiles} ${SyntaxNodeFiles})
+target_sources(libwarp PRIVATE ${SourceFiles}) #${SourceFiles} ${CacheSourceFiles} ${SyntaxNodeFiles})
 target_link_libraries(libwarp ${CONAN_LIBS})
 target_precompile_headers(libwarp PUBLIC ${HeaderFiles})
 

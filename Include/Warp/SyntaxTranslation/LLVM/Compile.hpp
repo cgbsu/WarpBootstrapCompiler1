@@ -53,6 +53,7 @@ namespace Warp::SyntaxTranslation::LLVM
 		std::optional<llvm::Function*> retrieve_function(std::string name, const size_t argument_count)
 		{
 			std::string alternative_name = name + std::string{"_"} + std::to_string(argument_count);
+			std::cout << "Looking for " << alternative_name << "\n";
 			if(function_table.contains(alternative_name) == true)
 				return function_table.at(alternative_name);
 			return std::nullopt;

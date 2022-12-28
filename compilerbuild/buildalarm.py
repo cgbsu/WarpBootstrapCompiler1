@@ -6,6 +6,8 @@ import shlex
 import pathlib
 import re
 import argparse
+#from pygame import mixer
+
 
 def poll_process(process):
     while True:
@@ -125,6 +127,12 @@ def main():
                 element_if_not_none(arguments.output_truncate, 1), 
                 element_if_not_none(arguments.print_regex, 0)
             )
+#    try:
+#        mixer.init()
+#        alarm = mixer.Sound("alarm.wav")
+#        alarm.play()
+#    except:
+#        print("Coulden't ring alarm: No audio device found, sorry!")
 
 if __name__ == "__main__":
     main()

@@ -12,32 +12,36 @@ namespace Warp::SyntaxTranslation::LLVM
 	std::optional<llvm::Function*> make_function(
 			Context* constructing_context, 
 			std::string name, 
-			const std::vector<FunctionParameter>& function_parameters, 
+			const std::vector<FunctionParameter>& function_parameters, // TODO: Make this optional? Split into names and types and make types optional?
 			auto generate_return_value, 
-			llvm::Type* return_type
+			llvm::Type* return_type // TODO: Make this optional?
 		)
 	{
-        std::vector<llvm::Type*> parameter_types;
+		std::vector<llvm::Type*> parameter_types;
 		std::vector<std::string> parameter_names;
 		for(const auto& parameter : function_parameters) {
 			parameter_types.push_back(parameter.type);
 			parameter_names.push_back(parameter.name.data());
 		}
-        llvm::FunctionType* function_type = llvm::FunctionType::get(
-				return_type, 
-                parameter_types,
-                false
-            );
-        if(!function_type || function_type == nullptr) {
-            std::cerr << "Error: Invalid function type!\n";
-			return std::nullopt;
+		llvm::Function* function = constructing_context->module.getFunction(name);
+		if(function == nullptr)
+		{
+        	llvm::FunctionType* function_type = llvm::FunctionType::get(
+					return_type, 
+        	        parameter_types,
+        	        false
+        	    );
+        	if(!function_type || function_type == nullptr) {
+        	    std::cerr << "Error: Invalid function type!\n";
+				return std::nullopt;
+			}
+			function = llvm::Function::Create(
+					function_type, 
+					llvm::Function::ExternalLinkage, 
+					name.data(), 
+					constructing_context->module
+				);
 		}
-		llvm::Function* function = llvm::Function::Create(
-				function_type, 
-				llvm::Function::ExternalLinkage, 
-				name.data(), 
-				constructing_context->module
-			);
         constructing_context->symbol_table.clear();
 		size_t ii = 0;
         for(auto& parameter : function->args())
@@ -400,21 +404,37 @@ namespace Warp::SyntaxTranslation::LLVM
 					alternative->get_parameters()
 				);
 			context->replace_names.clear();
-			llvm::Value* next_index = context->builder.CreateMul(
-					context->builder.CreateIntCast(
-							matches_constraint, 
-							index_type, 
-							false
-						), 
-					llvm::ConstantInt::get(index_type, option)
+			llvm::Value* index_matches = context->builder.CreateIntCast(
+					matches_constraint, 
+					index_type, 
+					false, 
+					"index_matches"
+				);
+			llvm::Value* select_next_index = context->builder.CreateMul(
+					index_matches, 
+					llvm::ConstantInt::get(index_type, option), 
+					"select_next_option"
 				);
 			if(option_index == nullptr) {
-				option_index = next_index;
+				option_index = select_next_index;
 			}
-			else {
-				option_index = context->builder.CreateAdd(
+			else
+			{
+				llvm::Value* invert_index_matches = context->builder.CreateIntCast(
+						context->builder.CreateNot(matches_constraint), 
+						index_type, 
+						false, 
+						"invert_index_matches"
+					);
+				llvm::Value* select_previous_index = context->builder.CreateMul(
+						invert_index_matches, 
 						option_index, 
-						next_index
+						"should_select_previous_option"
+					);
+				option_index = context->builder.CreateAdd(
+						select_next_index, 
+						select_previous_index, 
+						"perform_selection"
 					);
 			}
 			++option;
@@ -437,6 +457,7 @@ namespace Warp::SyntaxTranslation::LLVM
 		if(alternative_count <= 0) {
 			return std::nullopt;
 		}
+		llvm::Type* return_type = llvm::Type::getInt32Ty(constructing_context->context);
 		llvm::Type* index_type = llvm::IntegerType::get(
 				constructing_context->context, 
 				bits_in_index
@@ -452,9 +473,57 @@ namespace Warp::SyntaxTranslation::LLVM
 		const auto parameter_names = create_parameter_names(argument_count);
 		const auto parameter_types = list_of_type(constructing_context, argument_count);
 		const auto parameters = zip_to_paramerers(parameter_names, parameter_types);
+		llvm::Value* lookup_table_global = create_lookup_table_global(
+				constructing_context, 
+				top_level_syntax_tree_context, 
+				debug, 
+				name, 
+				argument_count, 
+				alternative_functions
+			);
+		llvm::FunctionType* indexing_function_type = llvm::FunctionType::get(
+				index_type, 
+				llvm::ArrayRef(parameter_types), 
+				false
+			);
+		llvm::FunctionType* function_type = llvm::FunctionType::get(
+				return_type, 
+				llvm::ArrayRef(parameter_types), 
+				false
+			);
 		std::stringstream name_buffer;
 		name_buffer << name << "_" << argument_count;
 		const std::string alternative_name = name_buffer.str();
+		std::optional<llvm::Function*> selection_function_ = make_function(
+				constructing_context, 
+				alternative_name + std::string{"_select_index"}, 
+				parameters.value(), 
+				[&](
+						Context* context, 
+						llvm::Function* function, 
+						std::vector<llvm::Type*> parameter_types, 
+						std::vector<std::string> parameter_names, 
+						llvm::Type* return_type
+					) -> llvm::Value*
+				{
+					llvm::Value* option_index = function_index_value(
+							context, 
+							top_level_syntax_tree_context, 
+							function, 
+							parameter_types, 
+							parameter_names, 
+							index_type, // Return Type
+							index_type, 
+							alternatives, 
+							argument_count, 
+							debug
+						);
+					return option_index;
+				}, 
+				index_type
+			);
+		if(selection_function_.has_value() == false)
+			return std::nullopt;
 		return make_function(
 				constructing_context, 
 				alternative_name, 
@@ -467,39 +536,22 @@ namespace Warp::SyntaxTranslation::LLVM
 						llvm::Type* return_type
 					) -> llvm::Value*
 				{
-						llvm::Value* lookup_table_global = create_lookup_table_global(
-								context, 
-								top_level_syntax_tree_context, 
-								debug, 
-								name, 
-								argument_count, 
-								alternative_functions
-							);
-						llvm::FunctionType* function_type = llvm::FunctionType::get(
-								return_type, 
-								llvm::ArrayRef(parameter_types), 
-								false
-							);
-						llvm::Value* option_index = function_index_value(
-								context, 
-								top_level_syntax_tree_context, 
-								function, 
-								parameter_types, 
-								parameter_names, 
-								return_type, 
-								index_type, 
-								alternatives, 
-								argument_count, 
-								debug
-							);
-						return call_function_pointer_from_array(
-								context, 
-								function, 
-								function_type, 
-								lookup_table_global, 
-								std::vector<llvm::Value*>{option_index}
-							);
-					}, 
+					std::vector<llvm::Value*> indexing_arguments;
+					for(std::string argument_name : parameter_names)
+						indexing_arguments.push_back(context->symbol_table.at(context->to_name(argument_name)));
+					llvm::Value* option_index = context->builder.CreateCall(
+							indexing_function_type, 
+							(llvm::Value*) selection_function_.value(), 
+							indexing_arguments
+						);
+					return call_function_pointer_from_array(
+							context, 
+							function, 
+							function_type, 
+							lookup_table_global, 
+							std::vector<llvm::Value*>{option_index}
+						);
+				}, 
                 llvm::Type::getInt32Ty(constructing_context->context)
 			);
 	}
@@ -527,6 +579,21 @@ namespace Warp::SyntaxTranslation::LLVM
 						= to_translate.get_name() 
 						+ std::string{"_"} 
 						+ std::to_string(argument_count);
+				const auto parameter_types = list_of_type(constructing_context, argument_count);
+				llvm::Function* alternative_declaration = (llvm::Function*)
+						constructing_context->module.getOrInsertFunction( // Declares but does not define the function.
+								alternative_name, 
+								llvm::FunctionType::get(
+										llvm::Type::getInt32Ty(constructing_context->context), 
+										parameter_types, 
+										false 
+									)
+							).getCallee();
+				std::cout << "Submitted {" << alternative_name << "}\n";
+				constructing_context->function_table.insert({ // This is so it can be references by alternative options .//
+						alternative_name, 
+						alternative_declaration	
+					});
 				auto new_alternative_ = translate_alternatives(
 						constructing_context, 
 						top_level_syntax_tree_context, 
@@ -538,10 +605,6 @@ namespace Warp::SyntaxTranslation::LLVM
 				if(new_alternative_.has_value() == false)
 					return std::nullopt;
 				auto new_alternative = new_alternative_.value();
-				constructing_context->function_table.insert({
-						alternative_name, 
-						new_alternative
-					});
 				function.alternatives[argument_count] = new_alternative;
 			}
 			++argument_count;

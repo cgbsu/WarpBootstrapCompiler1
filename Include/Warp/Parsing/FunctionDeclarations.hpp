@@ -191,8 +191,11 @@ namespace Warp::Parsing
 		{
 			return ctpg::rules(
 					intermediate_function_call(identifier, open_parenthesis)
-					>=[](auto name, auto open_parenthesis_) {
-						return std::make_unique<Node<NodeType::FunctionCall>>(std::move(Node<NodeType::FunctionCall>()));
+					>=[](auto name, auto open_parenthesis_)
+					{
+						return std::make_unique<Node<NodeType::FunctionCall>>(
+								std::move(Node<NodeType::FunctionCall>(std::string{name.get_value()}))
+							);
 					}, 
 					function_call(intermediate_function_call, close_parenthesis)
 					>=[](auto&& call, auto clos_parenthesis_) {
