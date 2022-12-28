@@ -1,0 +1,2 @@
+let my_function() { 40u32 + 2u32 };
+

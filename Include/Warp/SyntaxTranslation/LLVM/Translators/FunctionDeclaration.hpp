@@ -494,9 +494,10 @@ namespace Warp::SyntaxTranslation::LLVM
 		std::stringstream name_buffer;
 		name_buffer << name << "_" << argument_count;
 		const std::string alternative_name = name_buffer.str();
+		const std::string alternative_selection_function_name = alternative_name + std::string{"_select_index"};
 		std::optional<llvm::Function*> selection_function_ = make_function(
 				constructing_context, 
-				alternative_name + std::string{"_select_index"}, 
+				alternative_selection_function_name, 
 				parameters.value(), 
 				[&](
 						Context* context, 
@@ -524,7 +525,15 @@ namespace Warp::SyntaxTranslation::LLVM
 			);
 		if(selection_function_.has_value() == false)
 			return std::nullopt;
-		return make_function(
+		llvm::Function* selection_function = selection_function_.value();
+		if(llvm::verifyFunction(*selection_function) == false)
+		{
+			std::cerr << "Error: Failed to verify selection function " 
+						<< alternative_selection_function_name 
+						<< "\n";
+			return std::nullopt;
+		}
+		auto alternative_function_ = make_function(
 				constructing_context, 
 				alternative_name, 
 				parameters.value(), 
@@ -541,7 +550,7 @@ namespace Warp::SyntaxTranslation::LLVM
 						indexing_arguments.push_back(context->symbol_table.at(context->to_name(argument_name)));
 					llvm::Value* option_index = context->builder.CreateCall(
 							indexing_function_type, 
-							(llvm::Value*) selection_function_.value(), 
+							(llvm::Value*) selection_function, 
 							indexing_arguments
 						);
 					return call_function_pointer_from_array(
@@ -554,6 +563,17 @@ namespace Warp::SyntaxTranslation::LLVM
 				}, 
                 llvm::Type::getInt32Ty(constructing_context->context)
 			);
+		if(alternative_function_.has_value() == false)
+			return std::nullopt;
+		llvm::Function* alternative_function = alternative_function_.value();
+		if(llvm::verifyFunction(*alternative_function_.value()) == false)
+		{
+			std::cerr << "Error: Failed to verify alternative function " 
+						<< alternative_function
+						<< "\n";
+			return std::nullopt;
+		}
+		return alternative_function;
 	}
 
 	struct WarpLLVMFunction {

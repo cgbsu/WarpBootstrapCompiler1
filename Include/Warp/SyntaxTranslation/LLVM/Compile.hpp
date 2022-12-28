@@ -1,4 +1,5 @@
 #include <Warp/Runtime/Compiler/SimpleExecutor.hpp>
+#include <filesystem>
 
 #include <llvm/ADT/APFloat.h>
 #include <llvm/ADT/APFixedPoint.h>
@@ -15,6 +16,14 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/ADT/STLExtras.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Target/TargetMachine.h>
 
 #ifndef WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__COMPILE__HPP
 #define WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__COMPILE__HPP
@@ -116,6 +125,41 @@ namespace Warp::SyntaxTranslation::LLVM
 				}
 			>(node->to_view(), top_level_syntax_tree_context, constructing_context, debug);
 	}
+
+	const static std::string default_cpu = "generic";
+	const static std::string default_features = "";
+	const static llvm::TargetOptions default_options;
+	const static llvm::Optional<llvm::Reloc::Model> default_reloc_model = llvm::Optional<llvm::Reloc::Model>();
+	const static bool default_debug = false;
+
+	void initialize_llvm();
+
+	std::optional<llvm::TargetMachine*> initialize_target(
+			llvm::Module& to_compile, 
+			std::string target_triple, 
+			std::string target_cpu = default_cpu, 
+			std::string target_features = default_features, 
+			llvm::TargetOptions target_options = default_options, 
+			llvm::Optional<llvm::Reloc::Model> target_reloc_model = default_reloc_model
+		);
+
+	bool write_object_file(
+			std::filesystem::path output_file_path, 
+			llvm::Module& to_write, 
+			llvm::TargetMachine* target_machine
+		);
+
+	bool compile(
+			Context* context, 
+			std::string code, 
+			std::filesystem::path output_file_path, 
+			std::string target_triple, 
+			std::string target_cpu = default_cpu, 
+			std::string target_features = default_features, 
+			llvm::TargetOptions target_options = default_options, 
+			llvm::Optional<llvm::Reloc::Model> target_reloc_model = default_reloc_model, 
+			bool debug = default_debug
+		);
 }
 #endif // WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__COMPILE__HPP
 
