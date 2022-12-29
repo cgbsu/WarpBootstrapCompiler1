@@ -107,3 +107,15 @@
 10600	16534	1672271259572883889	bin/warp_compiler	77efef3a240c414e
 2	9273	1672271271404903307	CMakeFiles/warp_compiler.dir/Compiler/Main.cpp.o	5eb0d315fcfe48f7
 9273	15312	1672271277420913180	bin/warp_compiler	77efef3a240c414e
+1	6379	1672273010006394745	CMakeFiles/libwarp.dir/Source/Cache/FunctionDeclarationsCache.cpp.o	b7a6615c81302151
+1	8577	1672273012198396396	CMakeFiles/libwarp.dir/Source/SyntaxNodes/LogicalExpression.cpp.o	d63bdced9412c9df
+8577	8645	1672273012274396453	lib/liblibwarp.a	36cd1b8bfea8a0a3
+2	694694	1672273698034912937	CMakeFiles/warp_compiler.dir/Compiler/FunctionParser.cpp.o	c498e713c49ff32a
+694694	700549	1672273704126917525	bin/warp_compiler	77efef3a240c414e
+1	7262	1672284669910192532	CMakeFiles/libwarp.dir/Source/Cache/MathematicalExpressionsCache.cpp.o	54aca8202d54cf43
+1	7299	1672284669946192222	CMakeFiles/libwarp.dir/Source/Cache/BooleanExpressionsCache.cpp.o	b5ba2cc7d070efa3
+1	7309	1672284669958192119	CMakeFiles/libwarp.dir/Source/Cache/FunctionDeclarationsCache.cpp.o	b7a6615c81302151
+2	9489	1672284672130173418	CMakeFiles/libwarp.dir/Source/SyntaxNodes/LogicalExpression.cpp.o	d63bdced9412c9df
+9490	9598	1672284672246172419	lib/liblibwarp.a	36cd1b8bfea8a0a3
+11	1360643	1672287203766848601	CMakeFiles/warp_compiler.dir/Compiler/FunctionParser.cpp.o	c498e713c49ff32a
+1360643	1368755	1672287212170854157	bin/warp_compiler	77efef3a240c414e

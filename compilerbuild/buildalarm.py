@@ -6,7 +6,6 @@ import shlex
 import pathlib
 import re
 import argparse
-#from pygame import mixer
 
 
 def poll_process(process):
@@ -108,6 +107,9 @@ def main():
     parser.add_argument("--output_file_truncate", "-oft", type=int, nargs=2, 
             help = "2 integers, how may characters to keep from the front, and back in lines sent too the log file?"
         )
+    parser.add_argument("--enable_bell", "-eb", type=bool, nargs=2, 
+            help = "Play a \"bell\" sound when done with the process?"
+        )
     arguments = parser.parse_args()
     process = subprocess.Popen(shlex.split(arguments.command[0]), shell=False, stdout=subprocess.PIPE)
     output_file_name = str(arguments.output)
@@ -127,12 +129,14 @@ def main():
                 element_if_not_none(arguments.output_truncate, 1), 
                 element_if_not_none(arguments.print_regex, 0)
             )
-#    try:
-#        mixer.init()
-#        alarm = mixer.Sound("alarm.wav")
-#        alarm.play()
-#    except:
-#        print("Coulden't ring alarm: No audio device found, sorry!")
+    if element_if_not_none(arguments.enable_bell, False) == True: 
+        try:
+            from pygame import mixer
+            mixer.init()
+            alarm = mixer.Sound("alarm.wav")
+            alarm.play()
+        except:
+            print("Coulden't ring alarm: No audio device found, sorry!")
 
 if __name__ == "__main__":
     main()
