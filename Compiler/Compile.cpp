@@ -111,11 +111,11 @@ namespace Warp::SyntaxTranslation::LLVM
 			std::string code, 
 			std::filesystem::path output_file_path, 
 			std::string target_triple, 
+			bool debug, 
 			std::string target_cpu, 
 			std::string target_features, 
 			llvm::TargetOptions target_options, 
-			llvm::Optional<llvm::Reloc::Model> target_reloc_model, 
-			bool debug
+			llvm::Optional<llvm::Reloc::Model> target_reloc_model
 		)
 	{
 		auto parse_result_ = parse_context(code);
@@ -126,6 +126,8 @@ namespace Warp::SyntaxTranslation::LLVM
 		const auto parsed_context = std::move(parse_result_.value());
 		for(const auto& function : parsed_context.functions)
 		{
+			if(debug == true)
+				std::cout << "Compiling Function: " << function.first << "\n";
 			auto llvm_function_ = translate_function(
 					context, 
 					&parsed_context, 

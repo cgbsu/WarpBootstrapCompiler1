@@ -12,9 +12,12 @@ std::optional<std::string> read_file(std::filesystem::path file_path);
 
 int main(int argc, char** args)
 {
+	bool debug = false;
 	auto warp_code_path = std::filesystem::path("Warp") / "Test0.warp";
 	if(argc >= 2)
 		warp_code_path = std::filesystem::path(args[1]);
+	if(argc >= 3)
+		debug = (std::string{args[2]} == "true");
 	std::cout << "Warp Code Path: " << warp_code_path << "\n";
 	auto warp_code_ = read_file(warp_code_path);
 	if(warp_code_.has_value() == false)
@@ -27,7 +30,7 @@ int main(int argc, char** args)
 	std::cout << "Object Code Path: " << object_code_path << "\n";
 	const static std::string default_triple = llvm::sys::getDefaultTargetTriple();
 	std::cout << "Compiling With Triplet: " << default_triple << "\n";
-	bool success = LLVM::compile(&context, warp_code_.value(), object_code_path, default_triple);
+	bool success = LLVM::compile(&context, warp_code_.value(), object_code_path, default_triple, debug);
 	if(success == true)
 		std::cout << "Success!\n";
 	else

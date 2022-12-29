@@ -154,11 +154,11 @@ namespace Warp::SyntaxTranslation::LLVM
 			std::string code, 
 			std::filesystem::path output_file_path, 
 			std::string target_triple, 
+			bool debug = default_debug, 
 			std::string target_cpu = default_cpu, 
 			std::string target_features = default_features, 
 			llvm::TargetOptions target_options = default_options, 
-			llvm::Optional<llvm::Reloc::Model> target_reloc_model = default_reloc_model, 
-			bool debug = default_debug
+			llvm::Optional<llvm::Reloc::Model> target_reloc_model = default_reloc_model
 		);
 }
 #endif // WARP__SYNTAX__TRANSLATTION__HEADER__WARP__SYNTAX_TRANSLATION__LLVM__COMPILE__HPP
