@@ -43,4 +43,5 @@ compilerbuild/
 Old/
 trace/
 ./cache/
+Warp/warp_compiler
 
