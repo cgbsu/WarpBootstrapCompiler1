@@ -1,0 +1,2 @@
+let my_function() { 40i32 + 2i32 };
+

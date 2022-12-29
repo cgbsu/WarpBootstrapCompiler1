@@ -583,6 +583,15 @@ namespace Warp::Parsing
 								std::move(left), 
 								std::move(term)
 							);
+					}, 
+					to_term(from_term, operator_term, function_call)
+					>= [](auto left, auto, auto right)
+					{
+						auto term = Term{std::move(right)};
+						return OperateParameterConstant(
+								std::move(left), 
+								std::move(term)
+							);
 					}
 				);
 		}
@@ -626,6 +635,15 @@ namespace Warp::Parsing
 								std::move(term), 
 								std::move(right)
 							);
+					}, 
+					operation_term(function_call, operator_term, math_term)
+					>= [](auto left, auto, auto right)
+					{
+						auto term = Sum{std::move(left)};
+						return OperateParameterConstant(
+								std::move(term), 
+								std::move(right)
+							);
 					}
 				);
 		}
@@ -638,13 +656,20 @@ namespace Warp::Parsing
 					math_term(open_parenthesis, sum, close_parenthesis)
 					>= [](auto left, auto sum, auto right) { return Term{std::move(sum.node)}; }, 
 					math_term(open_parenthesis, identifier, close_parenthesis)
-					>= [](auto left, auto sum, auto right) { return Term{std::move(constant_call(std::string{right}))}; }
+					>= [](auto left, auto constant, auto right) { return Term{std::move(constant_call(std::string{constant}))}; }, 
+					math_term(open_parenthesis, function_call, close_parenthesis)
+					>= [](auto left, auto function_call_, auto right) { return Term{std::move(function_call_)}; }
 				);
 		}
 
 		constexpr static const auto identifier_to_math_term
 				= math_term(identifier) >= [](auto identifier) {
 					return constant_call(std::string{identifier});
+				};
+		
+		constexpr static const auto function_call_to_math_term 
+				= math_term(function_call) >= [](auto function_call_) {
+					return std::move(function_call);
 				};
 
 		constexpr static const auto input_to_math_term 
