@@ -18,7 +18,7 @@ society.
 We build software to further this vision of a just world, or at the very least, to not put that
 vision further from reach.
 
-To note: while we wish to retain human rights and want to see them contribute the outlined vison, there is an exception provided against [Universal Declaration of Human Rights](./documents/UDHR.md) and the [Convention on the Rights of the Child](./documents/CRC.md), because some interpretations may allow for euthanasia and or abortion which are intentionally prevented by this license. This is meant to be limited in scope and is not intended as a condemnation of human rights, but: 
+To note: while we wish to retain human rights and want to see them contribute the outlined vison, there is an exception provided against [Universal Declaration of Human Rights](./documents/UDHR.md) and the [Convention on the Rights of the Child](./documents/CRC.md), because this License intends to uphold the Consistent Life Ethic and some interpretations of UN Human Rights may allow for or mandate the protection of euthanasia and or abortion, actions which this License intentionally protects the developers from inadvertently cooperating with through the use of their work. This is meant to be limited in scope and is not intended as a condemnation of human rights, but: 
  * Prevents "Pro Life" organizations or individuals from being unable to use the Work
  * Takes a position on how human rights should be interpreted (which does not have to be shared by organizations or individuals utilizing or redistributing this work)
  * Takes a position on human rights when they allow people to terminate Human Life or kill
