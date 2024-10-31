@@ -185,7 +185,7 @@ conditions:
       * termination of Human Life
    ; and
 
-6. This software must never be used in any act, or service which terminates Human Life including: Abortion, Euthenization or the enforcement of law, military operation (which terminates Human Life), support of a military operation (which terminates Human Life), nor may it be used as a part of any lethal weapon.
+6. This software must never be used in any act, or service which terminates Human Life including: Abortion, Euthenization, the enforcement of law (if it terminates Human Life), military operation (if it terminates Human Life), support of a military operation (if it terminates Human Life), nor may it be used as a part of any lethal weapon.
 
 7. Pre - Natal Life is a form of Human Life, all terms and conditions that apply to Human Life also apply to Pre - Natal Life
    
